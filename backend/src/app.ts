@@ -28,4 +28,4 @@ app.use(
   })
 )
 
-export default express
+export { app }
