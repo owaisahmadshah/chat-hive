@@ -70,3 +70,6 @@ jest-coverage/
 *.iml
 *.sublime-workspace
 *.sublime-project
+
+#some random files
+statusCode.md
