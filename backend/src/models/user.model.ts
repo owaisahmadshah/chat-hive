@@ -1,26 +1,37 @@
-import mongoose, { Document, Schema, } from "mongoose"
+import mongoose, { Document, Schema } from "mongoose"
 
-interface userInterface extends Document {
+interface userDocument extends Document {
   clerkId: string
+  fullName: String
+  email: String
+  imageUrl: String
   lastSeen: Date
+  lastSignInAt: Date
   createdAt: Date
   updatedAt: Date
 }
 
-const userSchema = new Schema<userInterface>(
+const userSchema = new mongoose.Schema<userDocument>(
   {
-    clerkId: {
+    clerkId: { type: String, required: true, unique: true },
+    fullName: String,
+    email: {
       type: String,
-      required: true,
+      unique: true,
+      index: true,
     },
+    imageUrl: String,
     lastSeen: {
       type: Date,
-      default: Date.now(),
+      Default: Date.now(),
+    },
+    lastSignInAt: {
+      type: Date,
+      Default: Date.now(),
     },
   },
   {
     timestamps: true,
   }
 )
-
 export const User = mongoose.model("User", userSchema)

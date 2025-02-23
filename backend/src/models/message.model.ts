@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose"
 
-interface messageInterface extends Document {
+interface messageDocument extends Document {
   sender: Schema.Types.ObjectId
   deletedBy: Schema.Types.ObjectId[]
   chatId: Schema.Types.ObjectId
@@ -11,12 +11,13 @@ interface messageInterface extends Document {
   updatedAt: Date
 }
 
-const messageSchema = new Schema<messageInterface>(
+const messageSchema = new Schema<messageDocument>(
   {
     sender: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     deletedBy: {
       type: [Schema.Types.ObjectId],
@@ -25,6 +26,7 @@ const messageSchema = new Schema<messageInterface>(
     chatId: {
       type: Schema.Types.ObjectId,
       ref: "Chat",
+      index: true,
     },
     message: {
       type: "String",
@@ -44,7 +46,4 @@ const messageSchema = new Schema<messageInterface>(
   }
 )
 
-export const Message = mongoose.model<messageInterface>(
-  "Message",
-  messageSchema
-)
+export const Message = mongoose.model<messageDocument>("Message", messageSchema)

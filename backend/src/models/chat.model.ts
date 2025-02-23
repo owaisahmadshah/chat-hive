@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose"
 
-interface chatInterface extends Document {
+interface chatDocument extends Document {
   admin: Schema.Types.ObjectId
   users: Schema.Types.ObjectId[]
   deletedBy: Schema.Types.ObjectId[]
@@ -8,12 +8,13 @@ interface chatInterface extends Document {
   updatedAt: Date
 }
 
-const chatSchema = new Schema<chatInterface>(
+const chatSchema = new Schema<chatDocument>(
   {
     admin: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     users: [
       {
@@ -33,4 +34,4 @@ const chatSchema = new Schema<chatInterface>(
   }
 )
 
-export const Chat = mongoose.model<chatInterface>("Chat", chatSchema)
+export const Chat = mongoose.model<chatDocument>("Chat", chatSchema)

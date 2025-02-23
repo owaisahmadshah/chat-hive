@@ -1,23 +1,24 @@
 import mongoose, { Schema, Document } from "mongoose"
 
-interface contactInterface extends Document {
+interface contactDocument extends Document {
   userId: Schema.Types.ObjectId
   email: string
   createdAt: Date
   updatedAt: Date
 }
 
-const contactSchema = new Schema<contactInterface>({
+const contactSchema = new Schema<contactDocument>({
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
+    index: true,
   },
   email: {
     type: String,
   },
 })
 
-export const Contact = mongoose.model<contactInterface>(
+export const Contact = mongoose.model<contactDocument>(
   "Contact",
   contactSchema
 )
