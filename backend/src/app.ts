@@ -1,5 +1,6 @@
 import express from "express"
 import morgan from "morgan"
+import cors from "cors"
 
 import logger from "./logger.js"
 
@@ -7,6 +8,10 @@ const app = express()
 
 const morganFormat = ":method :url :status :response-time ms"
 
+app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }))
+app.use(express.json({ limit: "16kb" }))
+app.use(express.urlencoded({ extended: true, limit: "16kb" }))
+app.use(express.static("public"))
 app.use(
   morgan(morganFormat, {
     stream: {
