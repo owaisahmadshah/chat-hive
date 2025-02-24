@@ -30,8 +30,10 @@ app.use(
 
 // import routes
 import healthCheckRouter from "./routes/healthCheck.route.js"
+import chatRoute from "./routes/chat.route.js"
 
 // routes
 app.use("/api/v1/healthcheck", healthCheckRouter)
+app.use("/api/v1/chat", chatRoute)
 
 export { app }
