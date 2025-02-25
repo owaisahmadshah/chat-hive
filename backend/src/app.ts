@@ -31,9 +31,11 @@ app.use(
 // import routes
 import healthCheckRouter from "./routes/healthCheck.route.js"
 import chatRoute from "./routes/chat.route.js"
+import messageRoute from "./routes/message.route.js"
 
 // routes
 app.use("/api/v1/healthcheck", healthCheckRouter)
 app.use("/api/v1/chat", chatRoute)
+app.use("/api/v1/message", messageRoute)
 
 export { app }
