@@ -14,7 +14,7 @@ import { Message } from "../models/message.model.js"
  * @param {Response} res - Express response object to return message details
  */
 const createMessage = asyncHandler(async (req: Request, res: Response) => {
-  const { sender, chatId, message, photoUrl, status } = await req.body
+  const { sender, chatId, message, status } = await req.body
 
   //TODO remove this ignore
   //@ts-ignore
