@@ -4,6 +4,8 @@ import { asyncHandler } from "../utils/AsyncHandler.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { Chat } from "../models/chat.model.js"
 import logger from "../logger.js"
+import mongoose from "mongoose"
+import { Message } from "../models/message.model.js"
 
 /**
  * @desc    Create a new chat if it doesn't exist or return the existing chat.
@@ -89,4 +91,146 @@ const deleteChat = asyncHandler(async (req: Request, res: Response) => {
   return res.status(201).json(new ApiResponse(201, {}, "Success"))
 })
 
-export { createChat, deleteChat }
+/**
+ * @desc    Get all the chats.
+ * @route   POST /api/v1/chat/get
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing chats details (userId)
+ * @param {Response} res - Express response object contains all the chats and messages of a user
+ */
+const getChatsAndMessages = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { userId } = await req.body
+
+    // TODO check why here we have to convert ids and why we don't heve to change getMessages()
+    const objectId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
+      userId
+    )
+    const chatsPipeline = [
+      {
+        $match: {
+          users: objectId,
+          deletedBy: { $ne: objectId },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "users",
+          foreignField: "_id",
+          as: "users",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "admin",
+          foreignField: "_id",
+          as: "admin",
+        },
+      },
+      {
+        $sort: {
+          updatedAt: -1,
+        },
+      },
+      {
+        $addFields: {
+          admin: {
+            $arrayElemAt: ["$admin", 0],
+          },
+          chatUser: {
+            $cond: {
+              if: {
+                $eq: ["$users[0]._id", objectId],
+              },
+              then: {
+                $arrayElemAt: ["$users", 0],
+              },
+              else: {
+                $arrayElemAt: ["$users", 1],
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          admin: 1,
+          chatUser: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ]
+
+    // TODO Check for error
+    //@ts-ignore
+    let chats = await Chat.aggregate(chatsPipeline)
+
+    /**
+     * Getting all the messages of the chats, which user hasn't deleted
+     * Store them inside the chats
+     */
+    for (let i = 0; i < chats?.length; i++) {
+      const chatMessages = await getMessages(
+        chats[i]._id.toString(),
+        userId.toString()
+      )
+      chats[i].messages = [...chatMessages]
+    }
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, chats, "Success"))
+  }
+)
+
+const getMessages = async (chatId: string, userid: string) => {
+  const userId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(userid)
+
+  const pipeline = [
+    {
+      $match: {
+        chatId: chatId,
+        deletedBy: { $ne: userId },
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "sender",
+        foreignField: "_id",
+        as: "sender",
+      },
+    },
+    {
+      $sort: {
+        createdAt: -1,
+      },
+    },
+    {
+      $limit: 50,
+    },
+    {
+      $project: {
+        sender: 1,
+        chatId: 1,
+        message: 1,
+        photoUrl: 1,
+        status: 1,
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    },
+  ]
+
+  // TODO Check for error
+  //@ts-ignore
+  const messages = await Message.aggregate(pipeline)
+  return messages
+}
+
+export { createChat, deleteChat, getChatsAndMessages }
