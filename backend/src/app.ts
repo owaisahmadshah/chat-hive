@@ -32,10 +32,12 @@ app.use(
 import healthCheckRouter from "./routes/healthCheck.route.js"
 import chatRoute from "./routes/chat.route.js"
 import messageRoute from "./routes/message.route.js"
+import userRouter from "./routes/user.route.js"
 
 // routes
 app.use("/api/v1/healthcheck", healthCheckRouter)
 app.use("/api/v1/chat", chatRoute)
 app.use("/api/v1/message", messageRoute)
+app.use("/api/v1/webhook", userRouter)
 
 export { app }
