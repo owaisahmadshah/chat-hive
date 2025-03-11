@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/AsyncHandler.js"
 import { uploadOnCloudinary } from "../utils/Cloudinary.js"
 import logger from "../logger.js"
 import { Message } from "../models/message.model.js"
+import { Chat } from "../models/chat.model.js"
 
 /**
  * @desc    Create a new message.
@@ -42,6 +43,11 @@ const createMessage = asyncHandler(async (req: Request, res: Response) => {
   })
 
   logger.info("Created new message successfully")
+
+  await Chat.findByIdAndUpdate(chatId, {
+    lastMessage: newMessage._id,
+    updatedAt: new Date(),
+  })
 
   return res
     .status(201)

@@ -4,6 +4,7 @@ interface chatDocument extends Document {
   admin: Schema.Types.ObjectId
   users: Schema.Types.ObjectId[]
   deletedBy: Schema.Types.ObjectId[]
+  lastMessage: Schema.Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }
@@ -22,6 +23,10 @@ const chatSchema = new Schema<chatDocument>(
         ref: "User",
       },
     ],
+    lastMessage: {
+      type: Schema.Types.ObjectId,
+      ref: "Message",
+    },
     deletedBy: [
       {
         type: Schema.Types.ObjectId,

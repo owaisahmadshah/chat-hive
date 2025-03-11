@@ -51,6 +51,7 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
   chat = await Chat.create({
     admin,
     users,
+    lastMessage: null,
   })
 
   logger.info(`New chat created with ID: ${chat._id}`)
@@ -85,7 +86,11 @@ const deleteChat = asyncHandler(async (req: Request, res: Response) => {
 
   if (deletedChat?.deletedBy) {
     deletedChat.deletedBy = [...deletedChat.deletedBy, userId]
+  } else {
+    deletedChat.deletedBy = [userId]
   }
+
+  await deletedChat.save()
 
   // TODO: Implement functionality to delete messages for this user in the chat
   return res.status(201).json(new ApiResponse(201, {}, "Success"))
@@ -131,6 +136,14 @@ const getChatsAndMessages = asyncHandler(
         },
       },
       {
+        $lookup: {
+          from: "messages",
+          localField: "lastMessage",
+          foreignField: "_id",
+          as: "lastMessage",
+        },
+      },
+      {
         $sort: {
           updatedAt: -1,
         },
@@ -160,6 +173,7 @@ const getChatsAndMessages = asyncHandler(
           _id: 1,
           admin: 1,
           chatUser: 1,
+          lastMessage: 1,
           createdAt: 1,
           updatedAt: 1,
         },
