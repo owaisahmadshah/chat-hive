@@ -90,9 +90,25 @@ const deleteChat = asyncHandler(async (req: Request, res: Response) => {
     deletedChat.deletedBy = [userId]
   }
 
+  const deleteMessagesOptions = [
+    {
+      updateMany: {
+        filter: {
+          chatId: deletedChat._id,
+        },
+        update: {
+          $push: {
+            deletedBy: userId
+          }
+        }
+      }
+    }
+  ]
+
+  await Message.bulkWrite(deleteMessagesOptions)
+
   await deletedChat.save()
 
-  // TODO: Implement functionality to delete messages for this user in the chat
   return res.status(201).json(new ApiResponse(201, {}, "Success"))
 })
 
@@ -196,9 +212,7 @@ const getChatsAndMessages = asyncHandler(
       chats[i].messages = [...chatMessages]
     }
 
-    return res
-      .status(200)
-      .json(new ApiResponse(200, chats, "Success"))
+    return res.status(200).json(new ApiResponse(200, chats, "Success"))
   }
 )
 
