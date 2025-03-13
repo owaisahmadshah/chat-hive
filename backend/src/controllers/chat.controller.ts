@@ -3,7 +3,7 @@ import type { Request, Response } from "express"
 import { asyncHandler } from "../utils/AsyncHandler.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { Chat } from "../models/chat.model.js"
-import logger from "../logger.js"
+import logger from "../utils/logger.js"
 import mongoose from "mongoose"
 import { Message } from "../models/message.model.js"
 

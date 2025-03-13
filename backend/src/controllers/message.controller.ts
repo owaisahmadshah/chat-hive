@@ -2,7 +2,7 @@ import type { Request, Response } from "express"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/AsyncHandler.js"
 import { uploadOnCloudinary } from "../utils/Cloudinary.js"
-import logger from "../logger.js"
+import logger from "../utils/logger.js"
 import { Message } from "../models/message.model.js"
 import { Chat } from "../models/chat.model.js"
 

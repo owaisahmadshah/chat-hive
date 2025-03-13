@@ -2,7 +2,7 @@ import type { Request, Response } from "express"
 import { Webhook } from "svix"
 
 import { asyncHandler } from "../utils/AsyncHandler.js"
-import logger from "../logger.js"
+import logger from "../utils/logger.js"
 import { ApiError } from "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js"

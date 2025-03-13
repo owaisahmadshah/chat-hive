@@ -2,7 +2,7 @@ import { createServer } from "http"
 import { Server, Socket } from "socket.io"
 
 import { app } from "../app.js"
-import logger from "../logger.js"
+import logger from "../utils/logger.js"
 import {
   NEW_MESSAGE,
   NEW_CHAT,
@@ -12,7 +12,7 @@ import {
   JOIN_CHAT,
   USER_CONNECTED,
   USER_DISCONNECTED,
-} from "../constants.js"
+} from "../utils/constants.js"
 
 interface User {
   userId: string

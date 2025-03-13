@@ -2,7 +2,7 @@ import express from "express"
 import morgan from "morgan"
 import cors from "cors"
 
-import logger from "./logger.js"
+import logger from "./utils/logger.js"
 
 const app = express()
 
