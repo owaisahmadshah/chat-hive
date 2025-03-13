@@ -1,5 +1,5 @@
 import dbConnect from "./db/dbConnect.js"
-import { socketHttpServer } from "./socketConnection.js"
+import { socketHttpServer } from "./services/socket.js"
 import logger from "./logger.js"
 
 const PORT = process.env.PORT
