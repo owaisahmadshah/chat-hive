@@ -2,6 +2,7 @@
 import { SignInButton } from "@clerk/clerk-react";
 
 export default function ContinueWithGoogle() {
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Navigation */}
@@ -24,7 +25,7 @@ export default function ContinueWithGoogle() {
           {/* <ModeToggle /> */}
         </div>
         <div>
-          <SignInButton mode="modal">
+          <SignInButton>
             <button className="px-4 py-2 rounded-full bg-white dark:text-gray-700 text-primary border border-primary hover:bg-primary hover:text-white transition-colors duration-300 shadow-sm">
               Log In
             </button>
@@ -42,7 +43,7 @@ export default function ContinueWithGoogle() {
             Real-time messaging, group chats, and media sharing in one beautiful, secure platform.
           </p>
           <div className="pt-4">
-            <SignInButton mode="modal">
+            <SignInButton>
               <button className="px-8 py-3 rounded-full bg-primary text-white dark:text-gray-700 hover:bg-primary/90 transition-colors duration-300 shadow-md text-lg font-medium">
                 Get Started
               </button>
@@ -128,5 +129,5 @@ export default function ContinueWithGoogle() {
         <p>© {new Date().getFullYear()} Chat Hive. All rights reserved.</p>
       </footer>
     </div>
-  );
+  )
 }
