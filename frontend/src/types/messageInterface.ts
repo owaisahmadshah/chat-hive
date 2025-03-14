@@ -1,7 +1,8 @@
-// TODO update sender it will contain all the info of the sender
+import { ChatUser } from "@/types/chatInterfaces"
+
 export interface Message {
   messageId: string
-  sender: string
+  sender: ChatUser
   chatId: string
   message: string
   photoUrl: string

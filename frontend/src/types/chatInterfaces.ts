@@ -1,9 +1,14 @@
-// TODO update admin and users they will contain all the users data
+export interface ChatUser {
+  userId: string
+  email: string
+  imageUrl: string
+  lastSeen: Date
+}
 
 export interface Chat {
   chatId: string
-  admin: string
-  users: string[]
+  admin: ChatUser
+  users: ChatUser[]
   lastMessage?: string
   updatedAt: Date | null
 }
