@@ -1,3 +1,5 @@
+// TODO update admin and users they will contain all the users data
+
 export interface Chat {
   chatId: string
   admin: string
