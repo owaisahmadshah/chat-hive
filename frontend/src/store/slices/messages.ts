@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { MessagesState, Message } from "@/types/messageInterface"
+import { MessagesState, Message } from "@/types/message-interface"
 
 const initialState: MessagesState = {}
 

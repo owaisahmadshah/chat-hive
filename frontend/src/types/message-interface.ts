@@ -1,4 +1,4 @@
-import { ChatUser } from "@/types/chatInterfaces"
+import { ChatUser } from "@/types/chat-interface"
 
 export interface Message {
   messageId: string

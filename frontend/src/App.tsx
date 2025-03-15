@@ -1,7 +1,7 @@
 import { SignedIn, SignedOut } from "@clerk/clerk-react"
 
-import ContinueWithGoogle from "@/features/auth/ContinueWithGoogle"
-import ChatSection from "@/features/chat-section/ChatSection"
+import ContinueWithGoogle from "@/features/auth/continue-with-google-landing-page"
+import ChatSection from "@/features/chat-section/chat-section"
 
 function App() {
   return (<>
