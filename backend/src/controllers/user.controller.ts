@@ -138,4 +138,17 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   }
 })
 
-export { createUser, deleteUser }
+const getUser = asyncHandler(async (req: Request, res: Response) => {
+  const { userClerkId } = await req.body
+
+  const user = await User.findOne({ clerkId: userClerkId }).select(
+    "userId fullName email imageUrl isLoading"
+  )
+
+  if (!user) {
+    return new ApiError(404, "User not found")
+  }
+
+  return new ApiResponse(200, user, "Success")
+})
+export { createUser, deleteUser, getUser }
