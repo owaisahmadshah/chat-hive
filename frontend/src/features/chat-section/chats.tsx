@@ -6,7 +6,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { setSelectedChat } from '@/store/slices/chats'
-import { ModeToggle } from '@/components/mode-toggle'
 
 const Chats = () => {
 
@@ -56,7 +55,6 @@ const Chats = () => {
 
   return (
     <ScrollArea className="box-border border-r border-l h-[84vh]">
-      <ModeToggle />
       <ul className="flex flex-col max-h-[84vh]">
         {
           !chats.isLoading &&
