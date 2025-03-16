@@ -169,7 +169,9 @@ const getChatsAndMessages = asyncHandler(
           admin: {
             $arrayElemAt: ["$admin", 0],
           },
-          users: {
+        /*
+        //* If you want other user user this
+        users: {
             $cond: {
               if: {
                 $eq: ["$users[0]._id", objectId],
@@ -181,7 +183,7 @@ const getChatsAndMessages = asyncHandler(
                 $arrayElemAt: ["$users", 1],
               },
             },
-          },
+          }, */
         },
       },
       {
