@@ -142,7 +142,7 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
   const { clerkId } = await req.body
 
   const user = await User.findOne({ clerkId }).select(
-    "userId fullName email imageUrl isLoading"
+    "_id fullName email imageUrl isLoading"
   )
 
   if (!user) {
