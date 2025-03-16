@@ -149,6 +149,6 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
     return new ApiError(404, "User not found")
   }
 
-  return new ApiResponse(200, user, "Success")
+  return res.status(200).json(new ApiResponse(200, user, "Success"))
 })
 export { createUser, deleteUser, getUser }
