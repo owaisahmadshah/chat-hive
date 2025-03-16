@@ -35,7 +35,7 @@ const chatsSlice = createSlice({
     deleteChat: (state, action: PayloadAction<string>) => {
       state.chats = state.chats.filter((chat) => chat._id !== action.payload)
     },
-    setSelectedChat: (state, action: PayloadAction<string | null>) => {
+    setSelectedChat: (state, action: PayloadAction<Chat | null>) => {
       state.selectedChatId = action.payload
     },
     setLoading: (state, action: PayloadAction<boolean>) => {

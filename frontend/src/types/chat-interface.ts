@@ -15,7 +15,7 @@ export interface Chat {
 
 export interface ChatsState {
   chats: Chat[]
-  selectedChatId: string | null
+  selectedChatId: Chat | null
   isLoading: boolean
   error: string | null
 }

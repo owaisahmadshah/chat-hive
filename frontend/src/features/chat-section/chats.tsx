@@ -15,7 +15,7 @@ const Chats = () => {
 
 
   const handleClickedChat = (selectedChat: Chat) => {
-    dispatch(setSelectedChat(selectedChat._id))
+    dispatch(setSelectedChat(selectedChat))
   }
 
   function chatName(chatUsersList: ChatUser[]) {
