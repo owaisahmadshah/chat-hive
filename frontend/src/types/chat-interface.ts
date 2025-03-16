@@ -1,5 +1,5 @@
 export interface ChatUser {
-  userId: string
+  _id: string
   email: string
   imageUrl: string
   lastSeen: Date
