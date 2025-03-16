@@ -39,7 +39,7 @@ const messagesSlice = createSlice({
 
       if (state[chatId]) {
         const messageIndex = state[chatId].findIndex(
-          (msg) => msg.messageId === messageId
+          (msg) => msg._id === messageId
         )
 
         if (messageIndex !== -1) {
@@ -58,7 +58,7 @@ const messagesSlice = createSlice({
 
       if (state[chatId]) {
         state[chatId] = state[chatId].filter(
-          (message) => message.messageId !== messageId
+          (message) => message._id !== messageId
         )
       }
     },

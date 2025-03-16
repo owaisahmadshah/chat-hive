@@ -6,7 +6,7 @@ export interface ChatUser {
 }
 
 export interface Chat {
-  chatId: string
+  _id: string
   admin: ChatUser
   users: ChatUser[]
   lastMessage?: string

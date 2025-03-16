@@ -26,14 +26,14 @@ const chatsSlice = createSlice({
       action: PayloadAction<{ chatId: string; updates: Partial<Chat> }>
     ) => {
       const { chatId, updates } = action.payload
-      const chatIndex = state.chats.findIndex((chat) => chat.chatId === chatId)
+      const chatIndex = state.chats.findIndex((chat) => chat._id === chatId)
 
       if (chatIndex !== -1) {
         state.chats[chatIndex] = { ...state.chats[chatIndex], ...updates }
       }
     },
     deleteChat: (state, action: PayloadAction<string>) => {
-      state.chats = state.chats.filter((chat) => chat.chatId !== action.payload)
+      state.chats = state.chats.filter((chat) => chat._id !== action.payload)
     },
     setSelectedChat: (state, action: PayloadAction<string | null>) => {
       state.selectedChatId = action.payload

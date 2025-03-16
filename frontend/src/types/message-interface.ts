@@ -1,7 +1,7 @@
 import { ChatUser } from "@/types/chat-interface"
 
 export interface Message {
-  messageId: string
+  _id: string
   sender: ChatUser
   chatId: string
   message: string

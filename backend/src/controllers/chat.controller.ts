@@ -98,11 +98,11 @@ const deleteChat = asyncHandler(async (req: Request, res: Response) => {
         },
         update: {
           $push: {
-            deletedBy: userId
-          }
-        }
-      }
-    }
+            deletedBy: userId,
+          },
+        },
+      },
+    },
   ]
 
   await Message.bulkWrite(deleteMessagesOptions)
@@ -169,7 +169,7 @@ const getChatsAndMessages = asyncHandler(
           admin: {
             $arrayElemAt: ["$admin", 0],
           },
-          chatUser: {
+          users: {
             $cond: {
               if: {
                 $eq: ["$users[0]._id", objectId],
@@ -188,9 +188,8 @@ const getChatsAndMessages = asyncHandler(
         $project: {
           _id: 1,
           admin: 1,
-          chatUser: 1,
+          users: 1,
           lastMessage: 1,
-          createdAt: 1,
           updatedAt: 1,
         },
       },
@@ -249,7 +248,6 @@ const getMessages = async (chatId: string, userid: string) => {
         message: 1,
         photoUrl: 1,
         status: 1,
-        createdAt: 1,
         updatedAt: 1,
       },
     },
