@@ -139,9 +139,9 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 })
 
 const getUser = asyncHandler(async (req: Request, res: Response) => {
-  const { userClerkId } = await req.body
+  const { clerkId } = await req.body
 
-  const user = await User.findOne({ clerkId: userClerkId }).select(
+  const user = await User.findOne({ clerkId }).select(
     "userId fullName email imageUrl isLoading"
   )
 

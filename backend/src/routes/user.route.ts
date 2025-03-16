@@ -5,6 +5,6 @@ const router = Router()
 
 router.route("/signup").post(createUser)
 router.route("/delete").post(deleteUser)
-router.route("/user").get(getUser)
+router.route("/user").post(getUser)
 
 export default router
