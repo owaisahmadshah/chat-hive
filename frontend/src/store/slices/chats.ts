@@ -2,10 +2,12 @@ import { createSlice } from "@reduxjs/toolkit"
 import type { PayloadAction } from "@reduxjs/toolkit"
 
 import { ChatsState, Chat } from "@/types/chat-interface"
+import { User } from "@/types/user-interface"
 
 const initialState: ChatsState = {
   chats: [],
-  selectedChatId: null,
+  selectedChat: null,
+  selectedChatUser: null,
   isLoading: false,
   error: null,
 }
@@ -14,7 +16,7 @@ const chatsSlice = createSlice({
   name: "chats",
   initialState,
   reducers: {
-    setChats:  (state, action: PayloadAction<Chat[]>) => {
+    setChats: (state, action: PayloadAction<Chat[]>) => {
       state.chats = action.payload
     },
     addChat: (state, action: PayloadAction<Chat>) => {
@@ -36,7 +38,10 @@ const chatsSlice = createSlice({
       state.chats = state.chats.filter((chat) => chat._id !== action.payload)
     },
     setSelectedChat: (state, action: PayloadAction<Chat | null>) => {
-      state.selectedChatId = action.payload
+      state.selectedChat = action.payload
+    },
+    setSelectedChatUser: (state, action: PayloadAction<User | null>) => {
+      state.selectedChatUser = action.payload
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload
@@ -53,6 +58,7 @@ export const {
   updateChat,
   deleteChat,
   setSelectedChat,
+  setSelectedChatUser,
   setLoading,
   setError,
 } = chatsSlice.actions

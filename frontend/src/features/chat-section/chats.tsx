@@ -5,7 +5,7 @@ import { Chat, ChatUser } from '@/types/chat-interface'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { setSelectedChat } from '@/store/slices/chats'
+import { setSelectedChat, setSelectedChatUser, } from '@/store/slices/chats'
 
 const Chats = () => {
 
@@ -16,6 +16,13 @@ const Chats = () => {
 
   const handleClickedChat = (selectedChat: Chat) => {
     dispatch(setSelectedChat(selectedChat))
+    for (let i = 0; i < selectedChat.users.length; i++) {
+      if (selectedChat.users[i]._id !== userId) {
+        //@ts-ignore
+        dispatch(setSelectedChatUser(selectedChat.users[i]))
+        break
+      }
+    }
   }
 
   function chatName(chatUsersList: ChatUser[]) {
