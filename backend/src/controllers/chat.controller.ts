@@ -169,7 +169,7 @@ const getChatsAndMessages = asyncHandler(
           admin: {
             $arrayElemAt: ["$admin", 0],
           },
-          /*
+        /*
         //* If you want other user user this
         users: {
             $cond: {
@@ -228,23 +228,11 @@ const getMessages = async (chatId: string, userid: string) => {
       },
     },
     {
-      $addFields: {
-        sender: { $toObjectId: "$sender" },
-      },
-    },
-    {
       $lookup: {
         from: "users",
         localField: "sender",
         foreignField: "_id",
         as: "sender",
-      },
-    },
-    {
-      $addFields: {
-        sender: {
-          $arrayElemAt: ["$sender", 0],
-        },
       },
     },
     {
@@ -266,6 +254,7 @@ const getMessages = async (chatId: string, userid: string) => {
       },
     },
   ]
+
   // TODO Check for error
   //@ts-ignore
   const messages = await Message.aggregate(pipeline)
