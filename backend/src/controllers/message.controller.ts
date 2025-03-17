@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "../utils/Cloudinary.js"
 import logger from "../utils/logger.js"
 import { Message } from "../models/message.model.js"
 import { Chat } from "../models/chat.model.js"
+import { User } from "../models/user.model.js"
 
 /**
  * @desc    Create a new message.
@@ -49,9 +50,25 @@ const createMessage = asyncHandler(async (req: Request, res: Response) => {
     updatedAt: new Date(),
   })
 
+  const userSent = await User.findOne({ _id: newMessage.sender }).select(
+    "-clerkId -lastSignInAt"
+  )
+
+  // console.log(newMessage)
+
+  const filteredMessage = {
+    _id: newMessage._id,
+    sender: userSent,
+    chatId: newMessage.chatId,
+    message: newMessage.message,
+    photoUrl: newMessage.photoUrl,
+    status: newMessage.status,
+    updatedAt: newMessage.updatedAt,
+  }
+  console.log(filteredMessage)
   return res
     .status(201)
-    .json(new ApiResponse(201, { newMessage }, "Created message"))
+    .json(new ApiResponse(201, { filteredMessage }, "Created message"))
 })
 
 /**
