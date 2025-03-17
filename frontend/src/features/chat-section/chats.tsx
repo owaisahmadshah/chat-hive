@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { setSelectedChat, setSelectedChatUser, } from '@/store/slices/chats'
+import correctDate from '@/lib/correct-date'
 
 const Chats = () => {
 
@@ -35,29 +36,6 @@ const Chats = () => {
     }
     // TODO Check if the user is saved in our contacts then return contactName if not return email
     return nameOrEmail
-  }
-
-  const correctDate = (updatedAt: string | Date) => {
-    const date = new Date(updatedAt)
-    const now = new Date()
-
-    const isToday = date.toDateString() === now.toDateString()
-
-    if (isToday) {
-      // Display time if it's today
-      return date.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })
-    }
-
-    const oneWeekAgo = new Date()
-    oneWeekAgo.setDate(now.getDate() - 7)
-
-    if (date > oneWeekAgo) {
-      // Display weekday name if it's within a week
-      return date.toLocaleDateString('en-PK', { weekday: 'long' })
-    }
-
-    // Display date in DD/MM/YYYY format if itF's older than a week
-    return date.toLocaleDateString('en-PK')
   }
 
   return (
