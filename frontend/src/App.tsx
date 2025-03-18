@@ -2,7 +2,8 @@ import { SignedIn, SignedOut } from "@clerk/clerk-react"
 
 import ContinueWithGoogle from "@/features/auth/continue-with-google-landing-page"
 import ChatSection from "@/features/chat-section/chat-section"
-import useGetUserId from "./hooks/useGetUserId"
+import useGetUserId from "@/hooks/useGetUserId"
+import MessageSection from "@/features/message-section/messages-section"
 
 function App() {
 
@@ -14,7 +15,10 @@ function App() {
       <ContinueWithGoogle />
     </SignedOut>
     <SignedIn>
+      <main className="flex">
       <ChatSection />
+        <MessageSection />
+      </main>
     </SignedIn>
   </>)
 }
