@@ -2,7 +2,7 @@ import { useSelector } from "react-redux"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RootState } from "@/store/store"
-import { Message } from "@/types/message-interface"
+import { Message } from "@/features/message-section/types/message-interface"
 import MessageItem from "./MessageItem";
 
 const MessageList = () => {

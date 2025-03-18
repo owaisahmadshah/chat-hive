@@ -1,6 +1,6 @@
 import correctDate from "@/lib/correct-date"
+import { Message } from "@/features/message-section/types/message-interface"
 import MessageActions from "./MessageActions"
-import { Message } from "@/types/message-interface"
 
 function MessageItem({ message }: { message: Message }) {
   // TODO complete it by adding download image option or just show on the screen

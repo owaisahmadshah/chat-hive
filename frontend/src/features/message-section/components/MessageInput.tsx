@@ -1,9 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
-import { useAuth } from "@clerk/clerk-react";
 
 import {
   Form,
@@ -14,31 +11,21 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RootState } from "@/store/store";
-import { addMessage } from "@/store/slices/messages";
-import api from "@/lib/axiosInstance";
-
-const formSchema = z.object({
-  userInputMessage: z.string().trim(),
-  // picture: z.instanceof(FileList).optional(),
-})
+import { messageSchema } from "../types/message-schema";
+import { useMessage } from "../hooks/useMessage";
 
 function MessageInput() {
 
-  const { getToken } = useAuth()
+  const { sendNewMessage } = useMessage()
 
-  const { selectedChat } = useSelector((state: RootState) => state.chats)
-  const userId = useSelector((state: RootState) => state.user.userId)
-  const dispatch = useDispatch()
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof messageSchema>>({
+    resolver: zodResolver(messageSchema),
     defaultValues: {
       userInputMessage: "",
     },
   })
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof messageSchema>) {
     // TODO Handle picture upload
     // const formData = new FormData();
     // formData.append("userInputMessage", values.userInputMessage);
@@ -49,24 +36,8 @@ function MessageInput() {
     if (values.userInputMessage.trim() === "") {
       return
     }
-
-    try {
-      const token = await getToken()
-      const { data } = await api.post("/v1/message/create", { sender: userId, chatId: selectedChat?._id, message: values.userInputMessage, status: "sent" }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      dispatch(addMessage({ chatId: selectedChat?._id || "", message: data.data.filteredMessage }))
-      form.reset()
-
-    } catch (error) {
-      console.error("Error sending message", error)
-      if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
-      }
-    }
+    await sendNewMessage(values)
+    form.reset()
   }
 
   return (

@@ -4,8 +4,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import ArrowDown from "./ArrowDown"
-import { Message } from "@/types/message-interface"
+import ArrowDown from "../../../components/ArrowDown"
+import { Message } from "@/features/message-section/types/message-interface"
 
 function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
   const handleSelectedMessageReply = () => {
