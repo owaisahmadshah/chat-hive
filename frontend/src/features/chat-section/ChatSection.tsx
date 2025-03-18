@@ -1,6 +1,6 @@
-import ChatNavbar from "@/features/chat-section/ChatNavBar"
-import useGetUserChatsAndMessages from "@/hooks/useGetUserChatsAndMessages"
-import ChatList from "./ChatList"
+import ChatNavbar from "@/features/chat-section/Components/ChatNavBar"
+import useGetUserChatsAndMessages from "@/features/chat-section/hooks/useGetUserChatsAndMessages"
+import ChatList from "./Components/ChatList"
 
 const ChatSection = () => {
   useGetUserChatsAndMessages()
