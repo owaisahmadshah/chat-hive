@@ -3,31 +3,22 @@ import { useSelector } from "react-redux"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RootState } from "@/store/store"
 import { Message } from "@/types/message-interface"
-import correctDate from "@/lib/correct-date";
+import DisplayMessageOrPicture from "./display-message-or-picture-on-screen";
 
 const DisplayMessagesSection = () => {
-
   const { selectedChat } = useSelector((state: RootState) => state.chats)
+
   const allMessages = useSelector((state: RootState) => state.messages)
+  const messages: Message[] = allMessages[selectedChat?._id || ""]
 
   const user = useSelector((state: RootState) => state.user)
 
-  const messages: Message[] = allMessages[selectedChat?._id || ""]
-
-  function DisplayMessageOrPicture({ message }: { message: Message }) {
-    return <div className="box-border inline-block m-1">
-      <p className="whitespace-pre-wrap break-words w-fit p-2">
-        {message.message}
-      </p>
-      <p className="text-[10px] ml-4">{correctDate(message.updatedAt)}</p>
-    </div>
-  }
-
   return (
     <ScrollArea className="box-border border-r border-l h-[75vh]">
-      <ul className="flex flex-col gap-1 p-2 h-[75vh]">
+      <ul className="flex flex-col gap-1 p-2 px-15 h-[75vh]">
         {
           messages.length ?
+            // TODO remove message.sender && it is not necessary
             messages.map((message: Message) => (message.sender &&
               <li key={message._id}
                 className={`
