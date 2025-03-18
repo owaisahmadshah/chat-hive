@@ -1,9 +1,9 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useSelector } from "react-redux"
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RootState } from "@/store/store"
 
-const MessageSectionNavBar = () => {
+const MessageNavBar = () => {
 
   const { selectedChat, selectedChatUser } = useSelector((state: RootState) => state.chats)
 
@@ -24,4 +24,4 @@ const MessageSectionNavBar = () => {
   )
 }
 
-export default MessageSectionNavBar
+export default MessageNavBar

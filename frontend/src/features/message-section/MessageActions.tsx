@@ -4,10 +4,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import ArrowDown from "./arrow-down"
+import ArrowDown from "./ArrowDown"
 import { Message } from "@/types/message-interface"
 
-function MessageDropDownOptions({ selectedMessage }: { selectedMessage: Message }) {
+function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
   const handleSelectedMessageReply = () => {
     // TODO handle selected message delete
   }
@@ -41,4 +41,4 @@ function MessageDropDownOptions({ selectedMessage }: { selectedMessage: Message 
   )
 }
 
-export default MessageDropDownOptions
+export default MessageActions

@@ -3,9 +3,9 @@ import { useSelector } from "react-redux"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RootState } from "@/store/store"
 import { Message } from "@/types/message-interface"
-import DisplayMessageOrPicture from "./display-message-or-picture-on-screen";
+import MessageItem from "./MessageItem";
 
-const DisplayMessagesSection = () => {
+const MessageList = () => {
   const { selectedChat } = useSelector((state: RootState) => state.chats)
 
   const allMessages = useSelector((state: RootState) => state.messages)
@@ -28,7 +28,7 @@ const DisplayMessagesSection = () => {
                     : "self-start bg-primary"}
               `}
               >
-                <DisplayMessageOrPicture message={message} />
+                <MessageItem message={message} />
               </li>
             ))
             :
@@ -41,4 +41,4 @@ const DisplayMessagesSection = () => {
   )
 }
 
-export default DisplayMessagesSection
+export default MessageList

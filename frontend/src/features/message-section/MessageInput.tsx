@@ -23,7 +23,7 @@ const formSchema = z.object({
   // picture: z.instanceof(FileList).optional(),
 })
 
-function MessagesInputSection() {
+function MessageInput() {
 
   const { getToken } = useAuth()
 
@@ -104,4 +104,4 @@ function MessagesInputSection() {
   );
 }
 
-export default MessagesInputSection
+export default MessageInput
