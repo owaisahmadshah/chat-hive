@@ -29,19 +29,19 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
     if (chat.admin !== admin) {
       chat.admin = admin
     }
-
     // If a user is recreating the chat, reset the deletedBy array to allow communication
     chat.deletedBy = []
-
     await chat.save()
 
+    //@ts-ignore
+    const chatDetails = await getCreatingChatDetails(chat?._id)
     logger.info(`Returning existing chat with ID: ${chat._id}`)
     return res
       .status(200)
       .json(
         new ApiResponse(
           200,
-          { chatId: chat._id, users },
+          { chat: chatDetails },
           "Updated existing chat successfully"
         )
       )
@@ -55,16 +55,62 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
   })
 
   logger.info(`New chat created with ID: ${chat._id}`)
+  
+  //@ts-ignore
+  const chatDetails = await getCreatingChatDetails(chat._id)
+
   return res
     .status(201)
     .json(
       new ApiResponse(
         201,
-        { chatId: chat._id, users },
+        { chat: chatDetails },
         "Created new chat successfully"
       )
     )
 })
+
+const getCreatingChatDetails = async (chatId: string) => {
+  const chatPipeline = [
+    {
+      $match: { _id: chatId },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "users",
+        foreignField: "_id",
+        as: "users",
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "admin",
+        foreignField: "_id",
+        as: "admin",
+      },
+    },
+    {
+      $addFields: {
+        admin: {
+          $arrayElemAt: ["$admin", 0],
+        },
+      },
+    },
+    {
+      $project: {
+        admin: 1,
+        users: 1,
+        lastMessage: 1,
+        updatedAt: 1,
+      },
+    },
+  ]
+
+  const chatDetails = await Chat.aggregate(chatPipeline)
+  return chatDetails
+}
 
 /**
  * @desc    Mark a chat as deleted for a specific user by adding their userId to deletedBy.
@@ -169,7 +215,7 @@ const getChatsAndMessages = asyncHandler(
           admin: {
             $arrayElemAt: ["$admin", 0],
           },
-        /*
+          /*
         //* If you want other user user this
         users: {
             $cond: {
