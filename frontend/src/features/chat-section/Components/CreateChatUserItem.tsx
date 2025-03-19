@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { setSelectedChat } from "@/store/slices/chats"
+import { setSelectedChat, setSelectedChatUser } from "@/store/slices/chats"
 import { RootState } from "@/store/store"
 
 import { Chat, ChatUser } from "@/types/chat-interface"
@@ -18,8 +18,9 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
     // TODO create new chat
   }
 
-  const handleOpenChat = () => {
+  const handleOpenChat = (user: ChatUser) => {
     dispatch(setSelectedChat(existedChat))
+    dispatch(setSelectedChatUser(user))
     setExistedChat(null)
   }
 
@@ -46,7 +47,7 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
         checkIfChatExists(user._id) ?
           <Button
             className="text-sm cursor-pointer"
-            onClick={handleOpenChat}
+            onClick={() => handleOpenChat(user)}
           >Open Chat</Button>
           :
           <Button

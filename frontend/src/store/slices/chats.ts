@@ -1,8 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit"
 import type { PayloadAction } from "@reduxjs/toolkit"
 
-import { ChatsState, Chat } from "@/types/chat-interface"
-import { User } from "@/types/user-interface"
+import { ChatsState, Chat, ChatUser } from "@/types/chat-interface"
 
 const initialState: ChatsState = {
   chats: [],
@@ -40,7 +39,7 @@ const chatsSlice = createSlice({
     setSelectedChat: (state, action: PayloadAction<Chat | null>) => {
       state.selectedChat = action.payload
     },
-    setSelectedChatUser: (state, action: PayloadAction<User | null>) => {
+    setSelectedChatUser: (state, action: PayloadAction<ChatUser | null>) => {
       state.selectedChatUser = action.payload
     },
     setLoading: (state, action: PayloadAction<boolean>) => {

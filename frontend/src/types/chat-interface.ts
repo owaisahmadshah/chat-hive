@@ -1,5 +1,3 @@
-import { User } from "./user-interface"
-
 export interface ChatUser {
   _id: string
   email: string
@@ -18,7 +16,7 @@ export interface Chat {
 export interface ChatsState {
   chats: Chat[]
   selectedChat: Chat | null
-  selectedChatUser: User | null
+  selectedChatUser: ChatUser | null
   isLoading: boolean
   error: string | null
 }
