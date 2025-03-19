@@ -84,6 +84,14 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(201, { user }, "Successfully createdUser"))
 })
 
+/**
+ * @desc    Delete a user
+ * @route   POST /api/v1/webhook/delete
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing user clerkId
+ * @param {Response} res - Express response object containg (delete user data)?
+ */
 const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SECRET
 
@@ -138,6 +146,17 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   }
 })
 
+/**
+ * @desc    Get user data from the database by using userId and send to the frontend
+ * @route   POST /api/v1/webhook/get
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing user clerkId
+ *
+ * @param {Response} res - Express request object containing user details
+ *                  (clerkId, fullName, email, imageUrl, lastSeen, lastSignInAt,
+ *                   updatedAt)
+ */
 const getUser = asyncHandler(async (req: Request, res: Response) => {
   const { clerkId } = await req.body
 
@@ -151,4 +170,25 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
 
   return res.status(200).json(new ApiResponse(200, user, "Success"))
 })
-export { createUser, deleteUser, getUser }
+
+/**
+ * @desc    Get users data from the database that matches the email
+ * @route   POST /api/v1/webhook/suggestions
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing user email(some alphabets)
+ *
+ * @param {Response} res - Express request object containing user details
+ *                  (fullName, email, imageUrl, lastSeen)
+ */
+const usersSuggestion = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body
+
+  const users = await User.find({ email: email }).select(
+    "fullName email imageUrl lastSeen updatedAt"
+  )
+
+  return res.status(200).json(new ApiResponse(200, { users }, "Success"))
+})
+
+export { createUser, deleteUser, getUser, usersSuggestion }
