@@ -22,6 +22,7 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
   let chat = await Chat.findOne({
     users: {
       $all: users,
+      $size: users.length
     },
   })
 
@@ -35,7 +36,6 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
 
     //@ts-ignore
     const chatDetails = await getCreatingChatDetails(chat?._id)
-    logger.info(`Returning existing chat with ID: ${chat._id}`)
     return res
       .status(200)
       .json(
@@ -45,8 +45,8 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
           "Updated existing chat successfully"
         )
       )
-  }
-
+    }
+    
   // Create a new chat if no existing chat is found
   chat = await Chat.create({
     admin,
@@ -54,11 +54,9 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
     lastMessage: null,
   })
 
-  logger.info(`New chat created with ID: ${chat._id}`)
-
   //@ts-ignore
   const chatDetails = await getCreatingChatDetails(chat._id)
-
+  
   return res
     .status(201)
     .json(
@@ -235,7 +233,6 @@ const getChatsAndMessages = asyncHandler(
     // TODO Check for error
     //@ts-ignore
     let chats = await Chat.aggregate(chatsPipeline)
-    console.log(chats)
     /**
      * Getting all the messages of the chats, which user hasn't deleted
      * Store them inside the chats
