@@ -7,6 +7,7 @@ import { addMessage } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
 import { sendMessage } from "../services/messageService"
 import { useAuth } from "@clerk/clerk-react"
+import { updateChat } from "@/store/slices/chats"
 
 const useMessage = () => {
   const dispatch = useDispatch()
@@ -31,6 +32,18 @@ const useMessage = () => {
         addMessage({
           chatId: selectedChat?._id || "",
           message: data.data.filteredMessage,
+        })
+      )
+      dispatch(
+        updateChat({
+          chatId: selectedChat?._id || "",
+          updates: {
+            lastMessage: {
+              message: data.data.filteredMessage.message,
+              photoUrl: data.data.filteredMessage.photoUrl,
+            },
+            updatedAt: data.data.filteredMessage.updatedAt,
+          },
         })
       )
     } catch (error) {

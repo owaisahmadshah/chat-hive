@@ -30,7 +30,15 @@ const chatsSlice = createSlice({
       const chatIndex = state.chats.findIndex((chat) => chat._id === chatId)
 
       if (chatIndex !== -1) {
-        state.chats[chatIndex] = { ...state.chats[chatIndex], ...updates }
+        // state.chats[chatIndex] = { ...state.chats[chatIndex], ...updates }
+        const updatedChat = { ...state.chats[chatIndex], ...updates }
+
+        // Remove the chat from its current position and place it at the front
+        state.chats = [
+          updatedChat,
+          ...state.chats.slice(0, chatIndex),
+          ...state.chats.slice(chatIndex + 1),
+        ]
       }
     },
     deleteChat: (state, action: PayloadAction<string>) => {
