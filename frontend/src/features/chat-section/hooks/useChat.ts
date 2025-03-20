@@ -38,8 +38,11 @@ const useChat = () => {
       if (!userId) {
         return null
       }
+      
+      const usersSet = new Set([user._id, userId])
+      const uniqueUsers = Array.from(usersSet)
 
-      const chatBody = { admin: userId, users: [user._id, userId] }
+      const chatBody = { admin: userId, users: uniqueUsers }
       const { data } = await createChat(chatBody, token)
 
       dispatch(addChat(data.data?.chat[0]))

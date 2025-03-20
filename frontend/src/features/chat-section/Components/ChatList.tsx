@@ -27,6 +27,9 @@ const Chats = () => {
   }
 
   function chatName(chatUsersList: ChatUser[]) {
+    if (chatUsersList.length === 1) {
+      return chatUsersList[0].email
+    }
     let nameOrEmail = ""
     for (let i = 0; i < chatUsersList.length; i++) {
       if (chatUsersList[i]._id !== userId) {
@@ -53,10 +56,10 @@ const Chats = () => {
                 <div className="flex items-center gap-5">
                   <Avatar>
                     <AvatarImage src={
-                      // TODO Check why this is not working correctly
-                      chat.users[0]._id === userId
-                        ? chat.users[1].imageUrl
-                        : chat.users[0].imageUrl
+                      chat.users.length === 1 ? chat.users[0].imageUrl
+                        : chat.users[0]._id === userId
+                          ? chat.users[1].imageUrl
+                          : chat.users[0].imageUrl
                     } />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
@@ -66,7 +69,7 @@ const Chats = () => {
                     </p>
                     <div className='flex justify-between'>
                       <p className="text-sm overflow-x-hidden text-muted-foreground max-w-[160px] text-ellipsis whitespace-nowrap">{
-                        !chat.lastMessage ? "___"
+                        !chat.lastMessage ? ""
                           : chat.lastMessage.message ? chat.lastMessage.message
                             : chat.lastMessage.photoUrl
                       }</p>
