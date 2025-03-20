@@ -9,4 +9,16 @@ const fetchUser = async (email: any, token: string | null) => {
   return data
 }
 
-export { fetchUser }
+const createChat = async (
+  chatDetails: { admin: string; users: string[] },
+  token: string | null
+) => {
+  const data = await api.post("/v1/chat/create", chatDetails, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return data
+}
+
+export { fetchUser, createChat }
