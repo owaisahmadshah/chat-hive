@@ -17,6 +17,10 @@ const Chats = () => {
 
   const handleClickedChat = (selectedChat: Chat) => {
     dispatch(setSelectedChat(selectedChat))
+    if (selectedChat.users.length === 1) {
+      dispatch(setSelectedChatUser(selectedChat.users[0]))
+      return
+    }
     for (let i = 0; i < selectedChat.users.length; i++) {
       if (selectedChat.users[i]._id !== userId) {
         //@ts-ignore

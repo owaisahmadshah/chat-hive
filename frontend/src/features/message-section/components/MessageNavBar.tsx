@@ -5,7 +5,7 @@ import { RootState } from "@/store/store"
 
 const MessageNavBar = () => {
 
-  const { selectedChat, selectedChatUser } = useSelector((state: RootState) => state.chats)
+  const { selectedChatUser } = useSelector((state: RootState) => state.chats)
 
   const handleClickOnSelectedChatProfile = () => {
     // TODO 
@@ -15,7 +15,7 @@ const MessageNavBar = () => {
     <ul className="w-[100%] h-[15vh] flex gap-5 items-center p-5 bg-background border-b border-r">
       <li className=" cursor-pointer" onClick={handleClickOnSelectedChatProfile}>
         <Avatar>
-          <AvatarImage src="https://github.com/shadcn.png" />
+          <AvatarImage src={selectedChatUser?.imageUrl} />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
       </li>
