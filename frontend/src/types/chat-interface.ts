@@ -9,8 +9,11 @@ export interface Chat {
   _id: string
   admin: ChatUser
   users: ChatUser[]
-  lastMessage?: string
-  updatedAt: Date | null
+  lastMessage: {
+    message: string
+    photoUrl?: string
+  } | null
+  updatedAt: Date
 }
 
 export interface ChatsState {

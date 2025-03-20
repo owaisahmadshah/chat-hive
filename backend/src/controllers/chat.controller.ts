@@ -55,7 +55,7 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
   })
 
   logger.info(`New chat created with ID: ${chat._id}`)
-  
+
   //@ts-ignore
   const chatDetails = await getCreatingChatDetails(chat._id)
 
@@ -170,7 +170,7 @@ const getChatsAndMessages = asyncHandler(
   async (req: Request, res: Response) => {
     const { userId } = await req.body
 
-    // TODO check why here we have to convert ids and why we don't heve to change getMessages()
+    // Without converting match won't match these b/c these are stored as mongoose object id
     const objectId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
       userId
     )
@@ -215,21 +215,9 @@ const getChatsAndMessages = asyncHandler(
           admin: {
             $arrayElemAt: ["$admin", 0],
           },
-          /*
-        //* If you want other user user this
-        users: {
-            $cond: {
-              if: {
-                $eq: ["$users[0]._id", objectId],
-              },
-              then: {
-                $arrayElemAt: ["$users", 0],
-              },
-              else: {
-                $arrayElemAt: ["$users", 1],
-              },
-            },
-          }, */
+          lastMessage: {
+            $arrayElemAt: ["$lastMessage", 0],
+          },
         },
       },
       {
@@ -237,7 +225,8 @@ const getChatsAndMessages = asyncHandler(
           _id: 1,
           admin: 1,
           users: 1,
-          lastMessage: 1,
+          "lastMessage.message": 1,
+          "lastMessage.photoUrl": 1,
           updatedAt: 1,
         },
       },
@@ -246,16 +235,13 @@ const getChatsAndMessages = asyncHandler(
     // TODO Check for error
     //@ts-ignore
     let chats = await Chat.aggregate(chatsPipeline)
-
+    console.log(chats)
     /**
      * Getting all the messages of the chats, which user hasn't deleted
      * Store them inside the chats
      */
     for (let i = 0; i < chats?.length; i++) {
-      const chatMessages = await getMessages(
-        chats[i]._id.toString(),
-        userId.toString()
-      )
+      const chatMessages = await getMessages(chats[i]._id.toString(), userId)
       chats[i].messages = [...chatMessages]
     }
 
@@ -263,8 +249,10 @@ const getChatsAndMessages = asyncHandler(
   }
 )
 
-const getMessages = async (chatId: string, userid: string) => {
+const getMessages = async (chatid: string, userid: string) => {
+  // Without converting match won't match these b/c these are stored as mongoose object id
   const userId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(userid)
+  const chatId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(chatid)
 
   const pipeline = [
     {
@@ -283,7 +271,7 @@ const getMessages = async (chatId: string, userid: string) => {
     },
     {
       $sort: {
-        createdAt: -1,
+        createdAt: 1,
       },
     },
     {

@@ -48,11 +48,16 @@ const Chats = () => {
               <li
                 key={index}
                 onClick={() => handleClickedChat(chat)}
-                className='cursor-pointer p-5 bg-red flex flex-col justify-center'
+                className='cursor-pointer p-5 bg-red flex flex-col justify-center hover:bg-secondary'
               >
                 <div className="flex items-center gap-5">
                   <Avatar>
-                    <AvatarImage src={chat.users[0].imageUrl} />
+                    <AvatarImage src={
+                      // TODO Check why this is not working correctly
+                      chat.users[0]._id === userId
+                        ? chat.users[1].imageUrl
+                        : chat.users[0].imageUrl
+                    } />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
                   <div>
@@ -60,7 +65,11 @@ const Chats = () => {
                       {chatName(chat.users)}
                     </p>
                     <div className='flex justify-between'>
-                      <p className="text-sm overflow-x-hidden text-muted-foreground max-w-[160px] text-ellipsis whitespace-nowrap">{"..."}</p>
+                      <p className="text-sm overflow-x-hidden text-muted-foreground max-w-[160px] text-ellipsis whitespace-nowrap">{
+                        !chat.lastMessage ? "___"
+                          : chat.lastMessage.message ? chat.lastMessage.message
+                            : chat.lastMessage.photoUrl
+                      }</p>
                       <p className='text-sm text-muted-foreground'>{correctDate(chat.updatedAt)}</p>
                     </div>
                   </div>
