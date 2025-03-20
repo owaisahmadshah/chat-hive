@@ -22,7 +22,7 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
   let chat = await Chat.findOne({
     users: {
       $all: users,
-      $size: users.length
+      $size: users.length,
     },
   })
 
@@ -45,8 +45,8 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
           "Updated existing chat successfully"
         )
       )
-    }
-    
+  }
+
   // Create a new chat if no existing chat is found
   chat = await Chat.create({
     admin,
@@ -56,7 +56,7 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
 
   //@ts-ignore
   const chatDetails = await getCreatingChatDetails(chat._id)
-  
+
   return res
     .status(201)
     .json(
@@ -267,6 +267,13 @@ const getMessages = async (chatid: string, userid: string) => {
       },
     },
     {
+      $addFields: {
+        sender: {
+          $arrayElemAt: ["$sender", 0],
+        },
+      },
+    },
+    {
       $sort: {
         createdAt: 1,
       },
@@ -276,7 +283,10 @@ const getMessages = async (chatid: string, userid: string) => {
     },
     {
       $project: {
-        sender: 1,
+        "sender._id": 1,
+        "sender.email": 1,
+        "sender.imageUrl": 1,
+        "sender.lastSeen": 1,
         chatId: 1,
         message: 1,
         photoUrl: 1,
