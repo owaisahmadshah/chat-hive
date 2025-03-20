@@ -14,7 +14,7 @@ const MessageList = () => {
   const user = useSelector((state: RootState) => state.user)
 
   return (
-    <ScrollArea className="box-border border-r border-l h-[75vh]">
+    <ScrollArea className="box-border border-r border-l h-[75vh] pb-3">
       <ul className="flex flex-col gap-1 p-2 px-15 h-[75vh]">
         {
           messages.length ?
