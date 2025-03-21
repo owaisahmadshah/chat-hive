@@ -37,8 +37,7 @@ const MessageList = () => {
       <ul className="flex flex-col gap-1 p-2 px-15 h-[75vh]">
         {
           messages.length ?
-            // TODO remove message.sender && it is not necessary
-            messages.map((message: Message) => (message.sender &&
+            messages.map((message: Message) => (
               <li key={message._id}
                 className={`
                 box-border border rounded-[10px] w-fit max-w-[60vw] 
