@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { setSelectedChat, setSelectedChatUser, } from '@/store/slices/chats'
 import correctDate from '@/lib/correct-date'
+import ChatActions from './ChatActions'
 
 const Chats = () => {
 
@@ -30,19 +31,19 @@ const Chats = () => {
     }
   }
 
-  function chatName(chatUsersList: ChatUser[]) {
+  function chatUserEmail(chatUsersList: ChatUser[]) {
     if (chatUsersList.length === 1) {
       return chatUsersList[0].email
     }
-    let nameOrEmail = ""
+    let email = ""
     for (let i = 0; i < chatUsersList.length; i++) {
       if (chatUsersList[i]._id !== userId) {
-        nameOrEmail = chatUsersList[i].email
+        email = chatUsersList[i].email
         break
       }
     }
     // TODO Check if the user is saved in our contacts then return contactName if not return email
-    return nameOrEmail
+    return email
   }
 
   return (
@@ -55,31 +56,35 @@ const Chats = () => {
               <li
                 key={index}
                 onClick={() => handleClickedChat(chat)}
-                className='cursor-pointer p-5 bg-red flex flex-col justify-center hover:bg-secondary'
+                className='cursor-pointer px-5 pt-5 bg-red flex flex-col justify-center hover:bg-secondary'
               >
-                <div className="flex items-center gap-5">
-                  <Avatar>
-                    <AvatarImage src={
-                      chat.users.length === 1 ? chat.users[0].imageUrl
-                        : chat.users[0]._id === userId
-                          ? chat.users[1].imageUrl
-                          : chat.users[0].imageUrl
-                    } />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-l overflow-x-hidden max-w-[160px]">
-                      {chatName(chat.users)}
-                    </p>
-                    <div className='flex justify-between'>
-                      <p className="text-sm overflow-x-hidden text-muted-foreground max-w-[160px] text-ellipsis whitespace-nowrap">{
-                        !chat.lastMessage ? ""
-                          : chat.lastMessage.message ? chat.lastMessage.message
-                            : chat.lastMessage.photoUrl
-                      }</p>
-                      <p className='text-sm text-muted-foreground'>{correctDate(chat.updatedAt)}</p>
+                <div className='flex justify-between'>
+
+                  <div className="flex items-center gap-5">
+                    <Avatar>
+                      <AvatarImage src={
+                        chat.users.length === 1 ? chat.users[0].imageUrl
+                          : chat.users[0]._id === userId
+                            ? chat.users[1].imageUrl
+                            : chat.users[0].imageUrl
+                      } />
+                      <AvatarFallback>CN</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold text-l overflow-x-hidden max-w-[160px]">
+                        {chatUserEmail(chat.users)}
+                      </p>
+                      <div className='flex justify-between min-w-[15vw]'>
+                        <p className="text-sm overflow-x-hidden text-muted-foreground max-w-[140px] text-ellipsis whitespace-nowrap">{
+                          !chat.lastMessage ? ""
+                            : chat.lastMessage.message ? chat.lastMessage.message
+                              : chat.lastMessage.photoUrl
+                        }</p>
+                        <p className='text-sm text-muted-foreground'>{correctDate(chat.updatedAt)}</p>
+                      </div>
                     </div>
                   </div>
+                  <ChatActions chat={chat} />
                 </div>
                 <Separator className="mt-3" />
               </li>
