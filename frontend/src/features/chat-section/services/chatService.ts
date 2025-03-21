@@ -21,4 +21,16 @@ const createChat = async (
   return data
 }
 
-export { fetchUser, createChat }
+const deleteChatService = async (
+  deleteChat: { userId: string; chatId: string },
+  token: string | null
+) => {
+  const data = await api.post("/v1/chat/delete", deleteChat, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return data
+}
+
+export { fetchUser, createChat, deleteChatService }

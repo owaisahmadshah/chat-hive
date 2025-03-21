@@ -7,8 +7,11 @@ import {
 import { Chat } from "@/types/chat-interface"
 import ArrowDown from "../../../components/ArrowDown"
 import { MouseEvent } from "react"
+import { useChat } from "../hooks/useChat"
 
 const ChatActions = ({ chat }: { chat: Chat }) => {
+  const { deleteAChat } = useChat()
+
   const handleSelectedChatAddFavorite = (event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation()
     // TODO
@@ -17,9 +20,9 @@ const ChatActions = ({ chat }: { chat: Chat }) => {
     event.stopPropagation()
     // TODO
   }
-  const handleSelectedChatDelete = (event: MouseEvent<HTMLDivElement>) => {
+  const handleSelectedChatDelete = async (event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation()
-    // TODO
+    await deleteAChat(chat._id)
   }
   return (
     <div>
