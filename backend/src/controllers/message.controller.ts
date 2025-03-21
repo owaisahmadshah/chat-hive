@@ -80,6 +80,9 @@ const createMessage = asyncHandler(async (req: Request, res: Response) => {
  * @param {Response} res - Express response object contains success or failure of message deletion
  */
 const deleteMessage = asyncHandler(async (req: Request, res: Response) => {
+  // TODO Update backend to properly delete lastMessage and add the second last message as lastMessage
+  // TODO get chatId and update the lastMessage based on user update
+  // TODO figure out how to update lastMessage
   const { messageId, userId } = await req.body
 
   const deleteMessage = await Message.findById(messageId)

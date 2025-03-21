@@ -6,10 +6,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import ArrowDown from "../../../components/ArrowDown"
 import { Message } from "@/features/message-section/types/message-interface"
+import { useMessage } from "../hooks/useMessage"
 
 function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
+  const { deleteSelectedMessage } = useMessage()
+
   const handleSelectedMessageReply = () => {
-    // TODO handle selected message delete
+    // TODO handle selected message reply
   }
 
   const handleSelectedMessageCopy = () => {
@@ -20,8 +23,10 @@ function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
     // TODO handle selected message pin
   }
 
-  const handleSelectedMessageDelete = () => {
-    // TODO handle selected message delete
+  const handleSelectedMessageDelete = async () => {
+    // TODO Update backend to properly delete lastMessage and add the second last message as lastMessage
+    // TODO Also correctly update the selectedChat lastMessage
+    await deleteSelectedMessage(selectedMessage._id)
   }
 
   return (

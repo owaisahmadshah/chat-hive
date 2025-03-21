@@ -3,9 +3,9 @@ import axios from "axios"
 import { z } from "zod"
 
 import { messageSchema } from "../types/message-schema"
-import { addMessage } from "@/store/slices/messages"
+import { addMessage, deleteMessage } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
-import { sendMessage } from "../services/messageService"
+import { deleteMessageService, sendMessage } from "../services/messageService"
 import { useAuth } from "@clerk/clerk-react"
 import { updateChat } from "@/store/slices/chats"
 
@@ -15,6 +15,7 @@ const useMessage = () => {
 
   const userId = useSelector((state: RootState) => state.user.userId)
   const { selectedChat } = useSelector((state: RootState) => state.chats)
+  // const messages = useSelector((state: RootState) => state.messages)
 
   const sendNewMessage = async (values: z.infer<typeof messageSchema>) => {
     try {
@@ -53,7 +54,60 @@ const useMessage = () => {
       }
     }
   }
-  return { sendNewMessage }
+
+  const deleteSelectedMessage = async (messageId: string) => {
+    try {
+      const selectedChatId = selectedChat?._id || ""
+      /* const lastMessageId =
+        messages[selectedChatId || ""][
+          messages[selectedChatId || ""].length - 1
+        ]._id || ""
+    */
+      const token = await getToken()
+      await deleteMessageService(
+        {
+          // chatId: selectedChatId,
+          messageId,
+          // lastMessageId,
+          userId: userId || "",
+        },
+        token
+      )
+
+      /*
+      const messageIndex = messages[selectedChatId || ""].findIndex(
+        (msg) => msg._id === messageId
+      )
+
+      if (messageIndex === messages[selectedChatId || ""].length) {
+        dispatch(
+          updateChat({
+            chatId: selectedChatId || "",
+            updates: {
+              lastMessage: {
+                message:
+                  messages[selectedChatId || ""][messageIndex - 1]?.message ||
+                  "",
+                photoUrl: "",
+              },
+              updatedAt:
+                messages[selectedChatId || ""][messageIndex - 1]?.updatedAt ||
+                selectedChat?.updatedAt,
+            },
+          })
+        )
+      }
+      */
+      dispatch(deleteMessage({ chatId: selectedChatId || "", messageId }))
+    } catch (error) {
+      console.error("Error deleting message", error)
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error details:", error.response?.data)
+      }
+    }
+  }
+
+  return { sendNewMessage, deleteSelectedMessage }
 }
 
 export { useMessage }

@@ -75,11 +75,12 @@ const Chats = () => {
                         {chatUserEmail(chat.users)}
                       </p>
                       <div className='flex justify-between min-w-[15vw]'>
-                        <p className="text-sm overflow-x-hidden text-muted-foreground max-w-[140px] text-ellipsis whitespace-nowrap">{
+                        <p>{/*TODO add for last message*/}</p>
+                        {/* <p className="text-sm overflow-x-hidden text-muted-foreground max-w-[140px] text-ellipsis whitespace-nowrap">{
                           !chat.lastMessage ? ""
                             : chat.lastMessage.message ? chat.lastMessage.message
                               : chat.lastMessage.photoUrl
-                        }</p>
+                        }</p> */}
                         <p className='text-sm text-muted-foreground'>{correctDate(chat.updatedAt)}</p>
                       </div>
                     </div>
