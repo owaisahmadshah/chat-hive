@@ -6,8 +6,6 @@ import logger from "../utils/logger.js"
 import {
   NEW_MESSAGE,
   NEW_CHAT,
-  DELETE_MESSAGE,
-  DELETE_CHAT,
   TYPING,
   JOIN_CHAT,
   USER_CONNECTED,
@@ -130,24 +128,6 @@ class SocketManager {
           }
         }
       })
-
-      // Handle chat deletion
-      socket.on(
-        DELETE_CHAT,
-        (data: { chatId: string; participants: string[] }) => {
-          const { chatId, participants } = data
-
-          // Remove chat from our tracking
-          this.chatRooms.delete(chatId)
-
-          participants.forEach((participantId) => {
-            const participant = this.activeUsers.get(participantId)
-            if (participant && participant.socketId !== socket.id) {
-              this.io.to(participant.socketId).emit(DELETE_CHAT, { chatId })
-            }
-          })
-        }
-      )
     })
   }
 
@@ -173,19 +153,6 @@ class SocketManager {
       (data: { chatId: string; userId: string; isTyping: boolean }) => {
         // Broadcast typing status to everyone in the chat except the typer
         socket.to(data.chatId).emit(TYPING, data)
-      }
-    )
-
-    // Handle message deletion
-    socket.on(
-      DELETE_MESSAGE,
-      (data: { chatId: string; messageId: string; sender: string }) => {
-        // Notify everyone in the chat that a message was deleted
-        socket.to(data.chatId).emit(DELETE_MESSAGE, {
-          messageId: data.messageId,
-          deletedBy: data.sender,
-          timestamp: new Date(),
-        })
       }
     )
   }
