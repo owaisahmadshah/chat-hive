@@ -32,14 +32,22 @@ interface Message {
  * This class handles user connections, chat rooms, and message broadcasting
  */
 class SocketManager {
-  private io: Server                         // Socket.io server instance
-  private activeUsers: Map<string, User>     // Maps user IDs to their connection info
-  private chatRooms: Map<string, Set<string>> // Maps chat IDs to sets of participant user IDs
+  private io: Server // Socket.io server instance
+
+  // activeUsers: A map that keeps track of currently online users.
+  // Key: userId, Value: { userId, socketId, activeChat }.
+  // Helps in quick lookup of a user’s connection and active chat.
+  private activeUsers: Map<string, User>
+
+  // chatRooms: A map that tracks which users are in which chat.
+  // Key: chatId, Value: Set of userIds.
+  // Used to manage chat participants and broadcast messages efficiently.
+  private chatRooms: Map<string, Set<string>>
 
   constructor(server: Server) {
     this.io = server
-    this.activeUsers = new Map()  // Stores online users and their socket information
-    this.chatRooms = new Map()    // Tracks which users are in which chat rooms
+    this.activeUsers = new Map() // Stores online users and their socket information
+    this.chatRooms = new Map() // Tracks which users are in which chat rooms
     this.initialize()
   }
 
@@ -70,7 +78,7 @@ class SocketManager {
 
       // Store user in the activeUsers map for quick lookup
       this.activeUsers.set(userId, user)
-      socket.data.userId = userId  // Store userId in socket for reference
+      socket.data.userId = userId // Store userId in socket for reference
 
       logger.info(`User ${userId} connected with socket ${socket.id}`)
     })
