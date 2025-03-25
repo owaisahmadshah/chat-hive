@@ -16,6 +16,7 @@ import {
   setSelectedChatUser,
   deleteChat,
 } from "@/store/slices/chats"
+import { socketService } from "@/lib/socketService"
 
 const useChat = () => {
   const { getToken } = useAuth()
@@ -53,6 +54,8 @@ const useChat = () => {
       const chatBody = { admin: userId, users: uniqueUsers }
       const { data } = await createChat(chatBody, token)
 
+      //* Emitting new chat event to the server
+      socketService.newChat(data.data?.chat[0])
       dispatch(addChat(data.data?.chat[0]))
       dispatch(setMessages({ chatId: data.data?.chat[0]?._id, messages: [] }))
       dispatch(setSelectedChatUser(user))

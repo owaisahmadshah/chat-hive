@@ -13,6 +13,7 @@ import {
   USER_CONNECTED,
   USER_DISCONNECTED,
 } from "../utils/constants.js"
+import type { Chat } from "../types/chat.socket.interface.js"
 
 interface User {
   userId: string
@@ -112,47 +113,46 @@ class SocketManager {
     })
 
     // Handle creation of a new chat
-    socket.on(
-      NEW_CHAT,
-      (data: { chatId: string; participants: string[]; sender: string }) => {
-        const { chatId, participants, sender } = data
+    socket.on(NEW_CHAT, (chat: Chat) => {
+      const participants = chat.users.map((user) => user._id)
+      const sender = chat.admin._id
+      const chatId = chat._id
 
-        // Create new chat room and add all participants
-        this.chatRooms.set(chatId, new Set(participants))
+      // Create new chat room and add all participants
+      this.chatRooms.set(chatId, new Set(participants))
 
-        // Notify all participants except the creator
-        participants.forEach((participantId) => {
-          if (participantId !== sender) {
-            const participant = this.activeUsers.get(participantId)
-            if (participant) {
-              this.io.to(participant.socketId).emit(NEW_CHAT, {
-                chatId,
-                participants,
-                sender,
-              })
-            }
-          }
-        })
-
-        // Handle chat deletion
-        socket.on(
-          DELETE_CHAT,
-          (data: { chatId: string; participants: string[] }) => {
-            const { chatId, participants } = data
-
-            // Remove chat from our tracking
-            this.chatRooms.delete(chatId)
-
-            participants.forEach((participantId) => {
-              const participant = this.activeUsers.get(participantId)
-              if (participant && participant.socketId !== socket.id) {
-                this.io.to(participant.socketId).emit(DELETE_CHAT, { chatId })
-              }
+      // Notify all participants except the creator
+      participants.forEach((participantId) => {
+        if (participantId !== sender) {
+          const participant = this.activeUsers.get(participantId)
+          if (participant) {
+            this.io.to(participant.socketId).emit(NEW_CHAT, {
+              chatId,
+              participants,
+              sender,
             })
           }
-        )
-      }
-    )
+        }
+      })
+
+      // Handle chat deletion
+      socket.on(
+        DELETE_CHAT,
+        (data: { chatId: string; participants: string[] }) => {
+          const { chatId, participants } = data
+
+          // Remove chat from our tracking
+          this.chatRooms.delete(chatId)
+
+          participants.forEach((participantId) => {
+            const participant = this.activeUsers.get(participantId)
+            if (participant && participant.socketId !== socket.id) {
+              this.io.to(participant.socketId).emit(DELETE_CHAT, { chatId })
+            }
+          })
+        }
+      )
+    })
   }
 
   /**

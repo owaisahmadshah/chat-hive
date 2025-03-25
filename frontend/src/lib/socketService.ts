@@ -7,6 +7,7 @@ import {
   JOIN_CHAT,
   TYPING,
 } from "@/lib/constants"
+import { Chat } from "@/types/chat-interface"
 
 class SocketService {
   private socket: Socket | null = null
@@ -31,8 +32,8 @@ class SocketService {
     this.socket = null
   }
 
-  newChat(chatId: string, participants: string[], sender: string) {
-    this.socket?.emit(NEW_CHAT, { chatId, participants, sender })
+  newChat(chat: Chat) {
+    this.socket?.emit(NEW_CHAT, chat)
   }
 
   joinChat(chatId: string) {
