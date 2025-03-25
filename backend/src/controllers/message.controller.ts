@@ -43,8 +43,6 @@ const createMessage = asyncHandler(async (req: Request, res: Response) => {
     status,
   })
 
-  logger.info("Created new message successfully")
-
   await Chat.findByIdAndUpdate(chatId, {
     lastMessage: newMessage._id,
     updatedAt: new Date(),
@@ -53,8 +51,6 @@ const createMessage = asyncHandler(async (req: Request, res: Response) => {
   const userSent = await User.findOne({ _id: newMessage.sender }).select(
     "-clerkId -lastSignInAt"
   )
-
-  // console.log(newMessage)
 
   const filteredMessage = {
     _id: newMessage._id,
@@ -65,7 +61,7 @@ const createMessage = asyncHandler(async (req: Request, res: Response) => {
     status: newMessage.status,
     updatedAt: newMessage.updatedAt,
   }
-  console.log(filteredMessage)
+
   return res
     .status(201)
     .json(new ApiResponse(201, { filteredMessage }, "Created message"))
