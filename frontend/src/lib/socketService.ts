@@ -34,7 +34,7 @@ class SocketService {
   }
 
   newChat(chat: Chat) {
-    this.socket?.emit(NEW_CHAT, chat)
+    this.socket?.emit(NEW_CHAT, { chat })
   }
 
   joinChat(chatId: string) {
