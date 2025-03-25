@@ -8,6 +8,7 @@ import { RootState } from "@/store/store"
 import { deleteMessageService, sendMessage } from "../services/messageService"
 import { useAuth } from "@clerk/clerk-react"
 import { updateChat } from "@/store/slices/chats"
+import { socketService } from "@/lib/socketService"
 
 const useMessage = () => {
   const dispatch = useDispatch()
@@ -29,12 +30,16 @@ const useMessage = () => {
       const token = await getToken()
       const data = await sendMessage(messageData, token)
 
-      dispatch(
-        addMessage({
-          chatId: selectedChat?._id || "",
-          message: data.data.filteredMessage,
-        })
+      const newMessage = {
+        chatId: selectedChat?._id || "",
+        message: data.data.filteredMessage,
+      }
+
+      socketService.sendMessage(
+        selectedChat?._id || "",
+        data.data.filteredMessage
       )
+      dispatch(addMessage(newMessage))
       dispatch(
         updateChat({
           chatId: selectedChat?._id || "",

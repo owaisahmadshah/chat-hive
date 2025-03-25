@@ -14,18 +14,12 @@ import {
   USER_DISCONNECTED,
 } from "../utils/constants.js"
 import type { Chat } from "../types/chat.socket.interface.js"
+import type { Message } from "../types/message.socket.interface.js"
 
 interface User {
   userId: string
   socketId: string
   activeChat: string | null
-}
-
-interface Message {
-  chatId: string
-  content: string
-  sender: string
-  timestamp: Date
 }
 
 /**
@@ -113,7 +107,9 @@ class SocketManager {
     })
 
     // Handle creation of a new chat
-    socket.on(NEW_CHAT, (chat: Chat) => {
+    socket.on(NEW_CHAT, (data: { chat: Chat }) => {
+      const { chat } = data
+
       const participants = chat.users.map((user) => user._id)
       const sender = chat.admin._id
       const chatId = chat._id
@@ -162,18 +158,12 @@ class SocketManager {
     // Handle new message event
     socket.on(
       NEW_MESSAGE,
-      (data: { chatId: string; content: string; sender: string }) => {
-        const { chatId, content, sender } = data
-
-        const message: Message = {
-          chatId,
-          content,
-          sender,
-          timestamp: new Date(),
-        }
+      // (data: { chatId: string; content: string; sender: string }) => {
+      (data: { chatId: string; message: Message }) => {
+        const { chatId, message } = data
 
         // Broadcast message to everyone in the chat room except sender
-        socket.to(chatId).emit(NEW_MESSAGE, message)
+        socket.to(chatId).emit(NEW_MESSAGE, { chatId, message })
       }
     )
 

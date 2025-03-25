@@ -8,6 +8,7 @@ import {
   TYPING,
 } from "@/lib/constants"
 import { Chat } from "@/types/chat-interface"
+import { Message } from "@/features/message-section/types/message-interface"
 
 class SocketService {
   private socket: Socket | null = null
@@ -40,9 +41,8 @@ class SocketService {
     this.socket?.emit(JOIN_CHAT, chatId)
   }
 
-  sendMessage(chatId: string, content: string, sender: string) {
-    this.socket?.emit(TYPING, { chatId, sender, isTyping: false }) // optional you can also emit typing event using onTyping
-    this.socket?.emit(NEW_MESSAGE, { chatId, content, sender })
+  sendMessage(chatId: string, message: Message) {
+    this.socket?.emit(NEW_MESSAGE, { chatId, message })
   }
 
   onTyping(chatId: string, userId: string, isTyping: boolean) {
