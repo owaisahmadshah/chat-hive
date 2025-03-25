@@ -7,6 +7,7 @@ import api from "@/lib/axiosInstance"
 import { RootState } from "@/store/store"
 import { setChats } from "@/store/slices/chats"
 import { setMessages } from "@/store/slices/messages"
+import { socketService } from "@/lib/socketService"
 
 function useGetUserChatsAndMessages() {
   const { getToken } = useAuth()
@@ -50,6 +51,7 @@ function useGetUserChatsAndMessages() {
             allChatsAndMessages.forEach((chatAndMessages) => {
               const { messages, ...chat } = chatAndMessages
               allChats.push(chat)
+              socketService.joinChat(chat._id) //* Join chat in socket server
               dispatch(setMessages({ chatId: chat._id, messages }))
             })
             dispatch(setChats(allChats))
