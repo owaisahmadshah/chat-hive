@@ -4,11 +4,13 @@ import ContinueWithGoogle from "@/features/auth/continue-with-google-landing-pag
 import ChatSection from "@/features/chat-section/ChatSection"
 import useGetUserId from "@/hooks/useGetUserId"
 import MessageSection from "@/features/message-section/MessageSection"
+import { useSocket } from "@/hooks/useSocket"
 
 function App() {
 
   //* This will get the user data and userId which is crucial for making api requests
   useGetUserId()
+  useSocket()
 
   return (<>
     <SignedOut>
@@ -16,7 +18,7 @@ function App() {
     </SignedOut>
     <SignedIn>
       <main className="flex">
-      <ChatSection />
+        <ChatSection />
         <MessageSection />
       </main>
     </SignedIn>
