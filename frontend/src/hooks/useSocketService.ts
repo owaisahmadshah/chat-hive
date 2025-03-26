@@ -82,7 +82,6 @@ const useSocketService = () => {
   }
 
   const joinSocketChat = (chatId: string) => {
-    console.log("Joining chat", chatId)
     socket?.emit(JOIN_CHAT, chatId)
   }
 
