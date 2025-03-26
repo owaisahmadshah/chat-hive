@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { socketService } from "@/lib/socketService"
+import { useSocketService } from "@/hooks/useSocketService"
 import { RootState } from "@/store/store"
 import { useSelector } from "react-redux"
 import { useUser } from "@clerk/clerk-react"
@@ -7,15 +7,16 @@ import { useUser } from "@clerk/clerk-react"
 const useSocket = () => {
   const user = useSelector((state: RootState) => state.user)
   const { isSignedIn } = useUser()
+  const { connectSocket, disconnectSocket } = useSocketService()
 
   useEffect(() => {
     if (user.userId && isSignedIn) {
-      socketService.connect(user.userId)
+      connectSocket(user.userId)
     } else {
       console.info("User not signed in, not connecting to socket")
     }
     return () => {
-      socketService.disconnect()
+      disconnectSocket()
     }
   }, [user, isSignedIn])
 }
