@@ -48,9 +48,9 @@ const Chats = () => {
 
   return (
     <ScrollArea className="box-border border-r border-l h-[84vh]">
-      // TODO fix: if !isLoading and length === 0 show no chats, correct it by only using !isLoading and update the isLoading in the redux store so we can get the correct state and show the correct content
       <ul className="flex flex-col max-h-[84vh]">
         {
+          // TODO fix: if !isLoading and length === 0 show no chats, correct it by only using !isLoading and update the isLoading in the redux store so we can get the correct state and show the correct content
           !chats.isLoading && chats.chats.length === 0 ?
             <ChatListSkeleton count={10} />
             : ""
