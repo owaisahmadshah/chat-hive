@@ -1,8 +1,32 @@
 const NoChatSelected = () => {
-  return (
-    <div className="w-[75vw] h-[99vh] flex items-center justify-center bg-background text-foreground">
-      <p className="text-lg font-medium">You haven't created or selected any chat.</p>
-    </div>
+  // TODO: Update chats isLoading state correctly and use it to display skeleton if chats are still loading
+  return (<>
+    {
+      // chats.chats.length > 0 ?
+      <div className="w-[75vw] h-[99vh] flex flex-col items-center justify-center bg-background text-foreground">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="w-16 h-16 text-muted-foreground mb-4"
+        >
+          <path d="M8 9h8M8 13h6M10 17h4" />
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        </svg>
+        <p className="text-xl font-semibold text-muted-foreground">
+          No Chat Selected
+        </p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Start a conversation by selecting or creating a chat.
+        </p>
+      </div>
+      // : "Skeleton here.."
+    }
+  </>
   )
 }
 
