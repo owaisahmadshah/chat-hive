@@ -12,8 +12,6 @@ const useSocket = () => {
   useEffect(() => {
     if (user.userId && isSignedIn) {
       connectSocket(user.userId)
-    } else {
-      console.info("User not signed in, not connecting to socket")
     }
     return () => {
       disconnectSocket()
