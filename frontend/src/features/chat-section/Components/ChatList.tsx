@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { setSelectedChat, setSelectedChatUser, } from '@/store/slices/chats'
 import correctDate from '@/lib/correct-date'
 import ChatActions from './ChatActions'
+import { ChatListSkeleton } from './ChatsListSkeleton'
 
 const Chats = () => {
 
@@ -24,7 +25,6 @@ const Chats = () => {
     }
     for (let i = 0; i < selectedChat.users.length; i++) {
       if (selectedChat.users[i]._id !== userId) {
-        //@ts-ignore
         dispatch(setSelectedChatUser(selectedChat.users[i]))
         break
       }
@@ -49,6 +49,11 @@ const Chats = () => {
   return (
     <ScrollArea className="box-border border-r border-l h-[84vh]">
       <ul className="flex flex-col max-h-[84vh]">
+        {
+          !chats.isLoading && chats.chats.length === 0 ?
+            <ChatListSkeleton count={10} />
+            : ""
+        }
         {
           !chats.isLoading &&
           chats.chats
