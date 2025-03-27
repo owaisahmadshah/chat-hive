@@ -5,7 +5,11 @@ import { z } from "zod"
 import { messageSchema } from "../types/message-schema"
 import { addMessage, deleteMessage } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
-import { deleteMessageService, sendMessage } from "../services/messageService"
+import {
+  deleteMessageService,
+  getAndUpdateChat,
+  sendMessage,
+} from "../services/messageService"
 import { useAuth } from "@clerk/clerk-react"
 import { updateChat } from "@/store/slices/chats"
 import { useSocketService } from "@/hooks/useSocketService"
@@ -13,14 +17,17 @@ import { useSocketService } from "@/hooks/useSocketService"
 const useMessage = () => {
   const dispatch = useDispatch()
   const { getToken } = useAuth()
-  const { sendSocketMessage } = useSocketService()
+  const { sendSocketMessage, newSocketChat } = useSocketService()
 
   const userId = useSelector((state: RootState) => state.user.userId)
   const { selectedChat } = useSelector((state: RootState) => state.chats)
-  // const messages = useSelector((state: RootState) => state.messages)
+  const messages = useSelector((state: RootState) => state.messages)
 
   const sendNewMessage = async (values: z.infer<typeof messageSchema>) => {
     try {
+      if (!selectedChat) {
+        return
+      }
       const messageData = {
         sender: userId,
         chatId: selectedChat?._id,
@@ -32,15 +39,14 @@ const useMessage = () => {
       const data = await sendMessage(messageData, token)
 
       const newMessage = {
-        chatId: selectedChat?._id || "",
+        chatId: selectedChat?._id,
         message: data.data.filteredMessage,
       }
 
-      sendSocketMessage(selectedChat?._id || "", data.data.filteredMessage)
       dispatch(addMessage(newMessage))
       dispatch(
         updateChat({
-          chatId: selectedChat?._id || "",
+          chatId: selectedChat?._id,
           updates: {
             lastMessage: {
               message: data.data.filteredMessage.message,
@@ -50,6 +56,16 @@ const useMessage = () => {
           },
         })
       )
+
+      if (messages[selectedChat?._id].length !== 0) {
+        sendSocketMessage(selectedChat?._id, data.data.filteredMessage)
+        return
+      }
+
+      await getAndUpdateChat({ chatId: selectedChat?._id }, token)
+
+      newSocketChat(selectedChat)
+      sendSocketMessage(selectedChat?._id, data.data.filteredMessage)
     } catch (error) {
       console.error("Error sending message", error)
       if (axios.isAxiosError(error)) {

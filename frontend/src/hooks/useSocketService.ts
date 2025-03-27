@@ -1,6 +1,6 @@
 import { io, Socket } from "socket.io-client"
 import { useDispatch, useSelector } from "react-redux"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 
 import {
   NEW_MESSAGE,
@@ -20,6 +20,9 @@ let socket: Socket | null = null // Singleton instance
 const useSocketService = () => {
   const dispatch = useDispatch()
   const { userId } = useSelector((state: RootState) => state.user)
+  const { chats } = useSelector((state: RootState) => state.chats)
+  const chatRef = useRef(chats)
+  chatRef.current = chats
 
   useEffect(() => {
     if (!socket && userId.trim() !== "") {
@@ -37,6 +40,11 @@ const useSocketService = () => {
     if (!socket) return
 
     socket.on(NEW_CHAT, (data: { chat: Chat }) => {
+      for (let i = 0; i < chatRef.current.length; i++) {
+        if (chatRef.current[i]._id === data.chat._id) {
+          return
+        }
+      }
       joinSocketChat(data.chat._id)
       dispatch(addChat(data.chat))
       dispatch(setMessages({ chatId: data.chat._id, messages: [] }))
