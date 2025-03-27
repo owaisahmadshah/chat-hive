@@ -315,4 +315,14 @@ const getMessages = async (chatid: string, userid: string) => {
   return messages
 }
 
-export { createChat, deleteChat, getChatsAndMessages }
+const getChat = asyncHandler(async (req: Request, res: Response) => {
+  const { chatId } = await req.body
+
+  const chat = await getCreatingChatDetails(chatId)
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { chat }, "Sucessful getting chat"))
+})
+
+export { createChat, deleteChat, getChatsAndMessages, getChat }
