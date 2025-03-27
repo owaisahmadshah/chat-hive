@@ -9,6 +9,7 @@ import { setSelectedChat, setSelectedChatUser, } from '@/store/slices/chats'
 import correctDate from '@/lib/correct-date'
 import ChatActions from './ChatActions'
 import { ChatListSkeleton } from './ChatsListSkeleton'
+import NoChats from './NoChats'
 
 const Chats = () => {
 
@@ -42,21 +43,16 @@ const Chats = () => {
         break
       }
     }
-    // TODO Check if the user is saved in our contacts then return contactName if not return email
     return email
   }
 
   return (
     <ScrollArea className="box-border border-r border-l h-[84vh]">
       <ul className="flex flex-col max-h-[84vh]">
+        {chats.isLoading && <ChatListSkeleton count={10} />}
+        {chats.chats.length === 0 && <NoChats />}
         {
-          // TODO fix: if !isLoading and length === 0 show no chats, correct it by only using !isLoading and update the isLoading in the redux store so we can get the correct state and show the correct content
-          !chats.isLoading && chats.chats.length === 0 ?
-            <ChatListSkeleton count={10} />
-            : ""
-        }
-        {
-          !chats.isLoading &&
+          !chats.isLoading && chats.chats.length > 0 &&
           chats.chats
             .map((chat: Chat, index) => (
               <li
