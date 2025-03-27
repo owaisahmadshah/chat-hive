@@ -21,7 +21,7 @@ import { useSocketService } from "@/hooks/useSocketService"
 const useChat = () => {
   const { getToken } = useAuth()
   const dispatch = useDispatch()
-  const { newSocketChat, joinSocketChat } = useSocketService()
+  const { joinSocketChat } = useSocketService()
   const userId = useSelector((state: RootState) => state.user.userId)
   const selectedChat = useSelector(
     (state: RootState) => state.chats.selectedChat
@@ -53,7 +53,6 @@ const useChat = () => {
       const { data } = await createChat(chatBody, token)
 
       //* Emitting new chat event to the server
-      newSocketChat(data.data?.chat[0])
       joinSocketChat(data.data?.chat[0]._id)
       dispatch(addChat(data.data?.chat[0]))
       dispatch(setMessages({ chatId: data.data?.chat[0]?._id, messages: [] }))
