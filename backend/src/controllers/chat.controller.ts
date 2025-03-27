@@ -315,14 +315,19 @@ const getMessages = async (chatid: string, userid: string) => {
   return messages
 }
 
-const getChat = asyncHandler(async (req: Request, res: Response) => {
+const getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
   const { chatId } = await req.body
 
-  const chat = await getCreatingChatDetails(chatId)
+  const existedChat = await Chat.findById(chatId)
+  if (!existedChat) {
+    return res.status(200).json(new ApiResponse(202, {}, "Chat not found"))
+  }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { chat }, "Sucessful getting chat"))
+  existedChat.deletedBy = []
+  existedChat.save()
+
+  const chat = await getCreatingChatDetails(chatId)
+  return res.status(200).json(new ApiResponse(200, { chat }, "Sucessful"))
 })
 
-export { createChat, deleteChat, getChatsAndMessages, getChat }
+export { createChat, deleteChat, getChatsAndMessages, getAndUpdateChat }
