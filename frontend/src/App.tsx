@@ -4,7 +4,6 @@ import ContinueWithGoogle from "@/features/auth/continue-with-google-landing-pag
 import ChatSection from "@/features/chat-section/ChatSection"
 import useGetUserId from "@/hooks/useGetUserId"
 import MessageSection from "@/features/message-section/MessageSection"
-import { ModeToggle } from "./components/mode-toggle"
 import { useSocketService } from "./hooks/useSocketService"
 
 function App() {
@@ -23,9 +22,6 @@ function App() {
         <MessageSection />
       </main>
     </SignedIn>
-    <span className="sticky bottom-0">
-        <ModeToggle />
-      </span>
   </>)
 }
 
