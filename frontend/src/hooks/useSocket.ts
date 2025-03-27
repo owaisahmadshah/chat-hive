@@ -10,7 +10,7 @@ const useSocket = () => {
   const { connectSocket, disconnectSocket } = useSocketService()
 
   useEffect(() => {
-    if (user.userId && isSignedIn) {
+    if (isSignedIn) {
       connectSocket(user.userId)
     }
     return () => {

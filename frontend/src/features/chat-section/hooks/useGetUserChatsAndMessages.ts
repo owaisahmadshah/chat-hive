@@ -20,7 +20,7 @@ function useGetUserChatsAndMessages() {
   useEffect(() => {
     let isMounted = true
 
-    if (!user.isLoading && user.userId) {
+    if (!user.isLoading) {
       ;(async () => {
         try {
           const token = await getToken()

@@ -4,7 +4,7 @@ import type { PayloadAction } from "@reduxjs/toolkit"
 import { User } from "@/types/user-interface"
 
 const initialState: User = {
-  userId: null,
+  userId: "",
   fullName: "",
   email: "",
   imageUrl: "",
@@ -20,7 +20,7 @@ const userSlice = createSlice({
       state.email = action.payload.email
       state.fullName = action.payload.fullName
       state.imageUrl = action.payload.imageUrl
-      state.isLoading = false
+      state.isLoading = action.payload.isLoading
     },
   },
 })

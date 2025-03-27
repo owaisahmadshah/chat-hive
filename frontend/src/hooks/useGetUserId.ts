@@ -43,7 +43,7 @@ function useGetUserId() {
               userId: data.data._id,
               fullName: data.data.fullName,
               imageUrl: data.data.imageUrl,
-              isLoading: true,
+              isLoading: false,
             }
             dispatch(setUser(payload))
           }

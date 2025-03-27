@@ -72,7 +72,7 @@ const useMessage = () => {
           // chatId: selectedChatId,
           messageId,
           // lastMessageId,
-          userId: userId || "",
+          userId,
         },
         token
       )

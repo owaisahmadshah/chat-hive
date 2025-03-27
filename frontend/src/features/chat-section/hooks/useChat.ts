@@ -45,9 +45,6 @@ const useChat = () => {
   const createNewChat = async (user: ChatUser) => {
     try {
       const token = await getToken()
-      if (!userId) {
-        return null
-      }
 
       const usersSet = new Set([user._id, userId])
       const uniqueUsers = Array.from(usersSet)
@@ -72,9 +69,6 @@ const useChat = () => {
   const deleteAChat = async (chatId: string) => {
     try {
       const token = await getToken()
-      if (!userId) {
-        return null
-      }
 
       const deleteChatBody = { userId, chatId }
       await deleteChatService(deleteChatBody, token)
