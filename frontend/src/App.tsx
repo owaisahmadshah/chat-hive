@@ -4,14 +4,14 @@ import ContinueWithGoogle from "@/features/auth/continue-with-google-landing-pag
 import ChatSection from "@/features/chat-section/ChatSection"
 import useGetUserId from "@/hooks/useGetUserId"
 import MessageSection from "@/features/message-section/MessageSection"
-import { useSocket } from "@/hooks/useSocket"
 import { ModeToggle } from "./components/mode-toggle"
+import { useSocketService } from "./hooks/useSocketService"
 
 function App() {
 
   //* This will get the user data and userId which is crucial for making api requests
   useGetUserId()
-  useSocket()
+  useSocketService()
 
   return (<>
     <SignedOut>

@@ -120,11 +120,7 @@ class SocketManager {
         if (participantId !== sender) {
           const participant = this.activeUsers.get(participantId)
           if (participant) {
-            this.io.to(participant.socketId).emit(NEW_CHAT, {
-              chatId,
-              participants,
-              sender,
-            })
+            this.io.to(participant.socketId).emit(NEW_CHAT, { chat })
           }
         }
       })

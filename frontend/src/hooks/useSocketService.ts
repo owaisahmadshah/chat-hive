@@ -1,5 +1,5 @@
 import { io, Socket } from "socket.io-client"
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { useEffect } from "react"
 
 import {
@@ -13,33 +13,31 @@ import { Chat } from "@/types/chat-interface"
 import { Message } from "@/features/message-section/types/message-interface"
 import { addMessage, setMessages } from "@/store/slices/messages"
 import { addChat, updateChat } from "@/store/slices/chats"
+import { RootState } from "@/store/store"
 
 let socket: Socket | null = null // Singleton instance
 
 const useSocketService = () => {
   const dispatch = useDispatch()
+  const { userId } = useSelector((state: RootState) => state.user)
 
   useEffect(() => {
-    if (!socket) {
+    if (!socket && userId.trim() !== "") {
       socket = io(import.meta.env.VITE_REACT_APP_SOCKET_URL, {
         transports: ["websocket"],
         withCredentials: true,
       })
 
+      socket?.emit(USER_CONNECTED, userId)
       setupListeners()
     }
-
-    return () => {
-      socket?.off(NEW_MESSAGE)
-      socket?.off(NEW_CHAT)
-      socket?.off(TYPING)
-    }
-  }, [])
+  }, [userId])
 
   const setupListeners = () => {
     if (!socket) return
 
     socket.on(NEW_CHAT, (data: { chat: Chat }) => {
+      joinSocketChat(data.chat._id)
       dispatch(addChat(data.chat))
       dispatch(setMessages({ chatId: data.chat._id, messages: [] }))
     })
@@ -64,8 +62,14 @@ const useSocketService = () => {
       TYPING,
       (data: { chatId: string; userId: string; isTyping: boolean }) => {
         // TODO: Implement typing event handling
+        console.log("Implement", data)
       }
     )
+
+    socket?.on("disconnect", () => {
+      socket = null
+      disconnectSocket()
+    })
   }
 
   const connectSocket = (userId: string) => {
