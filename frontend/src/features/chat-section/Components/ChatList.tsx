@@ -73,7 +73,7 @@ const Chats = () => {
                       <AvatarFallback>CN</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold text-l overflow-x-hidden max-w-[160px]">
+                      <p className="font-semibold text-l overflow-x-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
                         {chatUserEmail(chat.users)}
                       </p>
                       <div className='flex justify-between min-w-[15vw]'>

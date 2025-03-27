@@ -5,6 +5,7 @@ import ChatSection from "@/features/chat-section/ChatSection"
 import useGetUserId from "@/hooks/useGetUserId"
 import MessageSection from "@/features/message-section/MessageSection"
 import { useSocket } from "@/hooks/useSocket"
+import { ModeToggle } from "./components/mode-toggle"
 
 function App() {
 
@@ -22,6 +23,9 @@ function App() {
         <MessageSection />
       </main>
     </SignedIn>
+    <span className="sticky bottom-0">
+        <ModeToggle />
+      </span>
   </>)
 }
 
