@@ -30,8 +30,14 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
     if (chat.admin !== admin) {
       chat.admin = admin
     }
-    // If a user is recreating the chat, reset the deletedBy array to allow communication
-    chat.deletedBy = []
+    const deletedParticipants = chat.deletedBy.filter(
+      (user) => user.toString() !== admin
+    )
+
+    // TODO: Figure out how to change updateAt field when chat is recreated, like there are multiple users, how can we get for every users
+
+    // Only update for the specific user who is recreating this chat
+    chat.deletedBy = deletedParticipants
     await chat.save()
 
     //@ts-ignore
@@ -47,10 +53,17 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
       )
   }
 
+  // Adding users to deletedBy array to make sure that any user won't receive
+  // chat without any message, if user send message then the user will update
+  // this and will send message
+  // @ts-ignore
+  const deletedBy = users.filter((user) => user.toString() !== admin)
+
   // Create a new chat if no existing chat is found
   chat = await Chat.create({
     admin,
     users,
+    deletedBy,
     lastMessage: null,
   })
 
