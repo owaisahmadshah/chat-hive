@@ -45,6 +45,7 @@ const createMessage = asyncHandler(async (req: Request, res: Response) => {
 
   await Chat.findByIdAndUpdate(chatId, {
     lastMessage: newMessage._id,
+    deletedBy: [], // If other user has deleted chat and we want to rejoin him the chat, we must do this
     updatedAt: new Date(),
   })
 
