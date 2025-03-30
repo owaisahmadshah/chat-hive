@@ -26,18 +26,4 @@ const deleteMessageService = async (
   return data
 }
 
-const getAndUpdateChat = async (
-  chatBody: {
-    chatId: string
-  },
-  token: string | null
-) => {
-  const { data } = await api.post("/v1/chat/getupdatechat", chatBody, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-  return data
-}
-
-export { sendMessage, deleteMessageService, getAndUpdateChat }
+export { sendMessage, deleteMessageService }

@@ -14,11 +14,13 @@ import { Message } from "@/features/message-section/types/message-interface"
 import { addMessage, setMessages } from "@/store/slices/messages"
 import { addChat, updateChat } from "@/store/slices/chats"
 import { RootState } from "@/store/store"
+import useGetChat from "@/features/chat-section/hooks/getChat"
 
 let socket: Socket | null = null // Singleton instance
 
 const useSocketService = () => {
   const dispatch = useDispatch()
+  const { getChat } = useGetChat()
   const { userId } = useSelector((state: RootState) => state.user)
   const { chats } = useSelector((state: RootState) => state.chats)
   const chatRef = useRef(chats)
@@ -50,11 +52,27 @@ const useSocketService = () => {
       dispatch(setMessages({ chatId: data.chat._id, messages: [] }))
     })
 
-    socket.on(NEW_MESSAGE, (data: { chatId: string; message: Message }) => {
-      dispatch(addMessage({ chatId: data.chatId, message: data.message }))
+    socket.on(NEW_MESSAGE, async (data: { message: Message }, callback) => {
+      const isChatExists = chatRef.current.findIndex(
+        (chat) => chat._id === data.message.chatId
+      )
+
+      if (isChatExists === -1) {
+        await getChat(data.message.chatId)
+        joinSocketChat(data.message.chatId)
+      }
+
+      callback({
+        status: true,
+        message: "receiver received message",
+      })
+
+      dispatch(
+        addMessage({ chatId: data.message.chatId, message: data.message })
+      )
       dispatch(
         updateChat({
-          chatId: data.chatId,
+          chatId: data.message.chatId,
           updates: {
             lastMessage: {
               message: data.message.message,
@@ -97,8 +115,16 @@ const useSocketService = () => {
     socket?.emit(JOIN_CHAT, chatId)
   }
 
-  const sendSocketMessage = (chatId: string, message: Message) => {
-    socket?.emit(NEW_MESSAGE, { chatId, message })
+  const sendSocketMessage = (message: Message, messageUsers: string[]) => {
+    socket
+      ?.timeout(10000)
+      .emit(NEW_MESSAGE, { message, messageUsers }, (err: [], res: []) => {
+        if (err || res?.length) {
+          // TODO
+        } else {
+          // TODO
+        }
+      })
   }
 
   const onSocketTyping = (

@@ -5,11 +5,7 @@ import { z } from "zod"
 import { messageSchema } from "../types/message-schema"
 import { addMessage, deleteMessage } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
-import {
-  deleteMessageService,
-  getAndUpdateChat,
-  sendMessage,
-} from "../services/messageService"
+import { deleteMessageService, sendMessage } from "../services/messageService"
 import { useAuth } from "@clerk/clerk-react"
 import { updateChat } from "@/store/slices/chats"
 import { useSocketService } from "@/hooks/useSocketService"
@@ -17,11 +13,10 @@ import { useSocketService } from "@/hooks/useSocketService"
 const useMessage = () => {
   const dispatch = useDispatch()
   const { getToken } = useAuth()
-  const { sendSocketMessage, newSocketChat } = useSocketService()
 
   const userId = useSelector((state: RootState) => state.user.userId)
   const { selectedChat } = useSelector((state: RootState) => state.chats)
-  const messages = useSelector((state: RootState) => state.messages)
+  const { sendSocketMessage } = useSocketService()
 
   const sendNewMessage = async (values: z.infer<typeof messageSchema>) => {
     try {
@@ -57,15 +52,10 @@ const useMessage = () => {
         })
       )
 
-      if (messages[selectedChat?._id].length !== 0) {
-        sendSocketMessage(selectedChat?._id, data.data.filteredMessage)
-        return
-      }
+      // TODO add these users to redux-toolkit so we don't need to get them every time
+      const messageUsers = selectedChat?.users?.map((u) => u._id)
 
-      await getAndUpdateChat({ chatId: selectedChat?._id }, token)
-
-      newSocketChat(selectedChat)
-      sendSocketMessage(selectedChat?._id, data.data.filteredMessage)
+      sendSocketMessage(data.data.filteredMessage, messageUsers)
     } catch (error) {
       console.error("Error sending message", error)
       if (axios.isAxiosError(error)) {

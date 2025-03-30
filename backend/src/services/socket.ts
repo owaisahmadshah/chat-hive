@@ -135,11 +135,51 @@ class SocketManager {
     socket.on(
       NEW_MESSAGE,
       // (data: { chatId: string; content: string; sender: string }) => {
-      (data: { chatId: string; message: Message }) => {
-        const { chatId, message } = data
+      (
+        data: { chatId: string; message: Message; messageUsers: string[] },
+        callback
+      ) => {
+        const { chatId, message, messageUsers } = data
 
         // Broadcast message to everyone in the chat room except sender
-        socket.to(chatId).emit(NEW_MESSAGE, { chatId, message })
+        socket
+          .to(chatId)
+          .timeout(1000)
+          .emit(NEW_MESSAGE, { message }, (err: any, res: any) => {
+            // TODO: Check and correct condition & add types for err, res
+            if (res.length === 0 || err?.length > 0) {
+              // Handle offline users or users not in the chat of socket.io rooms
+              messageUsers.forEach((messageUserId) => {
+                if (messageUserId !== message.sender._id) {
+                  const messageUser = this.activeUsers.get(messageUserId)
+                  if (messageUser) {
+                    this.io
+                      .to(messageUser.socketId)
+                      .timeout(3000)
+                      .emit(
+                        NEW_MESSAGE,
+                        { message },
+                        (nestedErr: any, nestedRes: any) => {
+                          // If you want to confirm user get or not you can get here,
+                          // just push callback nestedRes, nestedErr to array and send
+                        }
+                      )
+                  }
+                }
+              })
+              callback({
+                receiverResponse: err,
+                status: false,
+                message: "Unable to send message",
+              })
+            } else {
+              callback({
+                receiverResponse: res,
+                status: true,
+                message: "Sucessfully send message",
+              })
+            }
+          })
       }
     )
 

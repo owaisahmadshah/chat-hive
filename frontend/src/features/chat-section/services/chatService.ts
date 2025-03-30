@@ -1,6 +1,6 @@
 import api from "@/lib/axiosInstance"
 
-const fetchUser = async (email: { email: st}, token: string | null) => {
+const fetchUser = async (email: { email: st }, token: string | null) => {
   const { data } = await api.post("/v1/webhook/suggestions", email, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -33,4 +33,18 @@ const deleteChatService = async (
   return data
 }
 
-export { fetchUser, createChat, deleteChatService }
+const getUserChat = async (
+  chatBody: {
+    chatId: string
+  },
+  token: string | null
+) => {
+  const data = await api.post("/v1/chat/getupdatechat", chatBody, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return data
+}
+
+export { fetchUser, createChat, deleteChatService, getUserChat }
