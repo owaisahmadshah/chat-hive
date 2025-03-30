@@ -3,7 +3,6 @@ import type { Request, Response } from "express"
 import { asyncHandler } from "../utils/AsyncHandler.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { Chat } from "../models/chat.model.js"
-import logger from "../utils/logger.js"
 import mongoose from "mongoose"
 import { Message } from "../models/message.model.js"
 
@@ -81,7 +80,7 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
     )
 })
 
-const getCreatingChatDetails = async (chatId: string) => {
+const getCreatingChatDetails = async (chatId: mongoose.Types.ObjectId) => {
   const chatPipeline = [
     {
       $match: { _id: chatId },
@@ -326,7 +325,10 @@ const getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
   existedChat.deletedBy = []
   existedChat.save()
 
-  const chat = await getCreatingChatDetails(chatId)
+  const chatObjectId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
+    chatId
+  )
+  const chat = await getCreatingChatDetails(chatObjectId)
   return res.status(200).json(new ApiResponse(200, { chat }, "Sucessful"))
 })
 
