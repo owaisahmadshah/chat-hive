@@ -1,7 +1,7 @@
 import api from "@/lib/axiosInstance"
 
-const sendMessage = async (messageBody: any, token: string | null) => {
-  const { data } = await api.post("/v1/message/create", messageBody, {
+const sendMessage = async (formData: FormData, token: string | null) => {
+  const { data } = await api.post("/v1/message/create", formData, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -11,9 +11,7 @@ const sendMessage = async (messageBody: any, token: string | null) => {
 
 const deleteMessageService = async (
   messageBody: {
-    // chatId: string
     messageId: string
-    // lastMessageId: string
     userId: string
   },
   token: string | null

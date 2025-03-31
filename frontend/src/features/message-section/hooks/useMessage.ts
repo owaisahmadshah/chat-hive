@@ -1,8 +1,6 @@
 import { useDispatch, useSelector } from "react-redux"
 import axios from "axios"
-import { z } from "zod"
 
-import { messageSchema } from "../types/message-schema"
 import { addMessage, deleteMessage } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
 import { deleteMessageService, sendMessage } from "../services/messageService"
@@ -18,20 +16,18 @@ const useMessage = () => {
   const { selectedChat } = useSelector((state: RootState) => state.chats)
   const { sendSocketMessage } = useSocketService()
 
-  const sendNewMessage = async (values: z.infer<typeof messageSchema>) => {
+  const sendNewMessage = async (formData: FormData) => {
     try {
       if (!selectedChat) {
         return
       }
-      const messageData = {
-        sender: userId,
-        chatId: selectedChat?._id,
-        message: values.userInputMessage,
-        status: "sent",
-      }
+
+      formData.append("sender", userId)
+      formData.append("chatId", selectedChat._id)
+      formData.append("status", "sent")
 
       const token = await getToken()
-      const data = await sendMessage(messageData, token)
+      const data = await sendMessage(formData, token)
 
       const newMessage = {
         chatId: selectedChat?._id,
@@ -75,38 +71,12 @@ const useMessage = () => {
       const token = await getToken()
       await deleteMessageService(
         {
-          // chatId: selectedChatId,
           messageId,
-          // lastMessageId,
           userId,
         },
         token
       )
 
-      /*
-      const messageIndex = messages[selectedChatId || ""].findIndex(
-        (msg) => msg._id === messageId
-      )
-
-      if (messageIndex === messages[selectedChatId || ""].length) {
-        dispatch(
-          updateChat({
-            chatId: selectedChatId || "",
-            updates: {
-              lastMessage: {
-                message:
-                  messages[selectedChatId || ""][messageIndex - 1]?.message ||
-                  "",
-                photoUrl: "",
-              },
-              updatedAt:
-                messages[selectedChatId || ""][messageIndex - 1]?.updatedAt ||
-                selectedChat?.updatedAt,
-            },
-          })
-        )
-      }
-      */
       dispatch(deleteMessage({ chatId: selectedChatId || "", messageId }))
     } catch (error) {
       console.error("Error deleting message", error)
