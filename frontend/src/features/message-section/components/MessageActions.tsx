@@ -16,7 +16,7 @@ function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
   }
 
   const handleSelectedMessageCopy = () => {
-    // TODO handle selected message copy
+    navigator.clipboard.writeText(selectedMessage.message)
   }
 
   const handleSelectedMessagePin = () => {
@@ -24,8 +24,6 @@ function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
   }
 
   const handleSelectedMessageDelete = async () => {
-    // TODO Update backend to properly delete lastMessage and add the second last message as lastMessage
-    // TODO Also correctly update the selectedChat lastMessage
     await deleteSelectedMessage(selectedMessage._id)
   }
 
