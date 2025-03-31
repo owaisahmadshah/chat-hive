@@ -5,9 +5,14 @@ import NoChatSelected from "./components/NoChatSelected"
 import MessageNavBar from "@/features/message-section/components/MessageNavBar"
 import MessageList from "@/features/message-section/components/MessageList"
 import MessageInput from "@/features/message-section/components/MessageInput"
+import MessageSectionSkeleton from "./components/MessageSectionSkeleton"
 
 const MessageSection = () => {
-  const selectedChat = useSelector((state: RootState) => state.chats.selectedChat)
+  const { selectedChat, isLoading } = useSelector((state: RootState) => state.chats)
+
+  if (isLoading) {
+    return <MessageSectionSkeleton />
+  }
 
   if (!selectedChat) {
     return <NoChatSelected />
