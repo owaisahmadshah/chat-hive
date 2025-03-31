@@ -35,9 +35,11 @@ function MessageInput() {
     const formData = new FormData()
     formData.append("message", values.userInputMessage)
 
-
     if (values.uploadedImage && values.uploadedImage.length > 0) {
-      formData.append("uploadedImage", values.uploadedImage[0])
+      // Array.from(values.uploadedImage).forEach((file) => {
+      //   formData.append("uploadedImage", file) // Append each file individually
+      // })
+      formData.append("uploadedImage", values.uploadedImage[0]) // If sending one file
     }
 
     if (values.userInputMessage.trim() === "" && values?.uploadedImage === undefined) {
@@ -46,7 +48,6 @@ function MessageInput() {
 
     await sendNewMessage(formData)
     form.reset()
-    form.setValue("uploadedImage", undefined)
     setIsPictureSelected(false)
   }
 
@@ -67,6 +68,7 @@ function MessageInput() {
       <form onSubmit={form.handleSubmit(onSubmit)}
         autoComplete="off"
         className="h-[10vh] flex items-center justify-center gap-2 border-t"
+        encType="multipart/form-data"
       >
         <FormItem>
           <FormControl>
@@ -76,6 +78,7 @@ function MessageInput() {
                 type="file"
                 className="hidden"
                 onChange={setOnChangePicture}
+                multiple
               />
               <Label
                 htmlFor="uploadedImage"

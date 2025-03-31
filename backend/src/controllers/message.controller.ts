@@ -18,8 +18,7 @@ import { User } from "../models/user.model.js"
 const createMessage = asyncHandler(async (req: Request, res: Response) => {
   const { sender, chatId, message, status } = await req.body
 
-  //TODO remove this ignore
-  //@ts-ignore
+  // @ts-ignore
   const uploadedImage = req.files?.uploadedImage?.[0]?.path
   let uploadImage
 

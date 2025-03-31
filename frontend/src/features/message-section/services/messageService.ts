@@ -4,6 +4,7 @@ const sendMessage = async (formData: FormData, token: string | null) => {
   const { data } = await api.post("/v1/message/create", formData, {
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data",
     },
   })
   return data
