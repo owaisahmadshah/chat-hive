@@ -63,7 +63,6 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
     admin,
     users,
     deletedBy,
-    lastMessage: null,
   })
 
   //@ts-ignore
@@ -112,7 +111,6 @@ const getCreatingChatDetails = async (chatId: mongoose.Types.ObjectId) => {
       $project: {
         admin: 1,
         users: 1,
-        lastMessage: 1,
         updatedAt: 1,
       },
     },
@@ -298,7 +296,6 @@ const getMessages = async (chatid: string, userid: string) => {
         "sender._id": 1,
         "sender.email": 1,
         "sender.imageUrl": 1,
-        "sender.lastSeen": 1,
         chatId: 1,
         message: 1,
         photoUrl: 1,

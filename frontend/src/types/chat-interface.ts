@@ -9,10 +9,6 @@ export interface Chat {
   _id: string
   admin: ChatUser
   users: ChatUser[]
-  lastMessage: {
-    message: string
-    photoUrl?: string
-  } | null
   updatedAt: Date
 }
 

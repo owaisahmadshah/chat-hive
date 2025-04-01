@@ -39,10 +39,6 @@ const useMessage = () => {
         updateChat({
           chatId: selectedChat?._id,
           updates: {
-            lastMessage: {
-              message: data.data.filteredMessage.message,
-              photoUrl: data.data.filteredMessage.photoUrl,
-            },
             updatedAt: data.data.filteredMessage.updatedAt,
           },
         })
