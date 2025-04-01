@@ -10,6 +10,10 @@ export interface Chat {
   admin: ChatUser
   users: ChatUser[]
   updatedAt: Date
+  lastMessage: {
+    isPhoto: boolean
+    message: string
+  }
 }
 
 export interface ChatsState {

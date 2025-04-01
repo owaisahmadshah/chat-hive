@@ -10,6 +10,7 @@ import correctDate from '@/lib/correct-date'
 import ChatActions from './ChatActions'
 import { ChatListSkeleton } from './ChatsListSkeleton'
 import NoChats from './NoChats'
+import { Image } from 'lucide-react'
 
 const Chats = () => {
 
@@ -77,12 +78,16 @@ const Chats = () => {
                         {chatUserEmail(chat.users)}
                       </p>
                       <div className='flex justify-between min-w-[15vw]'>
-                        <p>{/*TODO add for last message*/}</p>
-                        {/* <p className="text-sm overflow-x-hidden text-muted-foreground max-w-[140px] text-ellipsis whitespace-nowrap">{
-                          !chat.lastMessage ? ""
-                            : chat.lastMessage.message ? chat.lastMessage.message
-                              : chat.lastMessage.photoUrl
-                        }</p> */}
+                        <div className="flex max-w-[140px] items-center gap-2"
+                        >
+                          {
+                            chat.lastMessage.isPhoto &&
+                            <p><Image height={15} width={15} /></p>
+                          }
+                          <p className='text-sm overflow-x-hidden text-muted-foreground text-ellipsis whitespace-nowrap'>
+                            {chat.lastMessage.message}
+                          </p>
+                        </div>
                         <p className='text-sm text-muted-foreground'>{correctDate(chat.updatedAt)}</p>
                       </div>
                     </div>

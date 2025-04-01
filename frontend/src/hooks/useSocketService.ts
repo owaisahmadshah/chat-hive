@@ -75,8 +75,8 @@ const useSocketService = () => {
           chatId: data.message.chatId,
           updates: {
             lastMessage: {
+              isPhoto: data.message.photoUrl !== "",
               message: data.message.message,
-              photoUrl: data.message.photoUrl,
             },
             updatedAt: data.message.updatedAt,
           },

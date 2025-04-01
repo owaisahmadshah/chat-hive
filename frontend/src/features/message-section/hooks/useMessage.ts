@@ -15,6 +15,7 @@ const useMessage = () => {
   const userId = useSelector((state: RootState) => state.user.userId)
   const { selectedChat } = useSelector((state: RootState) => state.chats)
   const { sendSocketMessage } = useSocketService()
+  const allMessages = useSelector((state: RootState) => state.messages)
 
   const sendNewMessage = async (formData: FormData) => {
     try {
@@ -40,11 +41,14 @@ const useMessage = () => {
           chatId: selectedChat?._id,
           updates: {
             updatedAt: data.data.filteredMessage.updatedAt,
+            lastMessage: {
+              isPhoto: data.data.filteredMessage.photoUrl !== "",
+              message: data.data.filteredMessage.message,
+            },
           },
         })
       )
 
-      // TODO add these users to redux-toolkit so we don't need to get them every time
       const messageUsers = selectedChat?.users?.map((u) => u._id)
 
       sendSocketMessage(data.data.filteredMessage, messageUsers)
@@ -57,8 +61,12 @@ const useMessage = () => {
   }
 
   const deleteSelectedMessage = async (messageId: string) => {
+    if (!selectedChat?._id) {
+      return
+    }
+
     try {
-      const selectedChatId = selectedChat?._id || ""
+      const selectedChatId = selectedChat?._id
       /* const lastMessageId =
         messages[selectedChatId || ""][
           messages[selectedChatId || ""].length - 1
@@ -73,7 +81,28 @@ const useMessage = () => {
         token
       )
 
-      dispatch(deleteMessage({ chatId: selectedChatId || "", messageId }))
+      const chatMessages = allMessages[selectedChat._id]
+      const lastMessage = {
+        isPhoto: false,
+        message: "",
+      }
+
+      // If we have one message and we are deleting it, then we can't go into if
+      if (chatMessages.length - 1) {
+        lastMessage.isPhoto =
+          chatMessages[chatMessages.length - 2].photoUrl !== ""
+        lastMessage.message = chatMessages[chatMessages.length - 2].message
+      }
+
+      dispatch(deleteMessage({ chatId: selectedChatId, messageId }))
+      dispatch(
+        updateChat({
+          chatId: selectedChat?._id,
+          updates: {
+            lastMessage,
+          },
+        })
+      )
     } catch (error) {
       console.error("Error deleting message", error)
       if (axios.isAxiosError(error)) {

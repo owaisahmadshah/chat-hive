@@ -41,6 +41,13 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
 
     //@ts-ignore
     const chatDetails = await getCreatingChatDetails(chat?._id)
+
+    //@ts-ignore
+    chatDetails.lastMessage = {
+      isPhoto: false,
+      message: "",
+    }
+
     return res
       .status(200)
       .json(
@@ -250,6 +257,20 @@ const getChatsAndMessages = asyncHandler(
     for (let i = 0; i < chats?.length; i++) {
       const chatMessages = await getMessages(chats[i]._id.toString(), userId)
       chats[i].messages = [...chatMessages]
+
+      // Manually adding last message
+      const lastMessage = {
+        isPhoto: false,
+        message: "",
+      }
+
+      if (chatMessages.length) {
+        lastMessage.isPhoto =
+          chatMessages[chatMessages.length - 1].photoUrl !== ""
+        lastMessage.message = chatMessages[chatMessages.length - 1].message
+      }
+
+      chats[i].lastMessage = lastMessage
     }
 
     return res.status(200).json(new ApiResponse(200, chats, "Success"))
@@ -325,7 +346,13 @@ const getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
   const chatObjectId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
     chatId
   )
+
   const chat = await getCreatingChatDetails(chatObjectId)
+  chat[0].lastMessage = {
+    isPhoto: false,
+    message: "",
+  }
+
   return res.status(200).json(new ApiResponse(200, { chat }, "Sucessful"))
 })
 
