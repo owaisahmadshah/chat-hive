@@ -22,7 +22,7 @@ function MessageItem({ message }: { message: Message }) {
         <div className="relative w-[250px] h-[350px] overflow-hidden rounded-lg">
           <img
             src={message.photoUrl}
-            alt="Uploaded"
+            alt=""
             loading="lazy"
             className="w-full h-full object-contain bg-black cursor-pointer"
             onClick={handleImageClick}
@@ -37,7 +37,6 @@ function MessageItem({ message }: { message: Message }) {
           </Button>
         </div>
       )}
-      {/* <p className="whitespace-pre-wrap break-words w-fit p-2">{message.message}</p> */}
       <p
         className={`p-2 ${message.photoUrl !== undefined
           && message.photoUrl.trim() !== ""
