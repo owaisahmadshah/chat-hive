@@ -95,14 +95,17 @@ const useMessage = () => {
       }
 
       dispatch(deleteMessage({ chatId: selectedChatId, messageId }))
-      dispatch(
-        updateChat({
-          chatId: selectedChat?._id,
-          updates: {
-            lastMessage,
-          },
-        })
-      )
+      // If we are deleting last message then we will update lastMessage
+      if (messageId === chatMessages[chatMessages.length - 1]._id) {
+        dispatch(
+          updateChat({
+            chatId: selectedChat?._id,
+            updates: {
+              lastMessage,
+            },
+          })
+        )
+      }
     } catch (error) {
       console.error("Error deleting message", error)
       if (axios.isAxiosError(error)) {
