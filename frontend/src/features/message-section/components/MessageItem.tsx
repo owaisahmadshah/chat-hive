@@ -37,7 +37,13 @@ function MessageItem({ message }: { message: Message }) {
           </Button>
         </div>
       )}
-      <p className="whitespace-pre-wrap break-words w-fit p-2">{message.message}</p>
+      {/* <p className="whitespace-pre-wrap break-words w-fit p-2">{message.message}</p> */}
+      <p
+        className={`p-2 ${message.photoUrl !== undefined
+          && message.photoUrl.trim() !== ""
+          ? "max-w-[250px]"
+          : "max-w-[50vw]"}`}
+      >{message.message}</p>
       <div className="flex justify-between items-center">
         <p className="text-[10px] ml-4">{correctDate(message.updatedAt)}</p>
         <MessageActions selectedMessage={message} />
