@@ -5,7 +5,6 @@ interface userDocument extends Document {
   fullName: String
   email: String
   imageUrl: String
-  lastSeen: Date
   lastSignInAt: Date
   createdAt: Date
   updatedAt: Date
@@ -21,10 +20,6 @@ const userSchema = new mongoose.Schema<userDocument>(
       index: true,
     },
     imageUrl: String,
-    lastSeen: {
-      type: Date,
-      Default: Date.now(),
-    },
     lastSignInAt: {
       type: Date,
       Default: Date.now(),

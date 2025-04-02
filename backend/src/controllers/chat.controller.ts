@@ -272,7 +272,7 @@ const getChatsAndMessages = asyncHandler(
 
       chats[i].lastMessage = lastMessage
     }
-
+    console.log(chats)
     return res.status(200).json(new ApiResponse(200, chats, "Success"))
   }
 )

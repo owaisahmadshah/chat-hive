@@ -2,7 +2,7 @@ export interface ChatUser {
   _id: string
   email: string
   imageUrl: string
-  lastSeen: Date
+  updatedAt: Date
 }
 
 export interface Chat {

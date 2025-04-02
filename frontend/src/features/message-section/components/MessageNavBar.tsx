@@ -2,6 +2,7 @@ import { useSelector } from "react-redux"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RootState } from "@/store/store"
+import correctDate from "@/lib/correct-date"
 
 const MessageNavBar = () => {
 
@@ -19,7 +20,12 @@ const MessageNavBar = () => {
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
       </li>
-      <li className="font-bold text-lg cursor-pointer" onClick={handleClickOnSelectedChatProfile}>{selectedChatUser?.email}</li>
+      <li onClick={handleClickOnSelectedChatProfile}>
+        <strong className="text-lg cursor-pointer">{selectedChatUser?.email}</strong>
+        <p className="text-sm text-muted-foreground">
+          {selectedChatUser?.updatedAt && correctDate(selectedChatUser?.updatedAt)}
+        </p>
+      </li>
     </ul>
   )
 }
