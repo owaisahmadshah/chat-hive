@@ -13,6 +13,7 @@ import {
 } from "../utils/constants.js"
 import type { Chat } from "../types/chat.socket.interface.js"
 import type { Message } from "../types/message.socket.interface.js"
+import { User } from "../models/user.model.js"
 
 interface User {
   userId: string
@@ -37,10 +38,15 @@ class SocketManager {
   // Used to manage chat participants and broadcast messages efficiently.
   private chatRooms: Map<string, Set<string>>
 
+  // onlineUsers: A map that tracks all online users
+  // key: userId, Value: boolean
+  private onlineUsers: Map<string, boolean>
+
   constructor(server: Server) {
     this.io = server
     this.activeUsers = new Map() // Stores online users and their socket information
     this.chatRooms = new Map() // Tracks which users are in which chat rooms
+    this.onlineUsers = new Map() // Tracks online status only
     this.initialize()
   }
 
@@ -74,6 +80,32 @@ class SocketManager {
       socket.data.userId = userId // Store userId in socket for reference
 
       logger.info(`User ${userId} connected with socket ${socket.id}`)
+    })
+
+    socket.on("USER_ONLINE", (userId: string) => {
+      this.onlineUsers.set(userId, true)
+
+      User.findByIdAndUpdate(
+        userId,
+        { updateAt: new Date() },
+        { new: true }
+      ).catch((err) => logger.error(err))
+    })
+
+    socket.on("USER_OFFLINE", (userId: string) => {
+      this.onlineUsers.delete(userId)
+
+      User.findByIdAndUpdate(
+        userId,
+        { updateAt: new Date() },
+        { new: true }
+      ).catch((err) => logger.error(err))
+    })
+
+    socket.on("USER_ONLINE_STATUS", (userId: string) => {
+      socket.to(socket.id).emit("USER_ONLINE_STATUS", {
+        online: this.onlineUsers.get(userId) || false,
+      })
     })
   }
 
