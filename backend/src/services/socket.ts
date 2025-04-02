@@ -10,6 +10,9 @@ import {
   JOIN_CHAT,
   USER_CONNECTED,
   USER_DISCONNECTED,
+  USER_OFFLINE,
+  USER_ONLINE,
+  USER_ONLINE_STATUS,
 } from "../utils/constants.js"
 import type { Chat } from "../types/chat.socket.interface.js"
 import type { Message } from "../types/message.socket.interface.js"
@@ -82,7 +85,7 @@ class SocketManager {
       logger.info(`User ${userId} connected with socket ${socket.id}`)
     })
 
-    socket.on("USER_ONLINE", (userId: string) => {
+    socket.on(USER_ONLINE, (userId: string) => {
       this.onlineUsers.set(userId, true)
 
       User.findByIdAndUpdate(
@@ -92,7 +95,7 @@ class SocketManager {
       ).catch((err) => logger.error(err))
     })
 
-    socket.on("USER_OFFLINE", (userId: string) => {
+    socket.on(USER_OFFLINE, (userId: string) => {
       this.onlineUsers.delete(userId)
 
       User.findByIdAndUpdate(
@@ -102,8 +105,8 @@ class SocketManager {
       ).catch((err) => logger.error(err))
     })
 
-    socket.on("USER_ONLINE_STATUS", (userId: string) => {
-      socket.to(socket.id).emit("USER_ONLINE_STATUS", {
+    socket.on(USER_ONLINE_STATUS, (userId: string) => {
+      socket.to(socket.id).emit(USER_ONLINE_STATUS, {
         online: this.onlineUsers.get(userId) || false,
       })
     })
