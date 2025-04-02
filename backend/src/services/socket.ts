@@ -92,7 +92,7 @@ class SocketManager {
         userId,
         { updateAt: new Date() },
         { new: true }
-      ).catch((err) => logger.error(err))
+      ).catch((err) => logger.error("Error updating user", err))
     })
 
     socket.on(USER_OFFLINE, (userId: string) => {
@@ -102,7 +102,7 @@ class SocketManager {
         userId,
         { updateAt: new Date() },
         { new: true }
-      ).catch((err) => logger.error(err))
+      ).catch((err) => logger.error("Error updating user", err))
     })
 
     socket.on(USER_ONLINE_STATUS, (userId: string) => {

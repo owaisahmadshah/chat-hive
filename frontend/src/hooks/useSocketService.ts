@@ -8,6 +8,8 @@ import {
   USER_CONNECTED,
   JOIN_CHAT,
   TYPING,
+  USER_ONLINE,
+  USER_OFFLINE,
 } from "@/lib/constants"
 import { Chat } from "@/types/chat-interface"
 import { Message } from "@/features/message-section/types/message-interface"
@@ -135,6 +137,14 @@ const useSocketService = () => {
     socket?.emit(TYPING, { chatId, userId, isTyping })
   }
 
+  const sendSocketOnline = () => {
+    socket?.emit(USER_ONLINE, userId)
+  }
+
+  const sendSocketOffline = () => {
+    socket?.emit(USER_OFFLINE, userId)
+  }
+
   return {
     connectSocket,
     disconnectSocket,
@@ -142,6 +152,8 @@ const useSocketService = () => {
     joinSocketChat,
     sendSocketMessage,
     onSocketTyping,
+    sendSocketOnline,
+    sendSocketOffline,
   }
 }
 
