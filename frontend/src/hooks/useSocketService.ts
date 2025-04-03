@@ -138,8 +138,8 @@ const useSocketService = () => {
       })
   }
 
-  const sendSocketTyping = (typing: boolean) => {
-    socket?.emit(TYPING, { chatId: selectedChat?._id, userId, typing })
+  const sendSocketTyping = (isTyping: boolean) => {
+    socket?.emit(TYPING, { chatId: selectedChat?._id, userId, isTyping })
   }
 
   const sendSocketOnline = () => {
