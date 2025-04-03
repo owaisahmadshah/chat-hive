@@ -105,8 +105,17 @@ class SocketManager {
       ).catch((err) => logger.error("Error updating user", err))
     })
 
-    socket.on(USER_ONLINE_STATUS, (userId: string, callback) => {
-      callback(this.onlineUsers.has(userId))
+    socket.on(USER_ONLINE_STATUS, async (userId: string, callback) => {
+      const online = this.onlineUsers.has(userId)
+
+      let updatedAt = null
+
+      if (!online) {
+        const user = await User.findById(userId).select("updatedAt")
+        updatedAt = user?.updatedAt
+      }
+
+      callback(online, updatedAt)
     })
   }
 

@@ -156,12 +156,24 @@ const useSocketService = () => {
   }
 
   const findUserOnlineStatus = (userId: string) => {
-    socket?.emit(USER_ONLINE_STATUS, userId, (online: boolean) => {
-      if (selectedChatUser === null) return
-      const tempUser = { ...selectedChatUser }
-      tempUser.isUserOnline = online
-      dispatch(setSelectedChatUser(tempUser))
-    })
+    socket?.emit(
+      USER_ONLINE_STATUS,
+      userId,
+      (online: boolean, updateAt: Date | null) => {
+        if (selectedChatUser === null) return
+
+        const tempUser = { ...selectedChatUser }
+        tempUser.isUserOnline = online
+
+        // Updating temperorily selected chat user data and we don't have to update the whole chats because
+        // we are already getting this lastSeen by database and we already sending request to the backend and getting lastSeen
+        if (!online && updateAt) {
+          tempUser.updatedAt = updateAt
+        }
+
+        dispatch(setSelectedChatUser(tempUser))
+      }
+    )
   }
 
   return {
