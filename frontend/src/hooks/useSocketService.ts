@@ -10,11 +10,12 @@ import {
   TYPING,
   USER_ONLINE,
   USER_OFFLINE,
+  USER_ONLINE_STATUS,
 } from "@/lib/constants"
 import { Chat } from "@/types/chat-interface"
 import { Message } from "@/features/message-section/types/message-interface"
 import { addMessage, setMessages } from "@/store/slices/messages"
-import { addChat, updateChat } from "@/store/slices/chats"
+import { addChat, setSelectedChatUser, updateChat } from "@/store/slices/chats"
 import { RootState } from "@/store/store"
 import useGetChat from "@/features/chat-section/hooks/getChat"
 
@@ -22,9 +23,13 @@ let socket: Socket | null = null // Singleton instance
 
 const useSocketService = () => {
   const dispatch = useDispatch()
+
   const { getChat } = useGetChat()
+
+  const { selectedChatUser } = useSelector((state: RootState) => state.chats)
   const { userId } = useSelector((state: RootState) => state.user)
   const { chats } = useSelector((state: RootState) => state.chats)
+
   const chatRef = useRef(chats)
   chatRef.current = chats
 
@@ -36,10 +41,12 @@ const useSocketService = () => {
       })
 
       socket?.emit(USER_CONNECTED, userId)
+
       setupListeners()
     }
   }, [userId])
 
+  //* ---Listeners---
   const setupListeners = () => {
     if (!socket) return
 
@@ -49,6 +56,7 @@ const useSocketService = () => {
           return
         }
       }
+
       joinSocketChat(data.chat._id)
       dispatch(addChat(data.chat))
       dispatch(setMessages({ chatId: data.chat._id, messages: [] }))
@@ -72,6 +80,7 @@ const useSocketService = () => {
       dispatch(
         addMessage({ chatId: data.message.chatId, message: data.message })
       )
+
       dispatch(
         updateChat({
           chatId: data.message.chatId,
@@ -100,6 +109,7 @@ const useSocketService = () => {
     })
   }
 
+  //* ---Emit Events---
   const connectSocket = (userId: string) => {
     socket?.emit(USER_CONNECTED, userId)
   }
@@ -145,6 +155,15 @@ const useSocketService = () => {
     socket?.emit(USER_OFFLINE, userId)
   }
 
+  const findUserOnlineStatus = (userId: string) => {
+    socket?.emit(USER_ONLINE_STATUS, userId, (online: boolean) => {
+      if (selectedChatUser === null) return
+      const tempUser = { ...selectedChatUser }
+      tempUser.isUserOnline = online
+      dispatch(setSelectedChatUser(tempUser))
+    })
+  }
+
   return {
     connectSocket,
     disconnectSocket,
@@ -154,6 +173,7 @@ const useSocketService = () => {
     onSocketTyping,
     sendSocketOnline,
     sendSocketOffline,
+    findUserOnlineStatus,
   }
 }
 

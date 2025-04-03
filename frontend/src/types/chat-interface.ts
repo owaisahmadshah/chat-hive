@@ -3,6 +3,7 @@ export interface ChatUser {
   email: string
   imageUrl: string
   updatedAt: Date
+  isUserOnline?: boolean
 }
 
 export interface Chat {

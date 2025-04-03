@@ -3,10 +3,13 @@ import { useSelector } from "react-redux"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RootState } from "@/store/store"
 import correctDate from "@/lib/correct-date"
+import useUserOnlineStatus from "../hooks/useUserOnlineStatus"
 
 const MessageNavBar = () => {
 
   const { selectedChatUser } = useSelector((state: RootState) => state.chats)
+
+  useUserOnlineStatus()
 
   const handleClickOnSelectedChatProfile = () => {
     // TODO 
@@ -23,7 +26,9 @@ const MessageNavBar = () => {
       <li onClick={handleClickOnSelectedChatProfile}>
         <strong className="text-lg cursor-pointer">{selectedChatUser?.email}</strong>
         <p className="text-sm text-muted-foreground">
-          {selectedChatUser?.updatedAt && correctDate(selectedChatUser?.updatedAt)}
+          {selectedChatUser?.isUserOnline
+            ? "online"
+            : selectedChatUser?.updatedAt && correctDate(selectedChatUser?.updatedAt)}
         </p>
       </li>
     </ul>
