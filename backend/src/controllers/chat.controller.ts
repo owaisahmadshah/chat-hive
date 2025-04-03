@@ -255,8 +255,13 @@ const getChatsAndMessages = asyncHandler(
      * Store them inside the chats
      */
     for (let i = 0; i < chats?.length; i++) {
-      const chatMessages = await getMessages(chats[i]._id.toString(), userId)
-      chats[i].messages = [...chatMessages]
+      const { messages, unreadMessages } = await getMessages(
+        chats[i]._id.toString(),
+        userId
+      )
+
+      chats[i].messages = [...messages]
+      chats[i].unreadMessages = unreadMessages
 
       // Manually adding last message
       const lastMessage = {
@@ -264,10 +269,9 @@ const getChatsAndMessages = asyncHandler(
         message: "",
       }
 
-      if (chatMessages.length) {
-        lastMessage.isPhoto =
-          chatMessages[chatMessages.length - 1].photoUrl !== ""
-        lastMessage.message = chatMessages[chatMessages.length - 1].message
+      if (messages.length) {
+        lastMessage.isPhoto = messages[messages.length - 1].photoUrl !== ""
+        lastMessage.message = messages[messages.length - 1].message
       }
 
       chats[i].lastMessage = lastMessage
@@ -313,23 +317,48 @@ const getMessages = async (chatid: string, userid: string) => {
       $limit: 50,
     },
     {
+      $facet: {
+        messages: [{ $match: {} }],
+        unreadMessages: [
+          {
+            $match: {
+              "sender._id": { $ne: userId },
+              status: "sent",
+            },
+          },
+          {
+            $count: "totalUnreadMessages",
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: "$unreadMessages",
+      },
+    },
+    {
       $project: {
-        "sender._id": 1,
-        "sender.email": 1,
-        "sender.imageUrl": 1,
-        chatId: 1,
-        message: 1,
-        photoUrl: 1,
-        status: 1,
-        updatedAt: 1,
+        "messages.sender._id": 1,
+        "messages.sender.email": 1,
+        "messages.sender.imageUrl": 1,
+        "messages.chatId": 1,
+        "messages.message": 1,
+        "messages.photoUrl": 1,
+        "messages.status": 1,
+        "messages.updatedAt": 1,
+        "unreadMessages.totalUnreadMessages": 1,
       },
     },
   ]
 
-  // TODO Check for error
-  //@ts-ignore
-  const messages = await Message.aggregate(pipeline)
-  return messages
+  // @ts-ignore
+  const messages = await Message.aggregate(pipeline) // [{messages: [{}, {}, {}, ...]}, {unreadMessages: {totalUnreadMessages}}]
+
+  return {
+    messages: messages[0].messages,
+    unreadMessages: messages[0].unreadMessages.totalUnreadMessages,
+  }
 }
 
 const getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
@@ -352,7 +381,6 @@ const getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
     isPhoto: false,
     message: "",
   }
-
   return res.status(200).json(new ApiResponse(200, { chat }, "Sucessful"))
 })
 
