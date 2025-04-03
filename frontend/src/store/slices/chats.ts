@@ -42,6 +42,17 @@ const chatsSlice = createSlice({
         ]
       }
     },
+    updateChatTyping: (
+      state,
+      action: PayloadAction<{ chatId: string; updates: Partial<Chat> }>
+    ) => {
+      const { chatId, updates } = action.payload
+      const chatIndex = state.chats.findIndex((chat) => chat._id === chatId)
+
+      if (chatIndex !== -1) {
+        state.chats[chatIndex] = { ...state.chats[chatIndex], ...updates }
+      }
+    },
     deleteChat: (state, action: PayloadAction<string>) => {
       state.chats = state.chats.filter((chat) => chat._id !== action.payload)
     },
@@ -64,6 +75,7 @@ export const {
   setChats,
   addChat,
   updateChat,
+  updateChatTyping,
   deleteChat,
   setSelectedChat,
   setSelectedChatUser,

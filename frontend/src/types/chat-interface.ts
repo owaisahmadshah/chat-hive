@@ -15,6 +15,10 @@ export interface Chat {
     isPhoto: boolean
     message: string
   }
+  typing?: {
+    typer: string
+    isTyping: boolean
+  }
 }
 
 export interface ChatsState {

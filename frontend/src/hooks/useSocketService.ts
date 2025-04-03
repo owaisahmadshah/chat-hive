@@ -15,7 +15,13 @@ import {
 import { Chat } from "@/types/chat-interface"
 import { Message } from "@/features/message-section/types/message-interface"
 import { addMessage, setMessages } from "@/store/slices/messages"
-import { addChat, setSelectedChatUser, updateChat } from "@/store/slices/chats"
+import {
+  addChat,
+  setSelectedChat,
+  setSelectedChatUser,
+  updateChat,
+  updateChatTyping,
+} from "@/store/slices/chats"
 import { RootState } from "@/store/store"
 import useGetChat from "@/features/chat-section/hooks/getChat"
 
@@ -32,6 +38,9 @@ const useSocketService = () => {
 
   const chatRef = useRef(chats)
   chatRef.current = chats
+
+  const selectedChatRef = useRef(selectedChat)
+  selectedChatRef.current = selectedChat
 
   useEffect(() => {
     if (!socket && userId.trim() !== "") {
@@ -98,7 +107,19 @@ const useSocketService = () => {
     socket.on(
       TYPING,
       (data: { chatId: string; userId: string; isTyping: boolean }) => {
-        console.log("Implement", data)
+        const typing = {
+          typer: data.userId,
+          isTyping: data.isTyping,
+        }
+
+        dispatch(updateChatTyping({ chatId: data.chatId, updates: { typing } }))
+
+        if (selectedChatRef.current?._id === data.chatId) {
+          const tempChat = { ...selectedChatRef.current }
+          tempChat.typing = typing
+
+          dispatch(setSelectedChat(tempChat))
+        }
       }
     )
 

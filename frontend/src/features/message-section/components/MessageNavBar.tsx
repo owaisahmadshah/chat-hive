@@ -7,7 +7,7 @@ import useUserOnlineStatus from "../hooks/useUserOnlineStatus"
 
 const MessageNavBar = () => {
 
-  const { selectedChatUser } = useSelector((state: RootState) => state.chats)
+  const { selectedChatUser, selectedChat } = useSelector((state: RootState) => state.chats)
 
   useUserOnlineStatus()
 
@@ -26,9 +26,13 @@ const MessageNavBar = () => {
       <li onClick={handleClickOnSelectedChatProfile}>
         <strong className="text-lg cursor-pointer">{selectedChatUser?.email}</strong>
         <p className="text-sm text-muted-foreground">
-          {selectedChatUser?.isUserOnline
-            ? "online"
-            : selectedChatUser?.updatedAt && correctDate(selectedChatUser?.updatedAt)}
+          {
+            selectedChat?.typing && selectedChat?.typing.isTyping
+              ? "typing" :
+              selectedChatUser?.isUserOnline
+                ? "online"
+                : selectedChatUser?.updatedAt && correctDate(selectedChatUser?.updatedAt)
+          }
         </p>
       </li>
     </ul>
