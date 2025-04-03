@@ -105,10 +105,8 @@ class SocketManager {
       ).catch((err) => logger.error("Error updating user", err))
     })
 
-    socket.on(USER_ONLINE_STATUS, (userId: string) => {
-      socket.to(socket.id).emit(USER_ONLINE_STATUS, {
-        online: this.onlineUsers.get(userId) || false,
-      })
+    socket.on(USER_ONLINE_STATUS, (userId: string, callback) => {
+      callback(this.onlineUsers.has(userId))
     })
   }
 
