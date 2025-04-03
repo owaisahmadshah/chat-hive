@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
 
 import {
@@ -16,12 +16,14 @@ import { Input } from "@/components/ui/input"
 import { messageSchema } from "../types/message-schema"
 import { useMessage } from "../hooks/useMessage"
 import { Label } from "@/components/ui/label"
+import { useSocketService } from "@/hooks/useSocketService"
 
 function MessageInput() {
 
   const [isPictureSelected, setIsPictureSelected] = useState<boolean>(false)
 
   const { sendNewMessage } = useMessage()
+  const { sendSocketTyping } = useSocketService()
 
   const form = useForm<z.infer<typeof messageSchema>>({
     resolver: zodResolver(messageSchema),
@@ -31,7 +33,10 @@ function MessageInput() {
     },
   })
 
+  const userInputMessage = form.watch("userInputMessage")
+
   async function onSubmit(values: z.infer<typeof messageSchema>) {
+
     const formData = new FormData()
     formData.append("message", values.userInputMessage)
 
@@ -61,6 +66,22 @@ function MessageInput() {
     e.stopPropagation()
     form.setValue("uploadedImage", undefined)
     setIsPictureSelected(false)
+  }
+
+  useEffect(() => {
+    if (!userInputMessage) return
+
+    sendSocketTyping(true)
+
+    const typingTimeout = setTimeout(() => {
+      sendSocketTyping(false)
+    }, 1500)
+
+    return () => clearTimeout(typingTimeout)
+  }, [userInputMessage])
+
+  const handleTypingBlur = () => {
+    sendSocketTyping(false)
   }
 
   return (
@@ -104,7 +125,11 @@ function MessageInput() {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input placeholder="Type a message" {...field} className="min-w-[60vw]" />
+                <Input
+                  placeholder="Type a message" {...field}
+                  onBlur={handleTypingBlur}
+                  className="min-w-[60vw]"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

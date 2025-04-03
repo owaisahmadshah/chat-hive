@@ -28,7 +28,7 @@ const useSocketService = () => {
 
   const { selectedChatUser } = useSelector((state: RootState) => state.chats)
   const { userId } = useSelector((state: RootState) => state.user)
-  const { chats } = useSelector((state: RootState) => state.chats)
+  const { chats, selectedChat } = useSelector((state: RootState) => state.chats)
 
   const chatRef = useRef(chats)
   chatRef.current = chats
@@ -98,7 +98,6 @@ const useSocketService = () => {
     socket.on(
       TYPING,
       (data: { chatId: string; userId: string; isTyping: boolean }) => {
-        // TODO: Implement typing event handling
         console.log("Implement", data)
       }
     )
@@ -139,12 +138,8 @@ const useSocketService = () => {
       })
   }
 
-  const onSocketTyping = (
-    chatId: string,
-    userId: string,
-    isTyping: boolean
-  ) => {
-    socket?.emit(TYPING, { chatId, userId, isTyping })
+  const sendSocketTyping = (typing: boolean) => {
+    socket?.emit(TYPING, { chatId: selectedChat?._id, userId, typing })
   }
 
   const sendSocketOnline = () => {
@@ -182,7 +177,7 @@ const useSocketService = () => {
     newSocketChat,
     joinSocketChat,
     sendSocketMessage,
-    onSocketTyping,
+    sendSocketTyping,
     sendSocketOnline,
     sendSocketOffline,
     findUserOnlineStatus,
