@@ -11,10 +11,17 @@ import {
   USER_ONLINE,
   USER_OFFLINE,
   USER_ONLINE_STATUS,
+  SEEN_AND_RECEIVE_MESSAGE,
+  SEEN_AND_RECEIVE_MESSAGES,
 } from "@/lib/constants"
 import { Chat } from "@/types/chat-interface"
 import { Message } from "@/features/message-section/types/message-interface"
-import { addMessage, setMessages } from "@/store/slices/messages"
+import {
+  addMessage,
+  setMessages,
+  updateMessage,
+  updateMessages,
+} from "@/store/slices/messages"
 import {
   addChat,
   setSelectedChat,
@@ -140,6 +147,52 @@ const useSocketService = () => {
       }
     )
 
+    //* This event will only update on received or seen message, and we will only update the message we have sent
+    socket.on(
+      SEEN_AND_RECEIVE_MESSAGE,
+      (data: {
+        receiver: string
+        chatId: string
+        messageId: string
+        status: "seen" | "receive"
+      }) => {
+        const { chatId, messageId, status } = data // receiver is not used here but maybe useful in the future
+
+        //* Just update the message we have sent
+        dispatch(
+          updateMessage({
+            chatId,
+            messageId,
+            updates: { status },
+          })
+        )
+      }
+    )
+
+    //* This event will only update on received or seen messages, and will only update those messages we have sent
+    socket.on(
+      SEEN_AND_RECEIVE_MESSAGES,
+      (data: {
+        receiver: string
+        chatId: string // It is not always from the selected chat
+        numberOfMessages: number
+        status: "seen" | "receive"
+      }) => {
+        const { chatId, numberOfMessages, status, receiver } = data
+
+        //* Just update the messages we have sent
+        dispatch(
+          updateMessages({
+            chatId,
+            receiver,
+            ourUserId: userId, // This will help to make sure we are updating the message we have sent
+            numberOfMessages,
+            updates: { status },
+          })
+        )
+      }
+    )
+
     socket?.on("disconnect", () => {
       socket = null
       disconnectSocket()
@@ -209,6 +262,34 @@ const useSocketService = () => {
     )
   }
 
+  const updateReceiveAndSeenOfMessage = (
+    receiver: string,
+    chatId: string, // It is not always from the selected chat
+    messageId: string,
+    status: "seen" | "receive"
+  ) => {
+    socket?.emit(SEEN_AND_RECEIVE_MESSAGE, {
+      receiver,
+      chatId,
+      messageId,
+      status,
+    })
+  }
+
+  const updateReceiveAndSeenOfMessages = (
+    receiver: string,
+    chatId: string, // It is not always from the selected chat
+    numberOfMessages: number,
+    status: "seen" | "receive"
+  ) => {
+    socket?.emit(SEEN_AND_RECEIVE_MESSAGES, {
+      receiver,
+      chatId,
+      numberOfMessages, // This will help to update the last received or unread messages
+      status,
+    })
+  }
+
   return {
     connectSocket,
     disconnectSocket,
@@ -219,6 +300,8 @@ const useSocketService = () => {
     sendSocketOnline,
     sendSocketOffline,
     findUserOnlineStatus,
+    updateReceiveAndSeenOfMessage,
+    updateReceiveAndSeenOfMessages,
   }
 }
 

@@ -1,5 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { MessagesState, Message } from "@/features/message-section/types/message-interface"
+import {
+  MessagesState,
+  Message,
+} from "@/features/message-section/types/message-interface"
 
 const initialState: MessagesState = {}
 
@@ -50,6 +53,34 @@ const messagesSlice = createSlice({
         }
       }
     },
+    updateMessages: (
+      state,
+      action: PayloadAction<{
+        chatId: string
+        receiver: string
+        ourUserId: string
+        numberOfMessages: number
+        updates: Partial<Message>
+      }>
+    ) => {
+      const { chatId, ourUserId, numberOfMessages, updates } = action.payload
+
+      if (state[chatId].length > 0) {
+        for (
+          let i = state[chatId].length - numberOfMessages - 1;
+          i < state[chatId].length;
+          i++
+        ) {
+          // if message sender is our user then update the message
+          if (state[chatId][i].sender._id === ourUserId) {
+            state[chatId][i] = {
+              ...state[chatId][i],
+              ...updates,
+            }
+          }
+        }
+      }
+    },
     deleteMessage: (
       state,
       action: PayloadAction<{ chatId: string; messageId: string }>
@@ -75,6 +106,7 @@ export const {
   setMessages,
   addMessage,
   updateMessage,
+  updateMessages,
   deleteMessage,
   clearChatMessages,
 } = messagesSlice.actions
