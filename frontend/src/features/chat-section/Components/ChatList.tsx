@@ -11,7 +11,8 @@ import ChatActions from './ChatActions'
 import { ChatListSkeleton } from './ChatsListSkeleton'
 import NoChats from './NoChats'
 import { Image } from 'lucide-react'
-import { useMessage } from '@/features/message-section/hooks/useMessage'
+import useMessageGlobalHook from '@/hooks/useMessageGlobalHook'
+import { useSocketService } from '@/hooks/useSocketService'
 
 const Chats = () => {
 
@@ -19,7 +20,9 @@ const Chats = () => {
   const chats = useSelector((state: RootState) => state.chats)
   const userId = useSelector((state: RootState) => state.user.userId)
 
-  const { updateMessagesStatus } = useMessage()
+  const { updateMessagesStatus } = useMessageGlobalHook()
+
+  const { updateReceiveAndSeenOfMessages } = useSocketService()
 
   const handleClickedChat = async (selectedChat: Chat) => {
     // If currently clicked chat is not the same as the selected chat, then update the unread messages to 0
@@ -43,7 +46,8 @@ const Chats = () => {
       }
 
       if (hasUnreadMessages) {
-        await updateMessagesStatus(selectedChat._id, unreadMessages, "seen")
+        await updateMessagesStatus(selectedChat._id, "seen")
+        updateReceiveAndSeenOfMessages(userId, selectedChat._id, unreadMessages, "seen")
       }
     }
 

@@ -3,12 +3,7 @@ import axios from "axios"
 
 import { addMessage, deleteMessage } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
-import {
-  deleteMessageService,
-  sendMessage,
-  updateMessagesStatusService,
-  updateMessageStatusService,
-} from "../services/messageService"
+import { deleteMessageService, sendMessage } from "../services/messageService"
 import { useAuth } from "@clerk/clerk-react"
 import { setSelectedChat, updateChat } from "@/store/slices/chats"
 import { useSocketService } from "@/hooks/useSocketService"
@@ -19,11 +14,7 @@ const useMessage = () => {
 
   const userId = useSelector((state: RootState) => state.user.userId)
   const { selectedChat } = useSelector((state: RootState) => state.chats)
-  const {
-    sendSocketMessage,
-    updateReceiveAndSeenOfMessages,
-    updateReceiveAndSeenOfMessage,
-  } = useSocketService()
+  const { sendSocketMessage } = useSocketService()
   const allMessages = useSelector((state: RootState) => state.messages)
 
   const sendNewMessage = async (formData: FormData) => {
@@ -125,57 +116,7 @@ const useMessage = () => {
     }
   }
 
-  const updateMessagesStatus = async (
-    chatId: string,
-    numberOfMessages: number,
-    status: "receive" | "seen"
-  ) => {
-    try {
-      const token = await getToken()
-
-      await updateMessagesStatusService(
-        {
-          chatId,
-          userId,
-          status,
-        },
-        token
-      )
-
-      updateReceiveAndSeenOfMessages(userId, chatId, numberOfMessages, status)
-    } catch (error) {
-      console.error("Error updating messages status", error)
-      if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
-      }
-    }
-  }
-
-  const updateMessageStatus = async (
-    messageId: string,
-    chatId: string,
-    status: "receive" | "seen"
-  ) => {
-    try {
-      const token = await getToken()
-
-      await updateMessageStatusService({ userId, messageId, status }, token)
-
-      updateReceiveAndSeenOfMessage(userId, chatId, messageId, status)
-    } catch (error) {
-      console.error("Error updating message status", error)
-      if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
-      }
-    }
-  }
-
-  return {
-    sendNewMessage,
-    deleteSelectedMessage,
-    updateMessageStatus,
-    updateMessagesStatus,
-  }
+  return { sendNewMessage, deleteSelectedMessage }
 }
 
 export { useMessage }
