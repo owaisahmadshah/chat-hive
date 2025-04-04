@@ -13,6 +13,8 @@ import {
   USER_OFFLINE,
   USER_ONLINE,
   USER_ONLINE_STATUS,
+  SEEN_AND_RECEIVE_MESSAGE,
+  SEEN_AND_RECEIVE_MESSAGES,
 } from "../utils/constants.js"
 import type { Chat } from "../types/chat.socket.interface.js"
 import type { Message } from "../types/message.socket.interface.js"
@@ -222,6 +224,32 @@ class SocketManager {
               })
             }
           })
+      }
+    )
+
+    // This will broatcast one message
+    socket.on(
+      SEEN_AND_RECEIVE_MESSAGE,
+      (data: {
+        receiver: string
+        chatId: string
+        messageId: string
+        status: "seen" | "receive"
+      }) => {
+        socket.to(data.chatId).emit(SEEN_AND_RECEIVE_MESSAGE, data)
+      }
+    )
+
+    // This will broadcast whole chat receive and seen status
+    socket.on(
+      SEEN_AND_RECEIVE_MESSAGES,
+      (data: {
+        receiver: string
+        chatId: string // It is not always from the selected chat
+        numberOfMessages: number
+        status: "seen" | "receive"
+      }) => {
+        socket.to(data.chatId).emit(SEEN_AND_RECEIVE_MESSAGES, data)
       }
     )
 
