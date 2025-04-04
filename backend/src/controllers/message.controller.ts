@@ -110,7 +110,7 @@ const updateMessagesStatus = asyncHandler(
 
     let statusQuery = ["sent"]
     if (status === "seen") {
-      status.push("receive")
+      statusQuery.push("receive")
     }
 
     const updateMessages = [
@@ -153,4 +153,9 @@ const updateMessageStatus = asyncHandler(
       .json(new ApiResponse(201, {}, "Updated message successfully"))
   }
 )
-export { createMessage, deleteMessage, updateMessagesStatus, updateMessageStatus }
+export {
+  createMessage,
+  deleteMessage,
+  updateMessagesStatus,
+  updateMessageStatus,
+}

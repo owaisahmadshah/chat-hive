@@ -20,7 +20,7 @@ router
     createMessage
   )
 router.route("/delete").post(requireAuth(), deleteMessage)
-router.route("/udpatestatus").post(requireAuth(), updateMessagesStatus)
+router.route("/updatestatus").post(requireAuth(), updateMessagesStatus)
 router.route("/updateonestatus").post(requireAuth(), updateMessageStatus)
 
 export default router
