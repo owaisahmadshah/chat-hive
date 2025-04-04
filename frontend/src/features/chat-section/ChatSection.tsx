@@ -6,7 +6,7 @@ const ChatSection = () => {
   useGetUserChatsAndMessages()
 
   return (
-    <div className="flex flex-col bg-background box-border max-h-[100vh] min-h-[100vh] min-w-[25vw] max-w-[25vw] border-r">
+    <div className="flex flex-col bg-background box-border max-h-[100vh] min-h-[100vh] min-w-[300px] max-w-[25vw] border-r">
       <ChatNavbar />
       <ChatList />
     </div>
