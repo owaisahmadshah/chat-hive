@@ -354,7 +354,7 @@ const getMessages = async (chatid: string, userid: string) => {
   // [{messages: [{}, {}, {}, ...]}, {unreadMessages: []}] if no unread messages
 
   if (messages[0].unreadMessages.length === 0) {
-    messages[0].unreadMessages.push({ totalUnreadMessages: 0 })
+    messages[0].unreadMessages.push({ totalUnreadMessages: -1 }) // -1 means no unread messages
   }
 
   return {
