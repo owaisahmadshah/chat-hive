@@ -25,4 +25,41 @@ const deleteMessageService = async (
   return data
 }
 
-export { sendMessage, deleteMessageService }
+const updateMessagesStatusService = async (
+  updateBody: {
+    chatId: string
+    userId: string
+    status: "receive" | "seen"
+  },
+  token: string | null
+) => {
+  const { data } = await api.post("/v1/message/updatestatus", updateBody, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return data
+}
+
+const updateMessageStatusService = async (
+  updateBody: {
+    userId: string
+    messageId: string
+    status: "receive" | "seen"
+  },
+  token: string | null
+) => {
+  const { data } = await api.post("/v1/message/updateonestatus", updateBody, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return data
+}
+
+export {
+  sendMessage,
+  deleteMessageService,
+  updateMessagesStatusService,
+  updateMessageStatusService,
+}

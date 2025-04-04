@@ -3,7 +3,12 @@ import axios from "axios"
 
 import { addMessage, deleteMessage } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
-import { deleteMessageService, sendMessage } from "../services/messageService"
+import {
+  deleteMessageService,
+  sendMessage,
+  updateMessagesStatusService,
+  updateMessageStatusService,
+} from "../services/messageService"
 import { useAuth } from "@clerk/clerk-react"
 import { setSelectedChat, updateChat } from "@/store/slices/chats"
 import { useSocketService } from "@/hooks/useSocketService"
@@ -116,7 +121,51 @@ const useMessage = () => {
     }
   }
 
-  return { sendNewMessage, deleteSelectedMessage }
+  const updateMessagesStatus = async (
+    chatId: string,
+    status: "receive" | "seen"
+  ) => {
+    try {
+      const token = await getToken()
+
+      await updateMessagesStatusService(
+        {
+          chatId,
+          userId,
+          status,
+        },
+        token
+      )
+    } catch (error) {
+      console.error("Error updating messages status", error)
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error details:", error.response?.data)
+      }
+    }
+  }
+
+  const updateMessageStatus = async (
+    messageId: string,
+    status: "receive" | "seen"
+  ) => {
+    try {
+      const token = await getToken()
+
+      await updateMessageStatusService({ userId, messageId, status }, token)
+    } catch (error) {
+      console.error("Error updating message status", error)
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error details:", error.response?.data)
+      }
+    }
+  }
+
+  return {
+    sendNewMessage,
+    deleteSelectedMessage,
+    updateMessageStatus,
+    updateMessagesStatus,
+  }
 }
 
 export { useMessage }
