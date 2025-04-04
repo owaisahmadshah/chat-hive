@@ -333,11 +333,6 @@ const getMessages = async (chatid: string, userid: string) => {
       },
     },
     {
-      $unwind: {
-        path: "$unreadMessages",
-      },
-    },
-    {
       $project: {
         "messages.sender._id": 1,
         "messages.sender.email": 1,
@@ -347,13 +342,19 @@ const getMessages = async (chatid: string, userid: string) => {
         "messages.photoUrl": 1,
         "messages.status": 1,
         "messages.updatedAt": 1,
-        "unreadMessages.totalUnreadMessages": 1,
+        unreadMessages: 1,
       },
     },
   ]
 
   // @ts-ignore
-  const messages = await Message.aggregate(pipeline) // [{messages: [{}, {}, {}, ...]}, {unreadMessages: {totalUnreadMessages}}]
+  const messages = await Message.aggregate(pipeline)
+  // [{messages: [{}, {}, {}, ...]}, {unreadMessages: [{totalUnreadMessages}]}]
+  // [{messages: [{}, {}, {}, ...]}, {unreadMessages: []}] if no unread messages
+
+  if (messages[0].unreadMessages.length === 0) {
+    messages[0].unreadMessages.totalUnreadMessages = 0
+  }
 
   return {
     messages: messages[0].messages,
