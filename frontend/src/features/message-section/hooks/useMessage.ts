@@ -19,7 +19,11 @@ const useMessage = () => {
 
   const userId = useSelector((state: RootState) => state.user.userId)
   const { selectedChat } = useSelector((state: RootState) => state.chats)
-  const { sendSocketMessage } = useSocketService()
+  const {
+    sendSocketMessage,
+    updateReceiveAndSeenOfMessages,
+    updateReceiveAndSeenOfMessage,
+  } = useSocketService()
   const allMessages = useSelector((state: RootState) => state.messages)
 
   const sendNewMessage = async (formData: FormData) => {
@@ -123,6 +127,7 @@ const useMessage = () => {
 
   const updateMessagesStatus = async (
     chatId: string,
+    numberOfMessages: number,
     status: "receive" | "seen"
   ) => {
     try {
@@ -136,6 +141,8 @@ const useMessage = () => {
         },
         token
       )
+
+      updateReceiveAndSeenOfMessages(userId, chatId, numberOfMessages, status)
     } catch (error) {
       console.error("Error updating messages status", error)
       if (axios.isAxiosError(error)) {
@@ -146,12 +153,15 @@ const useMessage = () => {
 
   const updateMessageStatus = async (
     messageId: string,
+    chatId: string,
     status: "receive" | "seen"
   ) => {
     try {
       const token = await getToken()
 
       await updateMessageStatusService({ userId, messageId, status }, token)
+
+      updateReceiveAndSeenOfMessage(userId, chatId, messageId, status)
     } catch (error) {
       console.error("Error updating message status", error)
       if (axios.isAxiosError(error)) {

@@ -47,11 +47,12 @@ const MessageList = () => {
                 <li className={`
                 box-border border rounded-[10px] w-fit max-w-[60vw] 
                 ${message.sender._id === user.userId
-                    ? "self-end bg-background"
+                    ? "self-end bg-background flex items-center"
                     : "self-start bg-primary"}
               `}
                 >
                   <MessageItem message={message} />
+                  {message.sender._id === user.userId && <p className="text-xs">{message.status}</p>}
                 </li>
               </React.Fragment>
             ))

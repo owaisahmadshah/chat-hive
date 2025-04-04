@@ -11,6 +11,7 @@ import ChatActions from './ChatActions'
 import { ChatListSkeleton } from './ChatsListSkeleton'
 import NoChats from './NoChats'
 import { Image } from 'lucide-react'
+import { useMessage } from '@/features/message-section/hooks/useMessage'
 
 const Chats = () => {
 
@@ -18,16 +19,43 @@ const Chats = () => {
   const chats = useSelector((state: RootState) => state.chats)
   const userId = useSelector((state: RootState) => state.user.userId)
 
+  const { updateMessagesStatus } = useMessage()
 
-  const handleClickedChat = (selectedChat: Chat) => {
+  const handleClickedChat = async (selectedChat: Chat) => {
+    // If currently clicked chat is not the same as the selected chat, then update the unread messages to 0
+    if (selectedChat._id !== chats.selectedChat?._id) {
+      dispatch(updateChatWithPersistentOrder({ chatId: selectedChat._id, updates: { unreadMessages: 0 } }))
+    }
+
+    // If currently clicked chat is not the same as the selected chat and the currently clicked chat(selectedChat) has unread messages, then update the unread message in database
+    if (selectedChat._id !== chats.selectedChat?._id && selectedChat.unreadMessages > 0) {
+      // Again check if the selected chat is not the same as the selected chat in redux store
+      let hasUnreadMessages = false
+      let unreadMessages = 0
+      for (let i = 0; i < chats.chats.length; i++) {
+        if (chats.chats[i]._id === selectedChat._id) {
+          if (chats.chats[i].unreadMessages > 0) {
+            hasUnreadMessages = true
+            unreadMessages = chats.chats[i].unreadMessages
+          }
+          break
+        }
+      }
+
+      if (hasUnreadMessages) {
+        await updateMessagesStatus(selectedChat._id, unreadMessages, "seen")
+      }
+    }
+
     dispatch(setSelectedChat(selectedChat))
+
     if (selectedChat.users.length === 1) {
       dispatch(setSelectedChatUser(selectedChat.users[0]))
       return
     }
+
     for (let i = 0; i < selectedChat.users.length; i++) {
       if (selectedChat.users[i]._id !== userId) {
-        dispatch(updateChatWithPersistentOrder({ chatId: selectedChat._id, updates: { unreadMessages: 0 } }))
         dispatch(setSelectedChatUser(selectedChat.users[i]))
         break
       }
