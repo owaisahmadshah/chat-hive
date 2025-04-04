@@ -371,9 +371,6 @@ const getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
     return res.status(200).json(new ApiResponse(202, {}, "Chat not found"))
   }
 
-  existedChat.deletedBy = []
-  existedChat.save()
-
   const chatObjectId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
     chatId
   )
@@ -383,6 +380,7 @@ const getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
     isPhoto: false,
     message: "",
   }
+  chat[0].unreadMessages = 0
   return res.status(200).json(new ApiResponse(200, { chat }, "Sucessful"))
 })
 
