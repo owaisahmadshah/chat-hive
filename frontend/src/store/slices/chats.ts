@@ -42,7 +42,7 @@ const chatsSlice = createSlice({
         ]
       }
     },
-    updateChatTyping: (
+    updateChatWithPersistentOrder: (
       state,
       action: PayloadAction<{ chatId: string; updates: Partial<Chat> }>
     ) => {
@@ -75,7 +75,7 @@ export const {
   setChats,
   addChat,
   updateChat,
-  updateChatTyping,
+  updateChatWithPersistentOrder,
   deleteChat,
   setSelectedChat,
   setSelectedChatUser,

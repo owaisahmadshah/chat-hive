@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux"
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RootState } from "@/store/store"
@@ -30,24 +30,30 @@ const MessageList = () => {
     return () => clearTimeout(timeoutId)
   }, [messages])
 
+
   return (
     <ScrollArea
       className="box-border border-r border-l h-[75vh] pb-3"
       ref={scrollRef}>
       <ul className="flex flex-col gap-1 p-2 px-15 h-[75vh]">
         {
-          messages.length ?
-            messages.map((message: Message) => (
-              <li key={message._id}
-                className={`
+          selectedChat && messages.length ?
+            messages.map((message: Message, index) => (
+              <React.Fragment key={message._id}>
+                {index === (messages.length - (selectedChat?.unreadMessages)) &&
+                  <span
+                    className="mx-auto my-3 px-3 py-1 text-xs font-medium rounded-full bg-background shadow-lg shadow-muted-foreground"
+                  >UNREAD MESSAGES </span>}
+                <li className={`
                 box-border border rounded-[10px] w-fit max-w-[60vw] 
                 ${message.sender._id === user.userId
                     ? "self-end bg-background"
                     : "self-start bg-primary"}
               `}
-              >
-                <MessageItem message={message} />
-              </li>
+                >
+                  <MessageItem message={message} />
+                </li>
+              </React.Fragment>
             ))
             :
             <div className="flex flex-col items-center justify-center h-full text-foreground">

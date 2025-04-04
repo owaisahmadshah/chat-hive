@@ -20,7 +20,7 @@ import {
   setSelectedChat,
   setSelectedChatUser,
   updateChat,
-  updateChatTyping,
+  updateChatWithPersistentOrder,
 } from "@/store/slices/chats"
 import { RootState } from "@/store/store"
 import useGetChat from "@/features/chat-section/hooks/getChat"
@@ -90,6 +90,17 @@ const useSocketService = () => {
         addMessage({ chatId: data.message.chatId, message: data.message })
       )
 
+      let tempUnreadMessages = 1
+
+      if (selectedChatRef.current?._id !== data.message.chatId) {
+        for (let i = 0; i < chatRef.current.length; i++) {
+          if (chatRef.current[i]._id === data.message.chatId) {
+            tempUnreadMessages = chatRef.current[i].unreadMessages + 1
+            break
+          }
+        }
+      }
+
       dispatch(
         updateChat({
           chatId: data.message.chatId,
@@ -99,6 +110,7 @@ const useSocketService = () => {
               message: data.message.message,
             },
             updatedAt: data.message.updatedAt,
+            unreadMessages: tempUnreadMessages,
           },
         })
       )
@@ -112,7 +124,12 @@ const useSocketService = () => {
           isTyping: data.isTyping,
         }
 
-        dispatch(updateChatTyping({ chatId: data.chatId, updates: { typing } }))
+        dispatch(
+          updateChatWithPersistentOrder({
+            chatId: data.chatId,
+            updates: { typing },
+          })
+        )
 
         if (selectedChatRef.current?._id === data.chatId) {
           const tempChat = { ...selectedChatRef.current }

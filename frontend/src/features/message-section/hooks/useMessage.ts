@@ -5,7 +5,7 @@ import { addMessage, deleteMessage } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
 import { deleteMessageService, sendMessage } from "../services/messageService"
 import { useAuth } from "@clerk/clerk-react"
-import { updateChat } from "@/store/slices/chats"
+import { setSelectedChat, updateChat } from "@/store/slices/chats"
 import { useSocketService } from "@/hooks/useSocketService"
 
 const useMessage = () => {
@@ -48,6 +48,8 @@ const useMessage = () => {
           },
         })
       )
+
+      dispatch(setSelectedChat({ ...selectedChat, unreadMessages: 0 }))
 
       const messageUsers = selectedChat?.users?.map((u) => u._id)
 
