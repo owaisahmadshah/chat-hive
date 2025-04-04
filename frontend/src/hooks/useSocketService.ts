@@ -100,11 +100,30 @@ const useSocketService = () => {
       let tempUnreadMessages = 1
 
       if (selectedChatRef.current?._id !== data.message.chatId) {
+        // If the user is online but not using tab or on another chat he can definitely receive the message
+        updateReceiveAndSeenOfMessage(
+          userId,
+          data.message.chatId,
+          data.message._id,
+          "receive"
+        )
+
         for (let i = 0; i < chatRef.current.length; i++) {
           if (chatRef.current[i]._id === data.message.chatId) {
             tempUnreadMessages = chatRef.current[i].unreadMessages + 1
             break
           }
+        }
+      } else {
+        // If the user is another tab but selected the chat he can definitely receive the message but can't see
+        if (document.visibilityState === "visible") {
+          updateReceiveAndSeenOfMessage(
+            userId,
+            data.message.chatId,
+            data.message._id,
+            "seen"
+          )
+          tempUnreadMessages = 0
         }
       }
 
