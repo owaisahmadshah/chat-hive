@@ -5,7 +5,7 @@ import { Chat, ChatUser } from '@/types/chat-interface'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { setSelectedChat, setSelectedChatUser, } from '@/store/slices/chats'
+import { setSelectedChat, setSelectedChatUser, updateChatWithPersistentOrder, } from '@/store/slices/chats'
 import correctDate from '@/lib/correct-date'
 import ChatActions from './ChatActions'
 import { ChatListSkeleton } from './ChatsListSkeleton'
@@ -20,6 +20,7 @@ const Chats = () => {
 
 
   const handleClickedChat = (selectedChat: Chat) => {
+    console.log("selectedChat", selectedChat)
     dispatch(setSelectedChat(selectedChat))
     if (selectedChat.users.length === 1) {
       dispatch(setSelectedChatUser(selectedChat.users[0]))
@@ -27,6 +28,7 @@ const Chats = () => {
     }
     for (let i = 0; i < selectedChat.users.length; i++) {
       if (selectedChat.users[i]._id !== userId) {
+        dispatch(updateChatWithPersistentOrder({ chatId: selectedChat._id, updates: { unreadMessages: -1 } }))
         dispatch(setSelectedChatUser(selectedChat.users[i]))
         break
       }
