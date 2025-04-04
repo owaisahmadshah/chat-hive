@@ -96,4 +96,46 @@ const deleteMessage = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(201, {}, "Deleted Message successfully"))
 })
 
-export { createMessage, deleteMessage }
+/**
+ * @desc    Update a message status.
+ * @route   POST /api/v1/message/updatestatus
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing message details (userId, chatId, status)
+ * @param {Response} res - Express response object contains success or failure of message deletion
+ */
+const updateMessagesStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { chatId, userId, status } = await req.body
+
+    let statusQuery = ["sent"]
+    if (status === "seen") {
+      status.push("receive")
+    }
+
+    const updateMessages = [
+      {
+        updateMany: {
+          filter: {
+            chatId: chatId,
+            sender: { $ne: userId }, // Only update messages that are not sent by the user
+            status: statusQuery, // Only update messages that are sent or received
+            deletedBy: { $ne: userId }, // Only update messages that are not deleted by the user
+          },
+          update: {
+            $set: {
+              status: status,
+            },
+          },
+        },
+      },
+    ]
+
+    await Message.bulkWrite(updateMessages)
+    return res
+      .status(201)
+      .json(new ApiResponse(201, {}, "Updated messages successfully"))
+  }
+)
+
+export { createMessage, deleteMessage, updateMessagesStatus }
