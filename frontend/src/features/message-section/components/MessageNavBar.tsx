@@ -28,7 +28,7 @@ const MessageNavBar = () => {
         <p className="text-sm text-muted-foreground">
           {
             selectedChat?.typing && selectedChat?.typing.isTyping
-              ? "typing" :
+              ? "typing..." :
               selectedChatUser?.isUserOnline
                 ? "online"
                 : selectedChatUser?.updatedAt && correctDate(selectedChatUser?.updatedAt)

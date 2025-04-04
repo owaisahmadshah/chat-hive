@@ -19,6 +19,7 @@ export interface Chat {
     typer: string
     isTyping: boolean
   }
+  unreadMessages: number
 }
 
 export interface ChatsState {

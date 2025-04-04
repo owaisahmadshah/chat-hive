@@ -81,17 +81,16 @@ const Chats = () => {
                         <div className="flex max-w-[140px] items-center gap-2"
                         >
                           {
-                            chat?.typing && chat?.typing.isTyping && <p className='text-sm text-muted-foreground'>typing...</p>
+                            chat?.typing && chat?.typing.isTyping
+                              ? <p className='text-sm text-primary'>typing...</p>
+                              : chat.unreadMessages > 0
+                                ? <strong className='text-sm overflow-x-hidden text-primary text-ellipsis whitespace-nowrap'>{chat.unreadMessages} <span className='underline'>unread messages</span></strong>
+                                : chat.lastMessage.isPhoto
+                                  ? <Image height={15} width={15} />
+                                  : <p className='text-sm overflow-x-hidden text-muted-foreground text-ellipsis whitespace-nowrap'>
+                                    {chat.lastMessage.message}
+                                  </p>
                           }
-                          {
-                            (!chat?.typing || !chat?.typing.isTyping) && chat.lastMessage.isPhoto &&
-                            <p><Image height={15} width={15} /></p>
-                          }
-                          <p className='text-sm overflow-x-hidden text-muted-foreground text-ellipsis whitespace-nowrap'>
-                            {
-                              (!chat?.typing || !chat?.typing.isTyping) && chat.lastMessage.message
-                            }
-                          </p>
                         </div>
                         <p className='text-sm text-muted-foreground'>{correctDate(chat.updatedAt)}</p>
                       </div>
