@@ -6,6 +6,7 @@ import {
   createMessage,
   deleteMessage,
   updateMessagesStatus,
+  updateMessageStatus,
 } from "../controllers/message.controller.js"
 
 const router = Router()
@@ -13,8 +14,13 @@ const router = Router()
 // api/v1/message/...
 router
   .route("/create")
-  .post(requireAuth(), upload.fields([{ name: "uploadedImage", maxCount: 1 }]), createMessage)
+  .post(
+    requireAuth(),
+    upload.fields([{ name: "uploadedImage", maxCount: 1 }]),
+    createMessage
+  )
 router.route("/delete").post(requireAuth(), deleteMessage)
 router.route("/udpatestatus").post(requireAuth(), updateMessagesStatus)
+router.route("/updateonestatus").post(requireAuth(), updateMessageStatus)
 
 export default router

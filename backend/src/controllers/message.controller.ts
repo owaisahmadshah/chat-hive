@@ -138,4 +138,19 @@ const updateMessagesStatus = asyncHandler(
   }
 )
 
-export { createMessage, deleteMessage, updateMessagesStatus }
+const updateMessageStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { userId, messageId, status } = await req.body
+
+    await Message.findByIdAndUpdate(
+      messageId,
+      { $set: { status } },
+      { new: true }
+    )
+
+    return res
+      .status(201)
+      .json(new ApiResponse(201, {}, "Updated message successfully"))
+  }
+)
+export { createMessage, deleteMessage, updateMessagesStatus, updateMessageStatus }
