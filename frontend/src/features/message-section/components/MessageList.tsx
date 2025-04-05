@@ -5,8 +5,11 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { RootState } from "@/store/store"
 import { Message } from "@/features/message-section/types/message-interface"
 import MessageItem from "./MessageItem";
+import { useSocketService } from "@/hooks/useSocketService";
 
 const MessageList = () => {
+
+  const { updateReceiveAndSeenOfMessages } = useSocketService()
 
   const { selectedChat } = useSelector((state: RootState) => state.chats)
   const allMessages = useSelector((state: RootState) => state.messages)
@@ -30,6 +33,16 @@ const MessageList = () => {
     return () => clearTimeout(timeoutId)
   }, [messages])
 
+
+  // TODO: Add code to the right place
+  // If we have selected a chat and we are on another tab
+  // we will receive message but they are not seen and when we
+  // reclick the tab we will seen the messages 
+  useEffect(() => {
+    if (selectedChat?.unreadMessages) {
+      updateReceiveAndSeenOfMessages(user.userId, selectedChat._id, selectedChat.unreadMessages, "seen")
+    }
+  }, [document.visibilityState])
 
   return (
     <ScrollArea
