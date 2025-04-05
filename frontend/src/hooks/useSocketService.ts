@@ -99,7 +99,10 @@ const useSocketService = () => {
 
       let tempUnreadMessages = 1
 
-      if (selectedChatRef.current?._id !== data.message.chatId) {
+      if (
+        selectedChatRef.current?._id !== data.message.chatId ||
+        document.visibilityState === "hidden"
+      ) {
         // If the user is online but not using tab or on another chat he can definitely receive the message
         updateReceiveAndSeenOfMessage(
           userId,
