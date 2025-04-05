@@ -3,29 +3,23 @@ import { Download } from "lucide-react"
 import { Message } from "@/features/message-section/types/message-interface"
 import MessageActions from "./MessageActions"
 import { Button } from "@/components/ui/button"
+import MessageImageView from "./MessageImageView"
 
 function MessageItem({ message }: { message: Message }) {
+  const hasImage = message.photoUrl.trim()
+
   const handleDownload = async () => {
-    if (message.photoUrl.trim() === "") {
+    if (hasImage === "") {
       return
     }
     // TODO: Handle download of image
   }
-  const handleImageClick = () => {
-    // TODO
-  }
 
   return (
     <div className="box-border inline-block m-1 relative min-w-[100px]">
-      {message.photoUrl.trim() !== "" && (
-        <div className="relative w-[250px] h-[350px] overflow-hidden rounded-lg">
-          <img
-            src={message.photoUrl}
-            alt=""
-            loading="lazy"
-            className="w-full h-full object-contain bg-black cursor-pointer"
-            onClick={handleImageClick}
-          />
+      {hasImage !== "" && (
+        <div className="relative">
+          <MessageImageView src={message.photoUrl} />
           <Button
             variant="ghost"
             size="icon"
