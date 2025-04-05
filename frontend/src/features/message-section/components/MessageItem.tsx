@@ -4,12 +4,13 @@ import { Message } from "@/features/message-section/types/message-interface"
 import MessageActions from "./MessageActions"
 import { Button } from "@/components/ui/button"
 import MessageImageView from "./MessageImageView"
+import { cn } from "@/lib/utils"
 
 function MessageItem({ message }: { message: Message }) {
-  const hasImage = message.photoUrl.trim()
+  const hasImage = message.photoUrl.trim() !== ""
 
   const handleDownload = async () => {
-    if (hasImage === "") {
+    if (hasImage) {
       return
     }
     // TODO: Handle download of image
@@ -17,7 +18,7 @@ function MessageItem({ message }: { message: Message }) {
 
   return (
     <div className="box-border inline-block m-1 relative min-w-[100px]">
-      {hasImage !== "" && (
+      {hasImage && (
         <div className="relative">
           <MessageImageView src={message.photoUrl} />
           <Button
@@ -31,12 +32,9 @@ function MessageItem({ message }: { message: Message }) {
         </div>
       )}
       <p
-        className={`px-1 text-[15px] ${message.photoUrl !== undefined
-          && message.photoUrl.trim() !== ""
-          ? "max-w-[250px]"
-          : "max-w-[50vw]"}`}
+        className={cn("px-1 text-[15px] max-w-[50vw]", hasImage && "max-w-[250px] pt-2", /* This will make some space so our messageActions button could be seen easily */ hasImage && message.message.length == 0 && "py-3")}
       >{message.message}</p>
-      <span className="absolute bottom-0 right-0"><MessageActions selectedMessage={message} /></span>
+      <span className={cn("absolute bottom-0 right-0",)}><MessageActions selectedMessage={message} /></span>
     </div>
   )
 }
