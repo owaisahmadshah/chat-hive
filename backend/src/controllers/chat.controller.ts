@@ -43,7 +43,7 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
     const chatDetails = await getCreatingChatDetails(chat?._id)
 
     //@ts-ignore
-    chatDetails.lastMessage = {
+    chatDetails[0].lastMessage = {
       isPhoto: false,
       message: "",
     }
@@ -74,6 +74,12 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
 
   //@ts-ignore
   const chatDetails = await getCreatingChatDetails(chat._id)
+
+  //@ts-ignore
+  chatDetails[0].lastMessage = {
+    isPhoto: false,
+    message: "",
+  }
 
   return res
     .status(201)
