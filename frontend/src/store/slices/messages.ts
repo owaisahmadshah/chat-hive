@@ -63,10 +63,15 @@ const messagesSlice = createSlice({
         updates: Partial<Message>
       }>
     ) => {
-      const { chatId, ourUserId, numberOfMessages, updates } = action.payload
+      const { chatId, ourUserId, updates } = action.payload
+      let { numberOfMessages } = action.payload
 
       if (state[chatId].length > 0) {
-        for (
+        /**
+         * Some minor errors are present here it is updating the last messages that are either send or receive by our user.
+         *  So we have to just update the messages which our user has send
+         * */
+        /*for (
           let i = state[chatId].length - numberOfMessages - 1;
           i < state[chatId].length;
           i++
@@ -78,6 +83,18 @@ const messagesSlice = createSlice({
               ...updates,
             }
           }
+        }*/
+        /**This solves the problem */
+        let i = state[chatId].length - 1
+        while (i >= 0 && numberOfMessages > 0) {
+          if (state[chatId][i].sender._id == ourUserId) {
+            state[chatId][i] = {
+              ...state[chatId][i],
+              ...updates,
+            }
+            --numberOfMessages
+          }
+          --i
         }
       }
     },

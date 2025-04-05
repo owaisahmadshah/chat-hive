@@ -130,6 +130,18 @@ const useSocketService = () => {
         }
       }
 
+      if (
+        selectedChatRef.current &&
+        data.message.chatId === selectedChatRef.current._id
+      ) {
+        dispatch(
+          setSelectedChat({
+            ...selectedChatRef.current,
+            unreadMessages: tempUnreadMessages,
+          })
+        )
+      }
+
       dispatch(
         updateChat({
           chatId: data.message.chatId,
