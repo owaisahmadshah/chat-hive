@@ -255,13 +255,14 @@ const getChatsAndMessages = asyncHandler(
      * Store them inside the chats
      */
     for (let i = 0; i < chats?.length; i++) {
-      const { messages, unreadMessages } = await getMessages(
+      const { messages, unreadMessages, numberOfMessages } = await getMessages(
         chats[i]._id.toString(),
         userId
       )
 
       chats[i].messages = [...messages]
       chats[i].unreadMessages = unreadMessages
+      chats[i].numberOfMessages = numberOfMessages
 
       // Manually adding last message
       const lastMessage = {
@@ -323,11 +324,25 @@ const getMessages = async (chatid: string, userid: string) => {
           {
             $match: {
               "sender._id": { $ne: userId },
-              status: "sent",
+              // status: "sent",
+              status: { $in: ["sent", "receive"] },
             },
           },
           {
             $count: "totalUnreadMessages",
+          },
+        ],
+        sentMessages: [
+          {
+            $match: {
+              chatId: chatId,
+              "sender._id": { $ne: userId }, // sender is not our user
+              deletedBy: { $ne: userId }, // our user hasn't deleted it yet
+              status: "sent",
+            },
+          },
+          {
+            $count: "numberOfMessages",
           },
         ],
       },
@@ -344,22 +359,47 @@ const getMessages = async (chatid: string, userid: string) => {
         "messages.status": 1,
         "messages.updatedAt": 1,
         unreadMessages: 1,
+        sentMessages: 1,
       },
     },
   ]
 
   // @ts-ignore
   const messages = await Message.aggregate(pipeline)
-  // [{messages: [{}, {}, {}, ...]}, {unreadMessages: [{totalUnreadMessages}]}]
-  // [{messages: [{}, {}, {}, ...]}, {unreadMessages: []}] if no unread messages
+  // [{messages: [{}, {}, {}, ...]}, {unreadMessages: [{totalUnreadMessages}]}, { sentMessages: [{numberOfMessages}]}]
+  // [{messages: [{}, {}, {}, ...]}, {unreadMessages: []}, { sentMessages: [] }] if no unread messages
 
   if (messages[0].unreadMessages.length === 0) {
     messages[0].unreadMessages.push({ totalUnreadMessages: 0 })
   }
 
+  if (messages[0].sentMessages.length === 0) {
+    messages[0].sentMessages.push({ numberOfMessages: 0 })
+  }
+
+  // Getting and updating all the sent messages, if we are receiver and not received the messages yet, we will mark them as read, and get their chatIds and numberOfSentMessages
+  const markReceivedMessagesOprtions = [
+    {
+      updateMany: {
+        filter: {
+          chatId: chatId,
+          sender: { $ne: userId },
+          deletedBy: { $ne: userId },
+          status: "sent",
+        },
+        update: {
+          status: "receive",
+        },
+      },
+    },
+  ]
+
+  await Message.bulkWrite(markReceivedMessagesOprtions)
+
   return {
     messages: messages[0].messages,
     unreadMessages: messages[0].unreadMessages[0].totalUnreadMessages,
+    numberOfMessages: messages[0].sentMessages[0].numberOfMessages,
   }
 }
 
