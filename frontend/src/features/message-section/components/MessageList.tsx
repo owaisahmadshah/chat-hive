@@ -6,6 +6,7 @@ import { RootState } from "@/store/store"
 import { Message } from "@/features/message-section/types/message-interface"
 import MessageItem from "./MessageItem";
 import { useSocketService } from "@/hooks/useSocketService";
+import correctDate from "@/lib/correct-date";
 
 const MessageList = () => {
 
@@ -65,8 +66,17 @@ const MessageList = () => {
               `}
                 >
                   <MessageItem message={message} />
-                  {message.sender._id === user.userId && <p className="text-xs">{message.status}</p>}
                 </li>
+                <div
+                  className={`
+                ${message.sender._id === user.userId
+                      ? "self-end flex items-center justify-between w-[80px]"
+                      : "self-start"}
+              `}
+                >
+                  <p className={`text-[10px] text-muted-foreground`}>{correctDate(message.updatedAt)}</p>
+                  <p className="text-[10px]">{message.sender._id === user.userId && message.status}</p>
+                </div>
               </React.Fragment>
             ))
             :
@@ -92,7 +102,7 @@ const MessageList = () => {
             </div>
         }
       </ul>
-    </ScrollArea>
+    </ScrollArea >
   )
 }
 

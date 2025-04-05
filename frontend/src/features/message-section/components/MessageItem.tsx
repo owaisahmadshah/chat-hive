@@ -1,6 +1,5 @@
 import { Download } from "lucide-react"
 
-import correctDate from "@/lib/correct-date"
 import { Message } from "@/features/message-section/types/message-interface"
 import MessageActions from "./MessageActions"
 import { Button } from "@/components/ui/button"
@@ -17,7 +16,7 @@ function MessageItem({ message }: { message: Message }) {
   }
 
   return (
-    <div className="box-border inline-block m-1">
+    <div className="box-border inline-block m-1 relative min-w-[100px]">
       {message.photoUrl.trim() !== "" && (
         <div className="relative w-[250px] h-[350px] overflow-hidden rounded-lg">
           <img
@@ -38,15 +37,12 @@ function MessageItem({ message }: { message: Message }) {
         </div>
       )}
       <p
-        className={`p-2 ${message.photoUrl !== undefined
+        className={`px-1 text-[15px] ${message.photoUrl !== undefined
           && message.photoUrl.trim() !== ""
           ? "max-w-[250px]"
           : "max-w-[50vw]"}`}
       >{message.message}</p>
-      <div className="flex justify-between items-center">
-        <p className="text-[10px] ml-4">{correctDate(message.updatedAt)}</p>
-        <MessageActions selectedMessage={message} />
-      </div>
+      <span className="absolute bottom-0 right-0"><MessageActions selectedMessage={message} /></span>
     </div>
   )
 }
