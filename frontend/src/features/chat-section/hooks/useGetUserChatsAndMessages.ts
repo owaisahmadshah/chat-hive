@@ -11,7 +11,7 @@ import { useSocketService } from "@/hooks/useSocketService"
 
 function useGetUserChatsAndMessages() {
   const { getToken } = useAuth()
-  const { joinSocketChat } = useSocketService()
+  const { joinSocketChat, updateReceiveAndSeenOfMessages } = useSocketService()
 
   const dispatch = useDispatch()
   const user = useSelector((state: RootState) => state.user)
@@ -50,10 +50,18 @@ function useGetUserChatsAndMessages() {
              * in a map whose key will be
              * */
             allChatsAndMessages.forEach((chatAndMessages) => {
-              const { messages, ...chat } = chatAndMessages
+              const { messages, numberOfMessages, ...chat } = chatAndMessages
               allChats.push(chat)
               joinSocketChat(chat._id) //* Join chat in socket server
               dispatch(setMessages({ chatId: chat._id, messages }))
+              if (numberOfMessages > 0) {
+                updateReceiveAndSeenOfMessages(
+                  user.userId,
+                  chat._id,
+                  numberOfMessages,
+                  "receive"
+                )
+              }
             })
             dispatch(setChats(allChats))
           }
