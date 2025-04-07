@@ -65,7 +65,7 @@ const CreateChat = () => {
         />
         <ScrollArea>
           <ul className="h-[70vh]">
-            {isLoading && <li className="">Searching...</li>}
+            {isLoading && <li className="ml-[15%] text-muted-foreground text-sm">Searching...</li>}
             {
               users.length ? users.map((user: ChatUser) => (
                 <li className="flex gap-2 items-center justify-around p-2 hover:bg-secondary" key={user._id}>
