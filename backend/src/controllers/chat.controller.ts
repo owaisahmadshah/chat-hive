@@ -33,8 +33,6 @@ const createChat = asyncHandler(async (req: Request, res: Response) => {
       (user) => user.toString() !== admin
     )
 
-    // TODO: Figure out how to change updateAt field when chat is recreated, like there are multiple users, how can we get for every users
-
     // Only update for the specific user who is recreating this chat
     chat.deletedBy = deletedParticipants
     await chat.save()
@@ -174,7 +172,8 @@ const deleteChat = asyncHandler(async (req: Request, res: Response) => {
 
   await Message.bulkWrite(deleteMessagesOptions)
 
-  await deletedChat.save()
+  // This action won't update chat timestamps, so other user won't get wrong timestamps
+  await deletedChat.save({ timestamps: false }) // agar e user ki delete pray khur usersN pachan time change no boi
 
   return res.status(201).json(new ApiResponse(201, {}, "Success"))
 })
