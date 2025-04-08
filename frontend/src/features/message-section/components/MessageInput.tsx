@@ -90,7 +90,7 @@ function MessageInput() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}
         autoComplete="off"
-        className="h-[10vh] flex items-center justify-center gap-2 border-t"
+        className="min-h-[10vh] flex items-center justify-center gap-2 border-t"
         encType="multipart/form-data"
       >
         <FormItem>
@@ -131,7 +131,7 @@ function MessageInput() {
                   {...field}
                   placeholder="Type a message..."
                   minRows={1}
-                  maxRows={4}
+                  maxRows={3}
                   onBlur={() => {
                     field.onBlur()
                     handleTypingBlur()
@@ -141,7 +141,7 @@ function MessageInput() {
                     "border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none",
                     "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
                     "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                    "border min-w-[60vw] p-2 resize-none rounded-sm" /**custom classes */
+                    "border min-w-[60vw] px-2 mt-1 resize-none rounded-sm" /**custom classes */
                   )}
 
                 />
