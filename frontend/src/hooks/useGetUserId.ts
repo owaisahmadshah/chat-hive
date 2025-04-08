@@ -5,7 +5,7 @@ import axios from "axios"
 
 import { setUser } from "@/store/slices/user"
 import { User } from "@/types/user-interface"
-import api from "@/lib/axiosInstance"
+import { getUser } from "@/services/userService"
 
 function useGetUserId() {
   const { isSignedIn, user } = useUser()
@@ -27,15 +27,7 @@ function useGetUserId() {
             return
           }
 
-          const { data } = await api.post(
-            "/v1/webhook/user",
-            { clerkId: user.id },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          )
+          const data = await getUser(user.id, token)
 
           if (isMounted && data.statusCode === 200) {
             const payload: User = {
