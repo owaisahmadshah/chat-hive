@@ -44,7 +44,7 @@ const CreateChat = () => {
     <Sheet>
       <SheetTrigger asChild>
         <span>
-          <Button variant="outline" className="flex items-center gap-2 p-2">
+          <Button variant="outline" className="flex items-center gap-2 p-2 cursor-pointer">
             <Plus className="w-6 h-6" />
             <span>New Chat</span>
           </Button>
