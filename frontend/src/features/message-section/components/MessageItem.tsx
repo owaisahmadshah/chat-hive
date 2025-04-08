@@ -5,15 +5,16 @@ import MessageActions from "./MessageActions"
 import { Button } from "@/components/ui/button"
 import MessageImageView from "./MessageImageView"
 import { cn } from "@/lib/utils"
+import { saveAs } from "file-saver"
 
 function MessageItem({ message }: { message: Message }) {
   const hasImage = message.photoUrl.trim() !== ""
 
   const handleDownload = async () => {
-    if (hasImage) {
+    if (!hasImage) {
       return
     }
-    // TODO: Handle download of image
+    saveAs(message.photoUrl)
   }
 
   return (

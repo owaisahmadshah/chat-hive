@@ -22,6 +22,7 @@
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useState } from "react"
 import { cn } from "@/lib/utils" // if you're using class merging utility
+import { DialogTitle } from "@radix-ui/react-dialog"
 
 type Props = {
   src: string
@@ -45,6 +46,7 @@ function MessageImageView({ src, alt = "", thumbnailClassName = "" }: Props) {
           />
         </div>
       </DialogTrigger>
+      <DialogTitle></DialogTitle>{/**Just added instead you get error by adding you get warnings TODO: Handle */}
       <DialogContent
         className="bg-black/90 backdrop-blur-sm border-none p-0 max-w-full max-h-full flex items-center justify-center [&>button]:hidden"
         onClick={() => setOpen(false)}
