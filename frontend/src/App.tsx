@@ -6,11 +6,12 @@ import useGetUserId from "@/hooks/useGetUserId"
 import MessageSection from "@/features/message-section/MessageSection"
 import { useSocketService } from "./hooks/useSocketService"
 import usePresenceStatus from "./hooks/usePresenceStatus"
+import useAttachToken from "./hooks/useAttachToken"
 
 function App() {
 
-  //* This will get the user data and userId which is crucial for making api requests
-  useGetUserId()
+  useAttachToken() //* It will just attach token dynamically
+  useGetUserId() //* This will get the user data and userId which is crucial for making api requests
   useSocketService()
   usePresenceStatus() //* This will update user online/offline status using socket.io
 

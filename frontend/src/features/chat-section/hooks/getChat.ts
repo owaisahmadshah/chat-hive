@@ -1,4 +1,3 @@
-import { useAuth } from "@clerk/clerk-react"
 import { getUserChat } from "../services/chatService"
 import { useDispatch } from "react-redux"
 import { addChat } from "@/store/slices/chats"
@@ -6,13 +5,11 @@ import { setMessages } from "@/store/slices/messages"
 import axios from "axios"
 
 const useGetChat = () => {
-  const { getToken } = useAuth()
   const dispatch = useDispatch()
 
   const getChat = async (chatId: string) => {
     try {
-      const token = await getToken()
-      const { data } = await getUserChat({ chatId }, token)
+      const { data } = await getUserChat({ chatId })
 
       dispatch(addChat(data.data?.chat[0]))
       dispatch(setMessages({ chatId: data.data?.chat[0]._id, messages: [] }))

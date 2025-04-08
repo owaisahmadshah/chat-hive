@@ -4,13 +4,11 @@ import axios from "axios"
 import { addMessage, deleteMessage } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
 import { deleteMessageService, sendMessage } from "../services/messageService"
-import { useAuth } from "@clerk/clerk-react"
 import { setSelectedChat, updateChat } from "@/store/slices/chats"
 import { useSocketService } from "@/hooks/useSocketService"
 
 const useMessage = () => {
   const dispatch = useDispatch()
-  const { getToken } = useAuth()
 
   const userId = useSelector((state: RootState) => state.user.userId)
   const { selectedChat } = useSelector((state: RootState) => state.chats)
@@ -27,8 +25,7 @@ const useMessage = () => {
       formData.append("chatId", selectedChat._id)
       formData.append("status", "sent")
 
-      const token = await getToken()
-      const data = await sendMessage(formData, token)
+      const data = await sendMessage(formData)
 
       const newMessage = {
         chatId: selectedChat?._id,
@@ -74,14 +71,10 @@ const useMessage = () => {
           messages[selectedChatId || ""].length - 1
         ]._id || ""
     */
-      const token = await getToken()
-      await deleteMessageService(
-        {
-          messageId,
-          userId,
-        },
-        token
-      )
+      await deleteMessageService({
+        messageId,
+        userId,
+      })
 
       const chatMessages = allMessages[selectedChat._id]
       const lastMessage = {

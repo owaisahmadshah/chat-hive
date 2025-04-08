@@ -1,4 +1,3 @@
-import { useAuth } from "@clerk/clerk-react"
 import { useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import axios from "axios"
@@ -10,7 +9,6 @@ import { setMessages } from "@/store/slices/messages"
 import { useSocketService } from "@/hooks/useSocketService"
 
 function useGetUserChatsAndMessages() {
-  const { getToken } = useAuth()
   const { joinSocketChat, updateReceiveAndSeenOfMessages } = useSocketService()
 
   const dispatch = useDispatch()
@@ -23,22 +21,14 @@ function useGetUserChatsAndMessages() {
     if (!user.isLoading) {
       ;(async () => {
         try {
-          const token = await getToken()
-
           // Stop if component is unmounted
           if (!isMounted) {
             return
           }
 
-          const { data } = await api.post(
-            "/v1/chat/get",
-            { userId: user.userId },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          )
+          const { data } = await api.post("/v1/chat/get", {
+            userId: user.userId,
+          })
 
           if (isMounted && data.statusCode === 200) {
             const allChatsAndMessages = [...data.data]

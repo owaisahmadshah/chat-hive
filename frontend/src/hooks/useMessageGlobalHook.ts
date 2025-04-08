@@ -1,4 +1,3 @@
-import { useAuth } from "@clerk/clerk-react"
 import axios from "axios"
 
 import {
@@ -9,7 +8,6 @@ import { useSelector } from "react-redux"
 import { RootState } from "@/store/store"
 
 const useMessageGlobalHook = () => {
-  const { getToken } = useAuth()
   const user = useSelector((state: RootState) => state.user)
 
   const updateMessagesStatus = async (
@@ -17,16 +15,11 @@ const useMessageGlobalHook = () => {
     status: "receive" | "seen"
   ) => {
     try {
-      const token = await getToken()
-
-      await updateMessagesStatusService(
-        {
-          chatId,
-          userId: user.userId,
-          status,
-        },
-        token
-      )
+      await updateMessagesStatusService({
+        chatId,
+        userId: user.userId,
+        status,
+      })
     } catch (error) {
       console.error("Error updating messages status", error)
       if (axios.isAxiosError(error)) {
@@ -40,12 +33,11 @@ const useMessageGlobalHook = () => {
     status: "receive" | "seen"
   ) => {
     try {
-      const token = await getToken()
-
-      await updateMessageStatusService(
-        { userId: user.userId, messageId, status },
-        token
-      )
+      await updateMessageStatusService({
+        userId: user.userId,
+        messageId,
+        status,
+      })
     } catch (error) {
       console.error("Error updating message status", error)
       if (axios.isAxiosError(error)) {
