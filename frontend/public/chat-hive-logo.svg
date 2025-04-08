@@ -1,0 +1,10 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simple Hexagon -->
+  <polygon points="100,25 170,65 170,135 100,175 30,135 30,65" fill="#FF9500" stroke-width="0"/>
+  
+  <!-- Simplified Chat Bubble -->
+  <path d="M100,70 C125,70 140,85 140,105 C140,125 125,140 100,140 L90,140 L75,160 L75,140 C75,140 60,140 60,140 C60,140 60,105 60,105 C60,85 75,70 100,70 Z" fill="white"/>
+  
+  <!-- Stylized H -->
+  <path d="M85,85 L85,125 M85,105 L115,105 M115,85 L115,125" stroke="#FF9500" stroke-width="12" stroke-linecap="round" fill="none"/>
+</svg>
