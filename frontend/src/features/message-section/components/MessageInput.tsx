@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useEffect, useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
+import TextareaAutosize from 'react-textarea-autosize'
 
 import {
   Form,
@@ -17,6 +18,7 @@ import { messageSchema } from "../types/message-schema"
 import { useMessage } from "../hooks/useMessage"
 import { Label } from "@/components/ui/label"
 import { useSocketService } from "@/hooks/useSocketService"
+import { cn } from "@/lib/utils"
 
 function MessageInput() {
 
@@ -125,10 +127,23 @@ function MessageInput() {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input
-                  placeholder="Type a message" {...field}
-                  onBlur={handleTypingBlur}
-                  className="min-w-[60vw]"
+                <TextareaAutosize
+                  {...field}
+                  placeholder="Type a message..."
+                  minRows={1}
+                  maxRows={4}
+                  onBlur={() => {
+                    field.onBlur()
+                    handleTypingBlur()
+                  }}
+                  className={cn(
+                    /**Input classes just to make it beautiful */
+                    "border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none",
+                    "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+                    "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+                    "border min-w-[60vw] p-2 resize-none rounded-sm" /**custom classes */
+                  )}
+
                 />
               </FormControl>
               <FormMessage />
