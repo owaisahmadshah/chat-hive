@@ -33,7 +33,7 @@ const ChatActions = ({ chat }: { chat: Chat }) => {
           </span>
         </DropdownMenuTrigger>
         <DropdownMenuContent >
-          <DropdownMenuItem onClick={handleSelectedChatAddFavorite} className="cursor-pointer">Reply</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSelectedChatAddFavorite} className="cursor-pointer">Add to Favorites</DropdownMenuItem>
           <DropdownMenuItem onClick={handleSelectedChatPin} className="cursor-pointer">Pin</DropdownMenuItem>
           <DropdownMenuItem onClick={handleSelectedChatDelete} className="cursor-pointer">Delete</DropdownMenuItem>
         </DropdownMenuContent>
