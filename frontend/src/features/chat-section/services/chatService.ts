@@ -1,7 +1,7 @@
 import api from "@/lib/axiosInstance"
 
 const fetchUser = async (email: { email: string }, token: string | null) => {
-  const { data } = await api.post("/v1/webhook/suggestions", email, {
+  const { data } = await api.post("/v1/user/suggestions", email, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
