@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import axios from "axios"
+import { useAuth } from "@clerk/clerk-react"
 
 import api from "@/lib/axiosInstance"
 import { RootState } from "@/store/store"
@@ -9,6 +10,8 @@ import { setMessages } from "@/store/slices/messages"
 import { useSocketService } from "@/hooks/useSocketService"
 
 function useGetUserChatsAndMessages() {
+  const { getToken } = useAuth()
+
   const { joinSocketChat, updateReceiveAndSeenOfMessages } = useSocketService()
 
   const dispatch = useDispatch()
@@ -26,9 +29,19 @@ function useGetUserChatsAndMessages() {
             return
           }
 
-          const { data } = await api.post("/v1/chat/get", {
-            userId: user.userId,
-          })
+          const token = await getToken()
+
+          const { data } = await api.post(
+            "/v1/chat/get",
+            {
+              userId: user.userId,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          )
 
           if (isMounted && data.statusCode === 200) {
             const allChatsAndMessages = [...data.data]

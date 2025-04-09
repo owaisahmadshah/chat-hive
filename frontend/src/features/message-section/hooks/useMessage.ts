@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux"
 import axios from "axios"
+import { useAuth } from "@clerk/clerk-react"
 
 import { addMessage, deleteMessage } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
@@ -8,6 +9,8 @@ import { setSelectedChat, updateChat } from "@/store/slices/chats"
 import { useSocketService } from "@/hooks/useSocketService"
 
 const useMessage = () => {
+  const { getToken } = useAuth()
+
   const dispatch = useDispatch()
 
   const userId = useSelector((state: RootState) => state.user.userId)
@@ -25,7 +28,9 @@ const useMessage = () => {
       formData.append("chatId", selectedChat._id)
       formData.append("status", "sent")
 
-      const data = await sendMessage(formData)
+      const token = await getToken()
+
+      const data = await sendMessage(formData, token)
 
       const newMessage = {
         chatId: selectedChat?._id,
@@ -65,16 +70,21 @@ const useMessage = () => {
     }
 
     try {
+      const token = await getToken()
+
       const selectedChatId = selectedChat?._id
       /* const lastMessageId =
         messages[selectedChatId || ""][
           messages[selectedChatId || ""].length - 1
         ]._id || ""
     */
-      await deleteMessageService({
-        messageId,
-        userId,
-      })
+      await deleteMessageService(
+        {
+          messageId,
+          userId,
+        },
+        token
+      )
 
       const chatMessages = allMessages[selectedChat._id]
       const lastMessage = {

@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-react"
+import { useAuth, useUser } from "@clerk/clerk-react"
 import { useEffect } from "react"
 import { useDispatch } from "react-redux"
 import axios from "axios"
@@ -9,6 +9,8 @@ import { getUser } from "@/services/userService"
 
 function useGetUserId() {
   const { isSignedIn, user } = useUser()
+
+  const { getToken } = useAuth()
 
   const dispatch = useDispatch()
 
@@ -24,7 +26,9 @@ function useGetUserId() {
             return
           }
 
-          const data = await getUser(user.id)
+          const token = await getToken()
+
+          const data = await getUser(user.id, token)
 
           if (isMounted && data.statusCode === 200) {
             const payload: User = {
