@@ -2,7 +2,7 @@ import api from "@/lib/axiosInstance"
 
 const getUser = async (clerkId: string, token: string | null) => {
   const { data } = await api.post(
-    "/v1/webhook/user",
+    "/v1/user/user",
     { clerkId },
     {
       headers: {

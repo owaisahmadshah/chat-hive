@@ -40,6 +40,6 @@ import userRouter from "./routes/user.route.js"
 app.use("/api/v1/healthcheck", healthCheckRouter)
 app.use("/api/v1/chat", chatRoute)
 app.use("/api/v1/message", messageRoute)
-app.use("/api/v1/webhook", userRouter)
+app.use("/api/v1/user", userRouter)
 
 export { app }
