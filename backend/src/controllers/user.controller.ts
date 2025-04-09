@@ -9,7 +9,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 
 /**
  * @desc    Create a new user from clerk webhook
- * @route   POST /api/v1/webhook/signup
+ * @route   POST /api/v1/user/signup
  * @access  Public
  *
  * @param {Request} req - Express request object containing user details
@@ -24,7 +24,6 @@ import { ApiResponse } from "../utils/ApiResponse.js"
  */
 const createUser = asyncHandler(async (req: Request, res: Response) => {
   const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SECRET
-  logger.info("webhook correctly hit")
 
   if (!SIGNING_SECRET) {
     logger.error(
@@ -74,8 +73,6 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
     imageUrl: clerkUser.data.image_url,
   }
 
-  console.log(userData)
-
   const user = await User.create(userData)
   await user.save()
 
@@ -86,7 +83,7 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
 
 /**
  * @desc    Delete a user
- * @route   POST /api/v1/webhook/delete
+ * @route   POST /api/v1/user/delete
  * @access  Private
  *
  * @param {Request} req - Express request object containing user clerkId
@@ -148,7 +145,7 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 
 /**
  * @desc    Get user data from the database by using userId and send to the frontend
- * @route   POST /api/v1/webhook/get
+ * @route   POST /api/v1/user/get
  * @access  Private
  *
  * @param {Request} req - Express request object containing user clerkId
@@ -161,7 +158,7 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
   const { clerkId } = await req.body
 
   const user = await User.findOne({ clerkId }).select(
-    "_id fullName email imageUrl isLoading"
+    "_id fullName email imageUrl lastSignInAt"
   )
 
   if (!user) {
@@ -173,7 +170,7 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
 
 /**
  * @desc    Get users data from the database that matches the email
- * @route   POST /api/v1/webhook/suggestions
+ * @route   POST /api/v1/user/suggestions
  * @access  Private
  *
  * @param {Request} req - Express request object containing user email(some alphabets)
