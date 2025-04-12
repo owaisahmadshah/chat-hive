@@ -14,7 +14,7 @@ const Settings = () => {
 
   return (<main className="border-r h-full">
     <h1 className="text-2xl m-5"><strong>Settings</strong></h1>
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-[88vh]"> {/**Setting it 88 b/c of the above h1 tag */}
       <ul className="w-full flex flex-col items-center gap-4 relative">
         <li className={cn(listItemClasses, "sticky top-0 bg-background")}><Input placeholder="Search settings" disabled /></li>
         <li className={listItemClasses}><Button variant={"ghost"}><LockIcon /></Button><p>Privacy</p></li>
