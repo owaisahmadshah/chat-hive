@@ -4,6 +4,7 @@ import ChatNavbar from "@/features/chat-section/Components/ChatNavBar"
 import useGetUserChatsAndMessages from "@/features/chat-section/hooks/useGetUserChatsAndMessages"
 import ChatList from "./Components/ChatList"
 import ChatSectionSidebar from "./Components/ChatSectionSidebar"
+import Settings from "../message-section/components/Settings"
 
 type selectedComponentType = "chats" | "user_profile" | "settings"
 
@@ -22,9 +23,7 @@ const ChatSection = () => {
               <ChatNavbar />
               <ChatList />
             </>
-            : selectedComponent === "settings" ? <>
-              settings
-            </>
+            : selectedComponent === "settings" ? <Settings />
               : "user_profile"
         }
       </main>
