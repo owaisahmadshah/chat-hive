@@ -19,7 +19,7 @@ const MessageSection = () => {
   }
 
   return (
-    <section className="min-w-[75vw]">
+    <section className="w-full min-w-[40vw]">
       <MessageNavBar />
       <MessageList />
       <MessageInput />

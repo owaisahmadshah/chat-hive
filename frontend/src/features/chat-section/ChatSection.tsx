@@ -1,16 +1,36 @@
+import { useState } from "react"
+
 import ChatNavbar from "@/features/chat-section/Components/ChatNavBar"
 import useGetUserChatsAndMessages from "@/features/chat-section/hooks/useGetUserChatsAndMessages"
 import ChatList from "./Components/ChatList"
+import ChatSectionSidebar from "./Components/ChatSectionSidebar"
+
+type selectedComponentType = "chats" | "user_profile" | "settings"
 
 const ChatSection = () => {
+  const [selectedComponent, setSelectedComponent] = useState<selectedComponentType>("chats")
+
   useGetUserChatsAndMessages()
 
   return (
-    <div className="flex flex-col bg-background box-border max-h-[100vh] min-h-[100vh] min-w-[300px] max-w-[25vw] border-r">
-      <ChatNavbar />
-      <ChatList />
-    </div>
+    <section className="flex bg-background box-border max-h-[100vh] min-h-[100vh] min-w-[400px] max-w-[400px]">
+      <ChatSectionSidebar selectedComponent={selectedComponent} setSelectedComponent={setSelectedComponent} />
+      <main className="flex flex-col w-full">
+        {
+          selectedComponent === "chats" ?
+            <>
+              <ChatNavbar />
+              <ChatList />
+            </>
+            : selectedComponent === "settings" ? <>
+              settings
+            </>
+              : "user_profile"
+        }
+      </main>
+    </section>
   )
 }
+
 
 export default ChatSection
