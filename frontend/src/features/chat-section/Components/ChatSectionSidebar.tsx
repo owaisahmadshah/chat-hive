@@ -17,8 +17,8 @@ const ChatSectionSidebar = ({
   // Returns the class names for a sidebar item based on whether it's selected
   const getItemClass = (name: SelectedComponentType) =>
     cn(
-      "cursor-pointer text-foreground",
-      selectedComponent === name && "text-muted-foreground"
+      "cursor-pointer text-muted-foreground",
+      selectedComponent === name && "text-foreground"
     )
 
   const { imageUrl } = useSelector((state: RootState) => state.user)
