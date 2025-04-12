@@ -5,6 +5,7 @@ import useGetUserChatsAndMessages from "@/features/chat-section/hooks/useGetUser
 import ChatList from "./Components/ChatList"
 import ChatSectionSidebar from "./Components/ChatSectionSidebar"
 import Settings from "../message-section/components/Settings"
+import Profile from "../message-section/components/Profile"
 
 type selectedComponentType = "chats" | "user_profile" | "settings"
 
@@ -24,7 +25,7 @@ const ChatSection = () => {
               <ChatList />
             </>
             : selectedComponent === "settings" ? <Settings />
-              : "user_profile"
+              : <Profile />
         }
       </main>
     </section>

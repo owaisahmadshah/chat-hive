@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils"
-import { UserButton } from "@clerk/clerk-react"
+import { RootState } from "@/store/store";
 import { MessageSquareIcon, Settings } from "lucide-react";
+import { useSelector } from "react-redux";
 
 type SelectedComponentType = "chats" | "user_profile" | "settings"
 
@@ -20,6 +21,8 @@ const ChatSectionSidebar = ({
       selectedComponent === name && "text-muted-foreground"
     )
 
+  const { imageUrl } = useSelector((state: RootState) => state.user)
+
   return (
     <div className="h-[100vh] w-[70px] border-r flex flex-col justify-between items-center py-10">
       <ul>
@@ -31,7 +34,7 @@ const ChatSectionSidebar = ({
         </li>
       </ul>
 
-      <ul className="flex flex-col gap-4">
+      <ul className="flex flex-col gap-4 items-center">
         <li
           className={getItemClass("settings")}
           onClick={() => setSelectedComponent("settings")}
@@ -42,7 +45,11 @@ const ChatSectionSidebar = ({
           className={getItemClass("user_profile")}
           onClick={() => setSelectedComponent("user_profile")}
         >
-          <UserButton />
+          <img
+            src={imageUrl}
+            alt={""}
+            className="max-w-[40px] max-h-[40px] rounded-full"
+          />
         </li>
       </ul>
     </div>
