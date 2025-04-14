@@ -1,7 +1,6 @@
 import { useState } from "react"
 
 import ChatNavbar from "@/features/chat-section/Components/ChatNavBar"
-import useGetUserChatsAndMessages from "@/features/chat-section/hooks/useGetUserChatsAndMessages"
 import ChatList from "./Components/ChatList"
 import ChatSectionSidebar from "./Components/ChatSectionSidebar"
 import Settings from "../message-section/components/Settings"
@@ -11,8 +10,6 @@ type selectedComponentType = "chats" | "user_profile" | "settings"
 
 const ChatSection = () => {
   const [selectedComponent, setSelectedComponent] = useState<selectedComponentType>("chats")
-
-  useGetUserChatsAndMessages()
 
   return (
     <section className="flex bg-background box-border max-h-[100vh] min-h-[100vh] min-w-[400px] max-w-[400px]">

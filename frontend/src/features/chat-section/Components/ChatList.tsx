@@ -8,7 +8,6 @@ import { Separator } from "@/components/ui/separator"
 import { setSelectedChat, setSelectedChatUser, updateChatWithPersistentOrder, } from '@/store/slices/chats'
 import correctDate from '@/lib/correct-date'
 import ChatActions from './ChatActions'
-import { ChatListSkeleton } from './ChatsListSkeleton'
 import NoChats from './NoChats'
 import { Image } from 'lucide-react'
 import useMessageGlobalHook from '@/hooks/useMessageGlobalHook'
@@ -83,7 +82,6 @@ const Chats = () => {
   return (
     <ScrollArea className="box-border border-r border-l h-[84vh]">
       <ul className="flex flex-col max-h-[84vh]">
-        {chats.isLoading && <ChatListSkeleton count={10} />}
         {chats.chats.length === 0 && <NoChats />}
         {
           !chats.isLoading && chats.chats.length > 0 &&
