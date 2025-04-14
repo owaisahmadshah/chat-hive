@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils"
 import { RootState } from "@/store/store";
-import { MessageSquareIcon, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import { useSelector } from "react-redux";
+import ChatButtonLogo from "./ChatButtonLogo";
 
 type SelectedComponentType = "chats" | "user_profile" | "settings"
 
@@ -30,7 +31,7 @@ const ChatSectionSidebar = ({
           className={getItemClass("chats")}
           onClick={() => setSelectedComponent("chats")}
         >
-          <MessageSquareIcon />
+          <ChatButtonLogo />
         </li>
       </ul>
 
@@ -39,7 +40,7 @@ const ChatSectionSidebar = ({
           className={getItemClass("settings")}
           onClick={() => setSelectedComponent("settings")}
         >
-          <Settings />
+          <strong><Settings /></strong>
         </li>
         <li
           className={getItemClass("user_profile")}
