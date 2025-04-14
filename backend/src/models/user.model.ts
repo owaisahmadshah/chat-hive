@@ -2,7 +2,6 @@ import mongoose, { Document, Schema } from "mongoose"
 
 interface userDocument extends Document {
   clerkId: string
-  fullName: String
   email: String
   imageUrl: String
   lastSignInAt: Date
@@ -13,7 +12,6 @@ interface userDocument extends Document {
 const userSchema = new mongoose.Schema<userDocument>(
   {
     clerkId: { type: String, required: true, unique: true },
-    fullName: String,
     email: {
       type: String,
       unique: true,

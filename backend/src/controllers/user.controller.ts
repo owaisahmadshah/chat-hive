@@ -67,8 +67,6 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
   // Extract user data from the verified webhook payload
   const userData = {
     clerkId: clerkUser.data.id,
-    fullName:
-      `${clerkUser.data?.first_name} ${clerkUser.data?.last_name}`.trim(),
     email: clerkUser.data.email_addresses[0].email_address,
     imageUrl: clerkUser.data.image_url,
   }

@@ -5,7 +5,6 @@ import { User } from "@/types/user-interface"
 
 const initialState: User = {
   userId: "",
-  fullName: "",
   email: "",
   imageUrl: "",
   isLoading: true,
@@ -18,7 +17,6 @@ const userSlice = createSlice({
     setUser: (state, action: PayloadAction<User>) => {
       state.userId = action.payload.userId
       state.email = action.payload.email
-      state.fullName = action.payload.fullName
       state.imageUrl = action.payload.imageUrl
       state.isLoading = action.payload.isLoading
     },
