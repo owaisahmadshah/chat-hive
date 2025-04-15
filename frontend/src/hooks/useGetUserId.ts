@@ -7,6 +7,20 @@ import { setUser } from "@/store/slices/user"
 import { User } from "@/types/user-interface"
 import { getUser } from "@/services/userService"
 
+/**
+ * Custom hook that fetches and manages user data from the backend
+ * 
+ * This hook:
+ * 1. Checks if the user is signed in
+ * 2. Fetches the user's details from the backend
+ * 3. Updates the Redux store with the user's information
+ * 
+ * @returns {void}
+ * 
+ * @example
+ * // Usage in a component
+ * useGetUserId()
+ */
 function useGetUserId() {
   const { isSignedIn, user } = useUser()
 
@@ -34,7 +48,6 @@ function useGetUserId() {
             const payload: User = {
               email: data.data.email,
               userId: data.data._id,
-              fullName: data.data.fullName,
               imageUrl: data.data.imageUrl,
               isLoading: false,
             }

@@ -7,12 +7,22 @@ import logger from "./utils/logger.js"
 
 const app = express()
 
+/**
+ * Morgan logging format string
+ * @type {string}
+ */
 const morganFormat = ":method :url :status :response-time ms"
 
+// Configure middleware
 app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }))
 app.use(express.json({ limit: "16kb" }))
 app.use(express.urlencoded({ extended: true, limit: "16kb" }))
 app.use(express.static("public"))
+
+/**
+ * Morgan middleware configuration for HTTP request logging
+ * Logs request details in a structured format
+ */
 app.use(
   morgan(morganFormat, {
     stream: {
@@ -28,15 +38,17 @@ app.use(
     },
   })
 )
+
+// Authentication middleware
 app.use(clerkMiddleware()) // https://clerk.com/docs/upgrade-guides/node-to-express#migrate-from-clerk-express-require-auth
 
-// import routes
+// Import route handlers
 import healthCheckRouter from "./routes/healthCheck.route.js"
 import chatRoute from "./routes/chat.route.js"
 import messageRoute from "./routes/message.route.js"
 import userRouter from "./routes/user.route.js"
 
-// routes
+// Register API routes
 app.use("/api/v1/healthcheck", healthCheckRouter)
 app.use("/api/v1/chat", chatRoute)
 app.use("/api/v1/message", messageRoute)
