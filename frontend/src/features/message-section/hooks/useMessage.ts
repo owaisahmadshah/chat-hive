@@ -47,6 +47,7 @@ const useMessage = () => {
               isPhoto: data.data.filteredMessage.photoUrl !== "",
               message: data.data.filteredMessage.message,
             },
+            unreadMessages: 0,
           },
         })
       )

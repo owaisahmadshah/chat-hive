@@ -24,8 +24,9 @@ const Chats = () => {
   const { updateReceiveAndSeenOfMessages } = useSocketService()
 
   const handleClickedChat = async (selectedChat: Chat) => {
-    // If currently clicked chat is not the same as the selected chat, then update the unread messages to 0
-    if (selectedChat._id !== chats.selectedChat?._id) {
+    // If clicked chat has unread messages
+    // No matter it is currently selected or new selected chat
+    if (selectedChat.unreadMessages) {
       dispatch(updateChatWithPersistentOrder({ chatId: selectedChat._id, updates: { unreadMessages: 0 } }))
     }
 
