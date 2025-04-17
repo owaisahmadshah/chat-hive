@@ -1,24 +1,3 @@
-// import { Skeleton } from "@/components/ui/skeleton"
-// import { useState } from "react"
-
-// function MessageImageView({ src }: { src: string }) {
-//   const [loaded, setLoaded] = useState(false)
-
-//   return (
-//     <div className="w-[300px] h-[200px] relative">
-//       {!loaded && <Skeleton className="absolute w-full h-full rounded-md" />}
-//       <img
-//         src={src}
-//         onLoad={() => setLoaded(true)}
-//         alt="With Skeleton"
-//         className={`w-full h-full object-cover rounded-md transition-opacity ${loaded ? "opacity-100" : "opacity-0"}`}
-//       />
-//     </div>
-//   )
-// }
-
-// export default MessageImageView
-
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useState } from "react"
 import { cn } from "@/lib/utils" // if you're using class merging utility

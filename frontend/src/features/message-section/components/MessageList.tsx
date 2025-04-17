@@ -7,6 +7,7 @@ import { Message } from "@/features/message-section/types/message-interface"
 import MessageItem from "./MessageItem";
 import { useSocketService } from "@/hooks/useSocketService";
 import correctDate from "@/lib/correct-date";
+import { cn } from "@/lib/utils";
 
 const MessageList = () => {
 
@@ -58,21 +59,20 @@ const MessageList = () => {
                   <span
                     className="mx-auto my-3 px-3 py-1 text-xs font-medium rounded-full bg-background shadow-lg shadow-muted-foreground"
                   >UNREAD MESSAGES </span>}
-                <li className={`
-                box-border border rounded-[10px] w-fit max-w-[60vw] 
-                ${message.sender._id === user.userId
-                    ? "self-end bg-background flex items-center"
-                    : "self-start bg-primary"}
-              `}
+                <li className={cn(
+                  "box-border border rounded-[10px] w-fit max-w-[60vw] self-start bg-primary",
+                  message.sender._id === user.userId &&
+                  "self-end bg-background flex items-center"
+                )}
                 >
                   <MessageItem message={message} />
                 </li>
                 <div
-                  className={`
-                ${message.sender._id === user.userId
+                  className={cn(
+                    message.sender._id === user.userId
                       ? "self-end flex items-center justify-between w-[80px]"
-                      : "self-start"}
-              `}
+                      : "self-start"
+                  )}
                 >
                   <p className={`text-[10px] text-muted-foreground`}>{correctDate(message.updatedAt)}</p>
                   <p className="text-[10px]">{message.sender._id === user.userId && message.status}</p>

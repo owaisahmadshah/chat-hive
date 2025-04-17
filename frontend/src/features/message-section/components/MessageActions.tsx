@@ -30,7 +30,7 @@ function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <span className=" opacity-0 hover:opacity-100 cursor-pointer">
+        <span className="opacity-0 hover:opacity-100 cursor-pointer">
           <ArrowDown />
         </span>
       </DropdownMenuTrigger>

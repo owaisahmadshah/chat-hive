@@ -91,9 +91,9 @@ const Chats = () => {
               <li
                 key={index}
                 onClick={() => handleClickedChat(chat)}
-                className='cursor-pointer px-5 pt-5 bg-red flex flex-col justify-center hover:bg-secondary'
+                className="cursor-pointer px-5 pt-5 bg-red flex flex-col justify-center hover:bg-secondary"
               >
-                <div className='flex justify-between'>
+                <div className="flex justify-between">
 
                   <div className="flex items-center gap-5">
                     <Avatar>
@@ -109,22 +109,22 @@ const Chats = () => {
                       <p className="font-semibold text-l overflow-x-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
                         {chatUserEmail(chat.users)}
                       </p>
-                      <div className='flex justify-between min-w-[15vw]'>
+                      <div className="flex justify-between min-w-[15vw]">
                         <div className="flex max-w-[140px] items-center gap-2"
                         >
                           {
                             chat?.typing && chat?.typing.isTyping
-                              ? <p className='text-sm text-primary'>typing...</p>
+                              ? <p className="text-sm text-primary">typing...</p>
                               : chat.unreadMessages > 0
-                                ? <strong className='text-sm overflow-x-hidden text-primary text-ellipsis whitespace-nowrap'>{chat.unreadMessages} <span className='underline'>unread messages</span></strong>
+                                ? <strong className="text-sm overflow-x-hidden text-primary text-ellipsis whitespace-nowrap">{chat.unreadMessages} <span className='underline'>unread messages</span></strong>
                                 : chat.lastMessage.isPhoto
                                   ? <Image height={15} width={15} />
-                                  : <p className='text-sm overflow-x-hidden text-muted-foreground text-ellipsis whitespace-nowrap'>
+                                  : <p className="text-sm overflow-x-hidden text-muted-foreground text-ellipsis whitespace-nowrap">
                                     {chat.lastMessage.message}
                                   </p>
                           }
                         </div>
-                        <p className='text-sm text-muted-foreground'>{correctDate(chat.updatedAt)}</p>
+                        <p className="text-sm text-muted-foreground">{correctDate(chat.updatedAt)}</p>
                       </div>
                     </div>
                   </div>

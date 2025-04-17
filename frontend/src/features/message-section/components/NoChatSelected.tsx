@@ -1,8 +1,6 @@
 const NoChatSelected = () => {
-  // TODO: Update chats isLoading state correctly and use it to display skeleton if chats are still loading
   return (<>
     {
-      // chats.chats.length > 0 ?
       <div className="w-[75vw] h-[99vh] flex flex-col items-center justify-center bg-background text-foreground">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -24,7 +22,6 @@ const NoChatSelected = () => {
           Start a conversation by selecting or creating a chat.
         </p>
       </div>
-      // : "Skeleton here.."
     }
   </>
   )
