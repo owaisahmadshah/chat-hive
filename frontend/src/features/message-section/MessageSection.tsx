@@ -14,7 +14,7 @@ const MessageSection = () => {
   }
 
   return (
-    <section className="w-full w-[40vw]">
+    <section className="w-full">
       <MessageNavBar />
       <MessageList />
       <MessageInput />
