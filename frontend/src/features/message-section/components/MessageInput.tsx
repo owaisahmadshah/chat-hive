@@ -90,7 +90,7 @@ function MessageInput() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}
         autoComplete="off"
-        className="min-h-[10vh] flex items-center justify-center gap-2 border-t"
+        className="min-h-[15vh] flex items-center justify-center gap-2 border-t"
         encType="multipart/form-data"
       >
         <FormItem>
