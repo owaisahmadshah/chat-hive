@@ -25,4 +25,21 @@ const deleteMessageService = async (
   return data
 }
 
-export { sendMessage, deleteMessageService }
+const getChatMessagesService = async (
+  chatBody: {
+    chatId: string
+    userId: string
+    userChatMessages: number
+  },
+  token: string | null
+) => {
+  const { data } = await api.post("/v1/chat/messages", chatBody, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return data
+}
+
+export { sendMessage, deleteMessageService, getChatMessagesService }

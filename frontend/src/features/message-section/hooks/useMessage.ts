@@ -2,9 +2,13 @@ import { useDispatch, useSelector } from "react-redux"
 import axios from "axios"
 import { useAuth } from "@clerk/clerk-react"
 
-import { addMessage, deleteMessage } from "@/store/slices/messages"
+import { addMessage, deleteMessage, setMessages } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
-import { deleteMessageService, sendMessage } from "../services/messageService"
+import {
+  deleteMessageService,
+  getChatMessagesService,
+  sendMessage,
+} from "../services/messageService"
 import { setSelectedChat, updateChat } from "@/store/slices/chats"
 import { useSocketService } from "@/hooks/useSocketService"
 
@@ -120,7 +124,35 @@ const useMessage = () => {
     }
   }
 
-  return { sendNewMessage, deleteSelectedMessage }
+  const getChatMessages = async (chatId: string) => {
+    if (!selectedChat) {
+      return
+    }
+
+    try {
+      const token = await getToken()
+
+      const { data } = await getChatMessagesService(
+        {
+          chatId,
+          userId,
+          userChatMessages: allMessages[selectedChat?._id].length,
+        },
+        token
+      )
+
+      dispatch(
+        setMessages({ chatId, messages: [...data, ...allMessages[chatId]] })
+      )
+    } catch (error) {
+      console.error("Error deleting message", error)
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error details:", error.response?.data)
+      }
+    }
+  }
+
+  return { sendNewMessage, deleteSelectedMessage, getChatMessages }
 }
 
 export { useMessage }
