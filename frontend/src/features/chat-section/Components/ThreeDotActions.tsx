@@ -5,7 +5,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
@@ -19,11 +18,8 @@ const ThreeDotsMenu = () => {
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>
-            My Account
-          </DropdownMenuLabel>
           <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
-            Settings
+            Create New Group
           </DropdownMenuItem>
           <DropdownMenuItem className="text-red-500 cursor-pointer" onSelect={(e) => e.preventDefault()}>
             <SignOutButton />
