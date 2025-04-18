@@ -1,6 +1,13 @@
 import { Router } from "express"
-import { createChat, deleteChat, getAndUpdateChat, getChatsAndMessages } from "../controllers/chat.controller.js"
 import { requireAuth } from "@clerk/express"
+
+import {
+  createChat,
+  deleteChat,
+  getAndUpdateChat,
+  getChatsAndMessages,
+  getMoreMessages,
+} from "../controllers/chat.controller.js"
 
 const router = Router()
 
@@ -35,5 +42,13 @@ router.route("/get").post(requireAuth(), getChatsAndMessages)
  * @requires Authentication
  */
 router.route("/getupdatechat").post(requireAuth(), getAndUpdateChat)
+
+/**
+ * @route POST /api/v1/chat/messages
+ * @desc Get messages of a specific chat
+ * @access Private
+ * @requires Authentication
+ */
+router.route("/messages").post(requireAuth(), getMoreMessages)
 
 export default router

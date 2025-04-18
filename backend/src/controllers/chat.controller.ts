@@ -262,7 +262,9 @@ const getChatsAndMessages = asyncHandler(
     for (let i = 0; i < chats?.length; i++) {
       const { messages, unreadMessages, numberOfMessages } = await getMessages(
         chats[i]._id.toString(),
-        userId
+        userId,
+        0,
+        true
       )
 
       chats[i].messages = [...messages]
@@ -287,10 +289,28 @@ const getChatsAndMessages = asyncHandler(
   }
 )
 
-const getMessages = async (chatid: string, userid: string) => {
+const getMessages = async (
+  chatid: string,
+  userid: string,
+  numberOfMessagesUserHave: number,
+  unreadMessagesFlag: boolean = false
+) => {
   // Without converting match won't match these b/c these are stored as mongoose object id
   const userId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(userid)
   const chatId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(chatid)
+
+  const defaultNumberOfMessagesUserFetch = 30
+
+  // This will give us all the new messages
+  let unreadMessages = 0
+  if (unreadMessagesFlag) {
+    unreadMessages = await Message.countDocuments({
+      sender: { $ne: userId },
+      chatId: chatId,
+      status: "sent",
+      deletedBy: { $ne: userId },
+    })
+  }
 
   const pipeline = [
     {
@@ -315,21 +335,30 @@ const getMessages = async (chatid: string, userid: string) => {
       },
     },
     {
-      $sort: {
-        createdAt: 1,
-      },
-    },
-    {
-      $limit: 50,
-    },
-    {
       $facet: {
-        messages: [{ $match: {} }],
+        messages: [
+          {
+            $sort: {
+              createdAt: -1,
+            },
+          },
+          {
+            $limit:
+              numberOfMessagesUserHave +
+              unreadMessages +
+              defaultNumberOfMessagesUserFetch,
+          },
+          { $skip: numberOfMessagesUserHave }, // This will skip all the messages that user have
+          {
+            $sort: {
+              createdAt: 1,
+            },
+          },
+        ],
         unreadMessages: [
           {
             $match: {
               "sender._id": { $ne: userId },
-              // status: "sent",
               status: { $in: ["sent", "receive"] },
             },
           },
@@ -429,4 +458,18 @@ const getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
   return res.status(200).json(new ApiResponse(200, { chat }, "Sucessful"))
 })
 
-export { createChat, deleteChat, getChatsAndMessages, getAndUpdateChat }
+const getMoreMessages = asyncHandler(async (req: Request, res: Response) => {
+  const { chatId, userId, userChatMessages } = await req.body
+
+  const { messages } = await getMessages(chatId, userId, userChatMessages)
+
+  return res.status(200).json(new ApiResponse(200, messages, "Succeess"))
+})
+
+export {
+  createChat,
+  deleteChat,
+  getChatsAndMessages,
+  getAndUpdateChat,
+  getMoreMessages,
+}
