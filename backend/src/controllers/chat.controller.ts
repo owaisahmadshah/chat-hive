@@ -289,6 +289,14 @@ const getChatsAndMessages = asyncHandler(
   }
 )
 
+/**
+ * @desc    Retrieves messages from a specific chat.
+ *
+ * @param {string} chatid - The ID of the chat to retrieve messages from.
+ * @param {string} userid - The ID of the user requesting the messages.
+ * @param {number} numberOfMessagesUserHave - The number of messages the user currently has loaded on the frontend.
+ * @param {boolean} [unreadMessagesFlag=false] - Indicates whether to fetch unread messages (true when the user logs in; false when loading older messages).
+ */
 const getMessages = async (
   chatid: string,
   userid: string,
@@ -299,7 +307,7 @@ const getMessages = async (
   const userId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(userid)
   const chatId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(chatid)
 
-  const defaultNumberOfMessagesUserFetch = 30
+  let defaultNumberOfMessagesUserFetch = 30
 
   // This will give us all the new messages
   let unreadMessages = 0
@@ -310,6 +318,11 @@ const getMessages = async (
       status: "sent",
       deletedBy: { $ne: userId },
     })
+  }
+
+  // If user scrolls to top and wanna see older messages we will show him only 5
+  if (!unreadMessagesFlag) {
+    defaultNumberOfMessagesUserFetch = 5
   }
 
   const pipeline = [
