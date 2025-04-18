@@ -101,7 +101,7 @@ function MessageInput() {
                 type="file"
                 className="hidden"
                 onChange={setOnChangePicture}
-                multiple
+                accept="image/*"
               />
               <Label
                 htmlFor="uploadedImage"
