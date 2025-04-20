@@ -17,9 +17,11 @@ Most endpoints require authentication. Authentication is handled through Clerk, 
 ### Health Check
 
 #### GET /healthcheck
+
 Checks if the API is running.
 
 **Response:**
+
 ```json
 {
   "status": 200,
@@ -33,40 +35,61 @@ Checks if the API is running.
 ### Chat Endpoints
 
 #### POST /chat/create
+
 Creates a new chat or returns an existing chat.
 
 **Request Body:**
+
 ```json
 {
-  "admin": "user_id",
-  "users": ["user_id1", "user_id2"]
+  "admin": "",
+  "users": ["", ""]
 }
 ```
 
 **Response:**
+
 ```json
 {
   "statusCode": 201,
   "data": {
-    "chatId": "chat_id",
-    "users": ["user_id1", "user_id2"]
+    "chat": {
+      "admin": {
+        "_id": "",
+        "email": "",
+        "imageUrl": "",
+        "lastSeen": ""
+      },
+      "users": [
+        {
+          "_id": "",
+          "email": "",
+          "imageUrl": "",
+          "lastSeen": ""
+        }
+      ],
+      "updatedAt": ""
+    }
   },
   "message": "Created new chat successfully"
 }
 ```
 
 #### POST /chat/delete
+
 Marks a chat as deleted for a specific user.
 
 **Request Body:**
+
 ```json
 {
-  "chatId": "chat_id",
-  "userId": "user_id"
+  "chatId": "",
+  "userId": ""
 }
 ```
 
 **Response:**
+
 ```json
 {
   "statusCode": 201,
@@ -76,56 +99,140 @@ Marks a chat as deleted for a specific user.
 ```
 
 #### POST /chat/get
+
 Gets all chats and messages for a user.
 
 **Request Body:**
+
 ```json
 {
-  "userId": "user_id"
+  "userId": ""
 }
 ```
 
 **Response:**
+
 ```json
 {
   "statusCode": 200,
   "data": [
     {
-      "_id": "chat_id",
+      "_id": "",
       "admin": {
-        "_id": "user_id",
-        "name": "User Name",
-        "email": "user@example.com",
-        "profilePicture": "url_to_profile_picture"
+        "_id": "",
+        "email": "",
+        "imageUrl": "",
+        "lastSeen": ""
       },
       "chatUser": {
-        "_id": "user_id",
-        "name": "Chat User Name",
-        "email": "chatuser@example.com",
-        "profilePicture": "url_to_profile_picture"
-      },
-      "lastMessage": {
-        "_id": "message_id",
-        "message": "Hello!",
-        "createdAt": "2023-03-01T12:00:00Z"
+        "_id": "",
+        "email": "",
+        "imageUrl": "",
+        "lastSeen": ""
       },
       "messages": [
         {
-          "_id": "message_id",
+          "_id": "",
           "sender": {
-            "_id": "user_id",
-            "name": "User Name"
+            "_id": "",
+            "email": "",
+            "imageUrl": ""
           },
-          "message": "Hello!",
+          "chatId": "",
+          "message": "",
           "photoUrl": "",
-          "status": "seen",
-          "createdAt": "2023-03-01T12:00:00Z"
+          "status": "",
+          "updatedAt": ""
         }
       ],
-      "createdAt": "2023-03-01T12:00:00Z",
-      "updatedAt": "2023-03-01T12:00:00Z"
+      "lastMessage": {
+        "isPhoto": "",
+        "message": ""
+      },
+      "updatedAt": "",
+      "unreadMessages": "",
+      "numberOfMessages": ""
     }
   ],
+  "message": "Success"
+}
+```
+
+#### POST /chat/getupdatechat
+
+Update a chat.
+
+**Request Body:**
+
+```json
+{
+  "chatId": ""
+}
+```
+
+**Response:**
+
+```json
+{
+  "statusCode": 201,
+  "data": {
+    "chat": {
+      "_id": "",
+      "users": [
+        {
+          "_id": "",
+          "email": "",
+          "lastSeen": ""
+        }
+      ],
+      "lastMessage": {
+        "isPhoto": "",
+        "message": ""
+      },
+      "unreadMessages": "",
+      "updatedAt": ""
+    }
+  },
+  "message": "Successful"
+}
+```
+
+#### POST /chat/messsages
+
+Gives 30 older messages of a specific chat.
+
+**Request Body:**
+
+```json
+{
+  "chatId": "",
+  "userId": "",
+  "userChatMessages": ""
+}
+```
+
+**Response:**
+
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "messages": [
+      {
+        "_id": "",
+        "sender": {
+          "_id": "",
+          "email": "",
+          "imageUrl": ""
+        },
+        "chatId": "",
+        "message": "",
+        "photoUrl": "",
+        "status": "",
+        "updatedAt": ""
+      }
+    ]
+  },
   "message": "Success"
 }
 ```
@@ -133,36 +240,43 @@ Gets all chats and messages for a user.
 ### Message Endpoints
 
 #### POST /message/create
+
 Creates a new message.
 
 **Request Body:**
+
 ```json
 {
-  "sender": "user_id",
-  "chatId": "chat_id",
-  "message": "Hello!",
-  "status": "sent"
+  "sender": "",
+  "chatId": "",
+  "message": "",
+  "status": ""
 }
 ```
 
 **Request File Upload:**
+
 - Field name: `uploadedImage`
-- File type: Image (JPEG, PNG)
+- File type: Image (JPEG, PNG, etc.)
 
 **Response:**
+
 ```json
 {
   "statusCode": 201,
   "data": {
     "newMessage": {
-      "_id": "message_id",
-      "sender": "user_id",
-      "chatId": "chat_id",
-      "message": "Hello!",
-      "photoUrl": "url_to_image",
-      "status": "sent",
-      "createdAt": "2023-03-01T12:00:00Z",
-      "updatedAt": "2023-03-01T12:00:00Z"
+      "_id": "",
+      "sender": {
+        "_id": "",
+        "email": "",
+        "imageUrl": ""
+      },
+      "chatId": "",
+      "message": "",
+      "photoUrl": "",
+      "status": "",
+      "updatedAt": ""
     }
   },
   "message": "Created message"
@@ -170,22 +284,73 @@ Creates a new message.
 ```
 
 #### POST /message/delete
+
 Marks a message as deleted for a specific user.
 
 **Request Body:**
+
 ```json
 {
-  "messageId": "message_id",
-  "userId": "user_id"
+  "messageId": "",
+  "userId": ""
 }
 ```
 
 **Response:**
+
 ```json
 {
   "statusCode": 201,
   "data": {},
   "message": "Deleted Message successfully"
+}
+```
+
+#### POST /message/updatestatus
+
+Marks a bulk of messages as received or seen.
+
+**Request Body:**
+
+```json
+{
+  "messageId": "",
+  "userId": "",
+  "status": ""
+}
+```
+
+**Response:**
+
+```json
+{
+  "statusCode": 201,
+  "data": {},
+  "message": "Updated messages successfully"
+}
+```
+
+#### POST /message/updateonestatus
+
+Marks a message as received or seen.
+
+**Request Body:**
+
+```json
+{
+  "userId": "",
+  "messageId": "",
+  "status": ""
+}
+```
+
+**Response:**
+
+```json
+{
+  "statusCode": 201,
+  "data": {},
+  "message": "Updated message successfully"
 }
 ```
 
@@ -202,6 +367,9 @@ All endpoints return standardized error responses:
 ```
 
 Common status codes:
+
+- 200: Successful
+- 202: Created
 - 400: Bad Request
 - 401: Unauthorized
 - 404: Not Found
@@ -213,4 +381,4 @@ API requests are limited to 100 requests per minute per IP address.
 
 ## Versioning
 
-The current API version is v1. The version is included in the URL path. 
+The current API version is v1. The version is included in the URL path.

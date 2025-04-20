@@ -31,6 +31,7 @@ Stores information about application users.
 ```
 
 **Indexes:**
+
 - `email`: Unique index for fast lookups by email
 
 ### Chats Collection
@@ -50,6 +51,7 @@ Represents conversations between users.
 ```
 
 **Indexes:**
+
 - `admin`: Index for finding chats by admin
 - `users`: Index for finding chats by participants
 - Compound index on `users` and `deletedBy` for efficient chat retrieval
@@ -73,35 +75,16 @@ Stores individual messages within chats.
 ```
 
 **Indexes:**
+
 - `chatId`: Index for finding messages by chat
 - `sender`: Index for finding messages by sender
 - Compound index on `chatId` and `createdAt` for efficient message retrieval
-
-### Contacts Collection
-
-Stores user contacts.
-
-```javascript
-{
-  _id: ObjectId,              // Unique identifier
-  userId: ObjectId,           // User who owns this contact (ref: users)
-  contactId: ObjectId,        // The contact user (ref: users)
-  name: String,               // Custom name for the contact (optional)
-  createdAt: Date,            // Contact creation timestamp
-  updatedAt: Date             // Last update timestamp
-}
-```
-
-**Indexes:**
-- `userId`: Index for finding contacts by user
-- Compound index on `userId` and `contactId` for efficient contact lookup
 
 ## Relationships
 
 1. **User to Chats**: One-to-many relationship (a user can participate in multiple chats)
 2. **Chat to Messages**: One-to-many relationship (a chat contains multiple messages)
 3. **User to Messages**: One-to-many relationship (a user can send multiple messages)
-4. **User to Contacts**: One-to-many relationship (a user can have multiple contacts)
 
 ## Data Integrity
 
@@ -124,4 +107,4 @@ As the application evolves, the schema may need to change. Consider the followin
 1. Use appropriate indexes for frequent query patterns
 2. Consider time-to-live (TTL) indexes for temporary data
 3. Implement pagination for large collections (messages)
-4. Use projection to limit fields returned in queries 
+4. Use projection to limit fields returned in queries

@@ -37,7 +37,7 @@ The application uses Mongoose schemas to define the data structure:
 1. **User Model**: Represents application users with authentication details
 2. **Chat Model**: Represents a conversation between users
 3. **Message Model**: Represents individual messages within a chat
-4. **Contact Model**: Represents user contacts
+4. **User Model**: Represents user
 
 ### Controllers
 
@@ -46,6 +46,7 @@ Controllers handle the business logic:
 1. **Chat Controller**: Manages chat creation, deletion, and retrieval
 2. **Message Controller**: Handles message creation and deletion
 3. **Health Check Controller**: Provides API status information
+4. **User Controller**: Manages user related work.
 
 ### Utilities
 
@@ -64,13 +65,9 @@ Controllers handle the business logic:
 
 Authentication is handled through Clerk:
 
-TODO
-
 ## Real-time Communication
 
 Real-time messaging is implemented using Socket.io:
-
-TODO
 
 ## Error Handling
 
@@ -81,5 +78,3 @@ The application uses a centralized error handling approach:
 3. Errors are logged using Winston
 
 ## Future Improvements
-
-1. **Transactions**: Implement MongoDB transactions for operations that modify multiple documents
