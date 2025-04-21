@@ -124,9 +124,10 @@ function MessageInput() {
               />
               <Label
                 htmlFor="uploadedImage"
-                className="cursor-pointer bg-background text-foreground p-2 rounded-full flex items-center justify-center border border-muted"
+                className="cursor-pointer bg-background text-foreground p-2 rounded-full flex items-center justify-center"
+                hidden={isPictureSelected}
               >
-                {!isPictureSelected && <Plus className="w-6 h-6 text-muted-foreground" />}
+                {!isPictureSelected && <Plus className="w-3 h-3 text-muted-foreground" />}
               </Label>
               {isPictureSelected && (
                 <Button
