@@ -19,10 +19,12 @@ import { useMessage } from "../hooks/useMessage"
 import { Label } from "@/components/ui/label"
 import { useSocketService } from "@/hooks/useSocketService"
 import { cn } from "@/lib/utils"
+import { ClipLoader } from "react-spinners"
 
 function MessageInput() {
 
   const [isPictureSelected, setIsPictureSelected] = useState<boolean>(false)
+  const [isSendingMessage, setIsSendingMessage] = useState<boolean>(false)
 
   const { sendNewMessage } = useMessage()
   const { sendSocketTyping } = useSocketService()
@@ -38,7 +40,7 @@ function MessageInput() {
   const userInputMessage = form.watch("userInputMessage")
 
   async function onSubmit(values: z.infer<typeof messageSchema>) {
-
+    setIsSendingMessage(true)
     const formData = new FormData()
     formData.append("message", values.userInputMessage)
 
@@ -54,6 +56,7 @@ function MessageInput() {
     }
 
     await sendNewMessage(formData)
+    setIsSendingMessage(false)
     form.reset()
     setIsPictureSelected(false)
   }
@@ -150,7 +153,9 @@ function MessageInput() {
             </FormItem>
           )}
         />
-        <Button type="submit">Send</Button>
+        <Button type="submit" disabled={isSendingMessage} className="w-[70px]">
+          {isSendingMessage ? <ClipLoader size={20} /> : "Send"}
+        </Button>
       </form>
     </Form>
   );

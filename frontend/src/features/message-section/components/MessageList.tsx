@@ -1,5 +1,6 @@
 import { useSelector } from "react-redux"
 import React, { useEffect, useRef, useState } from "react"
+import { CircleLoader, SyncLoader } from "react-spinners"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RootState } from "@/store/store"
@@ -19,6 +20,7 @@ import {
 
 const MessageList = () => {
   const [isDontScroll, setisDontScroll] = useState<boolean>(false)
+  const [isArrowClicked, setIsArrowClicked] = useState<boolean>(false)
 
   const { updateReceiveAndSeenOfMessages } = useSocketService()
   const { getChatMessages } = useMessage()
@@ -60,19 +62,24 @@ const MessageList = () => {
     }
   }, [document.visibilityState])
 
-  const handleGetMoreMessages = () => {
+  const handleGetMoreMessages = async () => {
     if (!selectedChat?._id) {
       return
     }
+    setIsArrowClicked(true)
     setisDontScroll(true)
-    getChatMessages(selectedChat?._id)
+    await getChatMessages(selectedChat?._id)
+    setIsArrowClicked(false)
   }
 
   return (
     <ScrollArea
       className="box-border border-r border-l h-[75vh] pb-3"
       ref={scrollRef}>
-      <ul className="flex flex-col gap-1 p-2 px-15 h-[75vh]">
+      <ul className={cn(
+        "flex flex-col gap-1 p-2 px-15 h-[75vh]",
+        selectedChat?.typing?.isTyping && "mb-[155px]"
+      )}>
         {/* Must be >= 30 to load older messages; less means no more messages to fetch. */}
         {selectedChat && messages.length >= 30 &&
           <div className="mx-auto">
@@ -81,7 +88,10 @@ const MessageList = () => {
                 <Button variant={"outline"}
                   onClick={handleGetMoreMessages}
                   className="text-xs rounded-full cursor-pointer">
-                  <ArrowUp />
+                  {
+                    isArrowClicked ? <CircleLoader color="#C0C0C0" size={10} />
+                      : <ArrowUp />
+                  }
                 </Button>
               </HoverCardTrigger>
               <HoverCardContent className="py-1 px-4 w-40">
@@ -139,6 +149,12 @@ const MessageList = () => {
                 Start a conversation now!
               </p>
             </div>
+        }
+        {
+          selectedChat?.typing?.isTyping &&
+          <li className="h-[50px] sticky bottom-0">
+            <SyncLoader color="#C0C0C0" size={10} />
+          </li>
         }
       </ul>
     </ScrollArea >

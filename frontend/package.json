@@ -32,6 +32,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
     "react-redux": "^9.2.0",
+    "react-spinners": "^0.16.1",
     "react-textarea-autosize": "^8.5.9",
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.0.2",
