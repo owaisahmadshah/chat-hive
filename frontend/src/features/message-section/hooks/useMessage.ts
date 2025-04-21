@@ -11,6 +11,7 @@ import {
 } from "../services/messageService"
 import { setSelectedChat, updateChat } from "@/store/slices/chats"
 import { useSocketService } from "@/hooks/useSocketService"
+import { useRef } from "react"
 
 const useMessage = () => {
   const { getToken } = useAuth()
@@ -22,45 +23,60 @@ const useMessage = () => {
   const { sendSocketMessage } = useSocketService()
   const allMessages = useSelector((state: RootState) => state.messages)
 
+  const selectedChatRef = useRef(selectedChat)
+  selectedChatRef.current = selectedChat
+
+  const allMessagesRef = useRef(allMessages)
+  allMessagesRef.current = allMessages
+
   const sendNewMessage = async (formData: FormData) => {
+    if (!selectedChatRef.current) {
+      return
+    }
+
     try {
-      if (!selectedChat) {
-        return
-      }
+      const selectedChatId = selectedChatRef.current._id
 
       formData.append("sender", userId)
-      formData.append("chatId", selectedChat._id)
-      formData.append("status", "sent")
+      formData.append("chatId", selectedChatId)
+      formData.append(
+        "status",
+        selectedChatRef.current.users.length === 1 ? "seen" : "receive"
+      ) // If user.length === 1 then we are sending message to self, so status is seen otherwise receive
 
       const token = await getToken()
 
       const data = await sendMessage(formData, token)
 
+      const filteredMessage = data.data.filteredMessage
+
       const newMessage = {
-        chatId: selectedChat?._id,
-        message: data.data.filteredMessage,
+        chatId: selectedChatId,
+        message: filteredMessage,
       }
 
       dispatch(addMessage(newMessage))
       dispatch(
         updateChat({
-          chatId: selectedChat?._id,
+          chatId: selectedChatId,
           updates: {
-            updatedAt: data.data.filteredMessage.updatedAt,
+            updatedAt: filteredMessage.updatedAt,
             lastMessage: {
-              isPhoto: data.data.filteredMessage.photoUrl !== "",
-              message: data.data.filteredMessage.message,
+              isPhoto: filteredMessage.photoUrl !== "",
+              message: filteredMessage.message,
             },
             unreadMessages: 0,
           },
         })
       )
 
-      dispatch(setSelectedChat({ ...selectedChat, unreadMessages: 0 }))
+      dispatch(
+        setSelectedChat({ ...selectedChatRef.current, unreadMessages: 0 })
+      )
 
-      const messageUsers = selectedChat?.users?.map((u) => u._id)
+      const messageUsers = selectedChatRef.current?.users?.map((u) => u._id)
 
-      sendSocketMessage(data.data.filteredMessage, messageUsers)
+      sendSocketMessage(filteredMessage, messageUsers)
     } catch (error) {
       console.error("Error sending message", error)
       if (axios.isAxiosError(error)) {
@@ -70,19 +86,15 @@ const useMessage = () => {
   }
 
   const deleteSelectedMessage = async (messageId: string) => {
-    if (!selectedChat?._id) {
+    if (!selectedChatRef.current) {
       return
     }
 
     try {
       const token = await getToken()
 
-      const selectedChatId = selectedChat?._id
-      /* const lastMessageId =
-        messages[selectedChatId || ""][
-          messages[selectedChatId || ""].length - 1
-        ]._id || ""
-    */
+      const selectedChatId = selectedChatRef.current?._id
+
       await deleteMessageService(
         {
           messageId,
@@ -91,7 +103,7 @@ const useMessage = () => {
         token
       )
 
-      const chatMessages = allMessages[selectedChat._id]
+      const chatMessages = allMessagesRef.current[selectedChatId]
       const lastMessage = {
         isPhoto: false,
         message: "",
@@ -105,11 +117,12 @@ const useMessage = () => {
       }
 
       dispatch(deleteMessage({ chatId: selectedChatId, messageId }))
+
       // If we are deleting last message then we will update lastMessage
       if (messageId === chatMessages[chatMessages.length - 1]._id) {
         dispatch(
           updateChat({
-            chatId: selectedChat?._id,
+            chatId: selectedChatId,
             updates: {
               lastMessage,
             },
@@ -125,7 +138,7 @@ const useMessage = () => {
   }
 
   const getChatMessages = async (chatId: string) => {
-    if (!selectedChat) {
+    if (!selectedChatRef.current) {
       return
     }
 
@@ -136,13 +149,17 @@ const useMessage = () => {
         {
           chatId,
           userId,
-          userChatMessages: allMessages[selectedChat?._id].length,
+          userChatMessages:
+            allMessagesRef.current[selectedChatRef.current?._id].length,
         },
         token
       )
 
       dispatch(
-        setMessages({ chatId, messages: [...data, ...allMessages[chatId]] })
+        setMessages({
+          chatId,
+          messages: [...data, ...allMessagesRef.current[chatId]],
+        })
       )
     } catch (error) {
       console.error("Error deleting message", error)

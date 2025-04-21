@@ -40,6 +40,7 @@ function MessageInput() {
   const userInputMessage = form.watch("userInputMessage")
 
   async function onSubmit(values: z.infer<typeof messageSchema>) {
+    console.log(values.userInputMessage)
     setIsSendingMessage(true)
     const formData = new FormData()
     formData.append("message", values.userInputMessage)
