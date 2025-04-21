@@ -33,7 +33,7 @@ function MessageItem({ message }: { message: Message }) {
         </div>
       )}
       <p
-        className={cn("whitespace-pre-wrap px-1 text-[15px] max-w-[50vw]", hasImage && "max-w-[250px] pt-2", /* This will make some space so our messageActions button could be seen easily */ hasImage && message.message.length == 0 && "py-3")}
+        className={cn("whitespace-pre-wrap break-words px-1 text-[15px] max-w-[45vw]", hasImage && "max-w-[250px] pt-2", /* This will make some space so our messageActions button could be seen easily */ hasImage && message.message.length == 0 && "py-3")}
       >{message.message}</p>
       <span className={cn("absolute bottom-0 right-0",)}><MessageActions selectedMessage={message} /></span>
     </div>
