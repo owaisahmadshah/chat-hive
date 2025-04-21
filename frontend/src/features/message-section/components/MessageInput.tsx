@@ -52,6 +52,7 @@ function MessageInput() {
     }
 
     if (values.userInputMessage.trim() === "" && values?.uploadedImage === undefined) {
+      setIsSendingMessage(false)
       return
     }
 
@@ -73,6 +74,10 @@ function MessageInput() {
     setIsPictureSelected(false)
   }
 
+  const handleTypingBlur = () => {
+    sendSocketTyping(false)
+  }
+
   useEffect(() => {
     if (!userInputMessage) return
 
@@ -85,9 +90,20 @@ function MessageInput() {
     return () => clearTimeout(typingTimeout)
   }, [userInputMessage])
 
-  const handleTypingBlur = () => {
-    sendSocketTyping(false)
-  }
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault()
+        form.handleSubmit(onSubmit)()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [])
 
   return (
     <Form {...form}>
