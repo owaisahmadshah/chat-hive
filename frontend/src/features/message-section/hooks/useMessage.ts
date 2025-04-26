@@ -41,8 +41,8 @@ const useMessage = () => {
       formData.append("chatId", selectedChatId)
       formData.append(
         "status",
-        selectedChatRef.current.users.length === 1 ? "seen" : "receive"
-      ) // If user.length === 1 then we are sending message to self, so status is seen otherwise receive
+        selectedChatRef.current.users.length === 1 ? "seen" : "sent"
+      ) // If user.length === 1 then we are sending message to self, so status is seen otherwise sent
 
       const token = await getToken()
 
