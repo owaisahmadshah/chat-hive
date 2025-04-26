@@ -2,10 +2,6 @@
   "name": "chat-hive",
   "private": true,
   "version": "0.0.0",
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
   "scripts": {
     "dev:frontend": "pnpm --filter frontend dev",
     "dev:backend": "pnpm --filter backend dev",
