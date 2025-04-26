@@ -15,7 +15,7 @@ import {
   USER_ONLINE_STATUS,
   SEEN_AND_RECEIVE_MESSAGE,
   SEEN_AND_RECEIVE_MESSAGES,
-} from "../utils/constants.js"
+} from "shared"
 import type { Chat } from "../types/chat.socket.interface.js"
 import type { Message } from "../types/message.socket.interface.js"
 import { User } from "../models/user.model.js"

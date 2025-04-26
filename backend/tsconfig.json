@@ -1,4 +1,9 @@
 {
+  "references": [
+    {
+      "path": "../shared"
+    }
+  ],
   "compilerOptions": {
     /* Base Options: */
     "esModuleInterop": true,
@@ -19,6 +24,12 @@
     "sourceMap": true,
     "lib": [
       "ES2022"
-    ]
+    ],
+    /* Custom shared files */
+    "paths": {
+      "@shared/*": [
+        "../shared/dist/*"
+      ]
+    }
   }
 }

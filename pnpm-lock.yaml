@@ -34,6 +34,9 @@ importers:
       multer:
         specifier: 1.4.5-lts.1
         version: 1.4.5-lts.1
+      shared:
+        specifier: workspace:*
+        version: link:../shared
       socket.io:
         specifier: ^4.8.1
         version: 4.8.1
@@ -140,6 +143,9 @@ importers:
       react-textarea-autosize:
         specifier: ^8.5.9
         version: 8.5.9(@types/react@19.1.2)(react@19.1.0)
+      shared:
+        specifier: workspace:*
+        version: link:../shared
       socket.io-client:
         specifier: ^4.8.1
         version: 4.8.1
@@ -198,6 +204,8 @@ importers:
       vite:
         specifier: ^6.2.0
         version: 6.3.3(@types/node@22.15.2)(jiti@2.4.2)(lightningcss@1.29.2)(tsx@4.19.3)
+
+  shared: {}
 
 packages:
 

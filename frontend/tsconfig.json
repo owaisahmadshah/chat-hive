@@ -6,13 +6,19 @@
     },
     {
       "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "../shared"
     }
   ],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
+        "./src/*",
+      ],
+      "@shared/*": [
+        "../shared/dist/*"
       ]
     }
   }

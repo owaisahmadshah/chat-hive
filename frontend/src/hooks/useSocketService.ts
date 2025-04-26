@@ -13,7 +13,7 @@ import {
   USER_ONLINE_STATUS,
   SEEN_AND_RECEIVE_MESSAGE,
   SEEN_AND_RECEIVE_MESSAGES,
-} from "@/lib/constants"
+} from "shared"
 import { Chat } from "@/types/chat-interface"
 import { Message } from "@/features/message-section/types/message-interface"
 import {
