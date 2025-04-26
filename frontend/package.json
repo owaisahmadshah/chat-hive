@@ -1,6 +1,5 @@
 {
-  "name": "chat-hive-front-end",
-  "private": true,
+  "name": "frontend",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
