@@ -5,7 +5,6 @@ import { app } from "../app.js"
 import logger from "../utils/logger.js"
 import {
   NEW_MESSAGE,
-  NEW_CHAT,
   TYPING,
   JOIN_CHAT,
   USER_CONNECTED,
@@ -16,7 +15,6 @@ import {
   SEEN_AND_RECEIVE_MESSAGE,
   SEEN_AND_RECEIVE_MESSAGES,
 } from "shared"
-import type { Chat } from "../types/chat.socket.interface.js"
 import type { Message } from "../types/message.socket.interface.js"
 import { User } from "../models/user.model.js"
 
@@ -146,28 +144,6 @@ class SocketManager {
       this.chatRooms.get(chatId)?.add(userId)
 
       logger.info(`User ${userId} joined chat: ${chatId}`)
-    })
-
-    // Handle creation of a new chat
-    socket.on(NEW_CHAT, (data: { chat: Chat }) => {
-      const { chat } = data
-
-      const participants = chat.users.map((user) => user._id)
-      const sender = chat.admin._id
-      const chatId = chat._id
-
-      // Create new chat room and add all participants
-      this.chatRooms.set(chatId, new Set(participants))
-
-      // Notify all participants except the creator
-      participants.forEach((participantId) => {
-        if (participantId !== sender) {
-          const participant = this.activeUsers.get(participantId)
-          if (participant) {
-            this.io.to(participant.socketId).emit(NEW_CHAT, { chat })
-          }
-        }
-      })
     })
   }
 

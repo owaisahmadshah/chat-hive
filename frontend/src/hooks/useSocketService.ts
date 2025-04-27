@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react"
 
 import {
   NEW_MESSAGE,
-  NEW_CHAT,
   USER_CONNECTED,
   JOIN_CHAT,
   TYPING,
@@ -14,16 +13,13 @@ import {
   SEEN_AND_RECEIVE_MESSAGE,
   SEEN_AND_RECEIVE_MESSAGES,
 } from "shared"
-import { Chat } from "@/types/chat-interface"
 import { Message } from "@/features/message-section/types/message-interface"
 import {
   addMessage,
-  setMessages,
   updateMessage,
   updateMessages,
 } from "@/store/slices/messages"
 import {
-  addChat,
   setSelectedChat,
   setSelectedChatUser,
   updateChat,
@@ -65,18 +61,6 @@ const useSocketService = () => {
   //* ---Listeners---
   const setupListeners = () => {
     if (!socket) return
-
-    socket.on(NEW_CHAT, (data: { chat: Chat }) => {
-      for (let i = 0; i < chatRef.current.length; i++) {
-        if (chatRef.current[i]._id === data.chat._id) {
-          return
-        }
-      }
-
-      joinSocketChat(data.chat._id)
-      dispatch(addChat(data.chat))
-      dispatch(setMessages({ chatId: data.chat._id, messages: [] }))
-    })
 
     socket.on(NEW_MESSAGE, async (data: { message: Message }, callback) => {
       const isChatExists = chatRef.current.findIndex(
@@ -243,10 +227,6 @@ const useSocketService = () => {
     socket = null
   }
 
-  const newSocketChat = (chat: Chat) => {
-    socket?.emit(NEW_CHAT, { chat })
-  }
-
   const joinSocketChat = (chatId: string) => {
     socket?.emit(JOIN_CHAT, chatId)
   }
@@ -327,7 +307,6 @@ const useSocketService = () => {
   return {
     connectSocket,
     disconnectSocket,
-    newSocketChat,
     joinSocketChat,
     sendSocketMessage,
     sendSocketTyping,
