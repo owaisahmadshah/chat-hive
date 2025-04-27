@@ -18,7 +18,7 @@ const PrivateRoute = ({ url, redirectTo, children }: PrivateRouteProps) => {
     return <Navigate to={redirectTo} replace />
   }
 
-  if (isAuthenticated && (url === "/sign-in" || url === "sign-up")) {
+  if (isAuthenticated && (url === "/sign-in" || url === "/sign-up")) {
     return <Navigate to={redirectTo} replace />
   }
 
