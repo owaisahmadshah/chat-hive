@@ -62,7 +62,7 @@ const useSocketService = () => {
   const setupListeners = () => {
     if (!socket) return
 
-    socket.on(NEW_MESSAGE, async (data: { message: Message }, callback) => {
+    const handleNewMessage = async (data: { message: Message }, callback: (response: { status: boolean; message: string }) => void) => {
       const isChatExists = chatRef.current.findIndex(
         (chat) => chat._id === data.message.chatId
       )
@@ -139,82 +139,81 @@ const useSocketService = () => {
           },
         })
       )
-    })
+    }
 
-    socket.on(
-      TYPING,
-      (data: { chatId: string; userId: string; isTyping: boolean }) => {
-        const typing = {
-          typer: data.userId,
-          isTyping: data.isTyping,
-        }
-
-        dispatch(
-          updateChatWithPersistentOrder({
-            chatId: data.chatId,
-            updates: { typing },
-          })
-        )
-
-        if (selectedChatRef.current?._id === data.chatId) {
-          const tempChat = { ...selectedChatRef.current }
-          tempChat.typing = typing
-
-          dispatch(setSelectedChat(tempChat))
-        }
+    const handleTyping = (data: {
+      chatId: string
+      userId: string
+      isTyping: boolean
+    }) => {
+      const typing = {
+        typer: data.userId,
+        isTyping: data.isTyping,
       }
-    )
 
-    //* This event will only update on received or seen message, and we will only update the message we have sent
-    socket.on(
-      SEEN_AND_RECEIVE_MESSAGE,
-      (data: {
-        receiver: string
-        chatId: string
-        messageId: string
-        status: "seen" | "receive"
-      }) => {
-        const { chatId, messageId, status } = data // receiver is not used here but maybe useful in the future
+      dispatch(
+        updateChatWithPersistentOrder({
+          chatId: data.chatId,
+          updates: { typing },
+        })
+      )
 
-        //* Just update the message we have sent
-        dispatch(
-          updateMessage({
-            chatId,
-            messageId,
-            updates: { status },
-          })
-        )
+      if (selectedChatRef.current?._id === data.chatId) {
+        const tempChat = { ...selectedChatRef.current }
+        tempChat.typing = typing
+
+        dispatch(setSelectedChat(tempChat))
       }
-    )
+    }
 
-    //* This event will only update on received or seen messages, and will only update those messages we have sent
-    socket.on(
-      SEEN_AND_RECEIVE_MESSAGES,
-      (data: {
-        receiver: string
-        chatId: string // It is not always from the selected chat
-        numberOfMessages: number
-        status: "seen" | "receive"
-      }) => {
-        const { chatId, numberOfMessages, status, receiver } = data
+    const handleSeenAndReceiveMessage = (data: {
+      receiver: string
+      chatId: string
+      messageId: string
+      status: "seen" | "receive"
+    }) => {
+      const { chatId, messageId, status } = data // receiver is not used here but maybe useful in the future
 
-        //* Just update the messages we have sent
-        dispatch(
-          updateMessages({
-            chatId,
-            receiver,
-            ourUserId: userId, // This will help to make sure we are updating the message we have sent
-            numberOfMessages,
-            updates: { status },
-          })
-        )
-      }
-    )
+      //* Just update the message we have sent
+      dispatch(
+        updateMessage({
+          chatId,
+          messageId,
+          updates: { status },
+        })
+      )
+    }
 
-    socket?.on("disconnect", () => {
+    const handleSeenAndReceiveMessages = (data: {
+      receiver: string
+      chatId: string // It is not always from the selected chat
+      numberOfMessages: number
+      status: "seen" | "receive"
+    }) => {
+      const { chatId, numberOfMessages, status, receiver } = data
+
+      //* Just update the messages we have sent
+      dispatch(
+        updateMessages({
+          chatId,
+          receiver,
+          ourUserId: userId, // This will help to make sure we are updating the message we have sent
+          numberOfMessages,
+          updates: { status },
+        })
+      )
+    }
+
+    const handleDisConnect = () => {
       socket = null
       disconnectSocket()
-    })
+    }
+
+    socket.on(NEW_MESSAGE, handleNewMessage)
+    socket.on(TYPING, handleTyping)
+    socket.on(SEEN_AND_RECEIVE_MESSAGE, handleSeenAndReceiveMessage) // only update on received or seen message, only update message we have sent
+    socket.on(SEEN_AND_RECEIVE_MESSAGES, handleSeenAndReceiveMessages) // update on received or seen messages,update those messages we have sent
+    socket.on("disconnect", handleDisConnect)
   }
 
   //* ---Emit Events---

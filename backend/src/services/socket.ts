@@ -71,7 +71,7 @@ class SocketManager {
    * When a user connects, they're added to the activeUsers map
    */
   private setupUserHandlers(socket: Socket) {
-    socket.on(USER_CONNECTED, (userId: string) => {
+    const handleUserConnected = (userId: string) => {
       const user: User = {
         userId,
         socketId: socket.id,
@@ -83,40 +83,54 @@ class SocketManager {
       socket.data.userId = userId // Store userId in socket for reference
 
       logger.info(`User ${userId} connected with socket ${socket.id}`)
-    })
+    }
 
-    socket.on(USER_ONLINE, (userId: string) => {
+    const handleUserOnline = (userId: string) => {
       this.onlineUsers.set(userId, true)
 
       User.findByIdAndUpdate(
         userId,
         { updateAt: new Date() },
         { new: true }
-      ).catch((err) => logger.error("Error updating user", err))
-    })
+      ).catch((err) =>
+        logger.error(
+          "Error updating user lastSeen in socket handleUserOnline",
+          err
+        )
+      )
+    }
 
-    socket.on(USER_OFFLINE, (userId: string) => {
+    const handleUserOffline = (userId: string) => {
       this.onlineUsers.delete(userId)
 
       User.findByIdAndUpdate(
         userId,
         { updateAt: new Date() },
         { new: true }
-      ).catch((err) => logger.error("Error updating user", err))
-    })
+      ).catch((err) =>
+        logger.error(
+          "Error updating user lastSeen in socket handleUserOffline",
+          err
+        )
+      )
+    }
 
-    socket.on(USER_ONLINE_STATUS, async (userId: string, callback) => {
+    const handleUserOnlineStatus = async (userId: string, callback: any) => {
       const online = this.onlineUsers.has(userId)
 
       let updatedAt = null
-
       if (!online) {
         const user = await User.findById(userId).select("updatedAt")
         updatedAt = user?.updatedAt
       }
 
       callback(online, updatedAt)
-    })
+    }
+
+    socket.on(USER_CONNECTED, handleUserConnected)
+    socket.on(USER_ONLINE, handleUserOnline)
+    socket.on(USER_OFFLINE, handleUserOffline)
+    socket.on(USER_ONLINE_STATUS, handleUserOnlineStatus)
   }
 
   /**
@@ -124,8 +138,7 @@ class SocketManager {
    * Socket.io rooms are used to group connections for targeted message broadcasting
    */
   private setupChatHandlers(socket: Socket) {
-    // Handle user joining a chat
-    socket.on(JOIN_CHAT, (chatId: string) => {
+    const handleJoinChat = (chatId: string) => {
       const userId = socket.data.userId
 
       // Join socket.io room - this allows broadcasting to all users in this chat
@@ -144,99 +157,94 @@ class SocketManager {
       this.chatRooms.get(chatId)?.add(userId)
 
       logger.info(`User ${userId} joined chat: ${chatId}`)
-    })
+    }
+
+    // Handle user joining a chat
+    socket.on(JOIN_CHAT, handleJoinChat)
   }
 
   /**
    * Handles message-related events (new messages, typing indicators, message deletion)
    */
   private setupMessageHandlers(socket: Socket) {
-    // Handle new message event
-    socket.on(
-      NEW_MESSAGE,
-      // (data: { chatId: string; content: string; sender: string }) => {
-      (
-        data: { chatId: string; message: Message; messageUsers: string[] },
-        callback
-      ) => {
-        const { chatId, message, messageUsers } = data
+    const handleNewMessage = (
+      data: { chatId: string; message: Message; messageUsers: string[] },
+      callback: any
+    ) => {
+      const { chatId, message, messageUsers } = data
 
-        // Broadcast message to everyone in the chat room except sender
-        socket
-          .to(chatId)
-          .timeout(1000)
-          .emit(NEW_MESSAGE, { message }, (err: any, res: any) => {
-            // TODO: Check and correct condition & add types for err, res
-            if (res.length === 0 || err?.length > 0) {
-              // Handle offline users or users not in the chat of socket.io rooms
-              messageUsers.forEach((messageUserId) => {
-                if (messageUserId !== message.sender._id) {
-                  const messageUser = this.activeUsers.get(messageUserId)
-                  if (messageUser) {
-                    this.io
-                      .to(messageUser.socketId)
-                      .timeout(3000)
-                      .emit(
-                        NEW_MESSAGE,
-                        { message },
-                        (nestedErr: any, nestedRes: any) => {
-                          // If you want to confirm user get or not you can get here,
-                          // just push callback nestedRes, nestedErr to array and send
-                        }
-                      )
-                  }
+      // Broadcast message to everyone in the chat room except sender
+      socket
+        .to(chatId)
+        .timeout(1000)
+        .emit(NEW_MESSAGE, { message }, (err: any, res: any) => {
+          // TODO: Check and correct condition & add types for err, res
+          if (res.length === 0 || err?.length > 0) {
+            // Handle offline users or users not in the chat of socket.io rooms
+            messageUsers.forEach((messageUserId) => {
+              if (messageUserId !== message.sender._id) {
+                const messageUser = this.activeUsers.get(messageUserId)
+                if (!messageUser) {
+                  return
                 }
-              })
-              callback({
-                receiverResponse: err,
-                status: false,
-                message: "Unable to send message",
-              })
-            } else {
-              callback({
-                receiverResponse: res,
-                status: true,
-                message: "Sucessfully send message",
-              })
-            }
-          })
-      }
-    )
+                this.io
+                  .to(messageUser.socketId)
+                  .timeout(3000)
+                  .emit(
+                    NEW_MESSAGE,
+                    { message },
+                    (nestedErr: any, nestedRes: any) => {
+                      // If you want to confirm user get or not you can get here,
+                      // just push callback nestedRes, nestedErr to array and send
+                    }
+                  )
+              }
+            })
+            callback({
+              receiverResponse: err,
+              status: false,
+              message: "Unable to send message",
+            })
+          } else {
+            callback({
+              receiverResponse: res,
+              status: true,
+              message: "Sucessfully send message",
+            })
+          }
+        })
+    }
 
-    // This will broatcast one message
-    socket.on(
-      SEEN_AND_RECEIVE_MESSAGE,
-      (data: {
-        receiver: string
-        chatId: string
-        messageId: string
-        status: "seen" | "receive"
-      }) => {
-        socket.to(data.chatId).emit(SEEN_AND_RECEIVE_MESSAGE, data)
-      }
-    )
+    const handleSeenAndReceiveMessage = (data: {
+      receiver: string
+      chatId: string
+      messageId: string
+      status: "seen" | "receive"
+    }) => {
+      socket.to(data.chatId).emit(SEEN_AND_RECEIVE_MESSAGE, data)
+    }
 
-    // This will broadcast whole chat receive and seen status
-    socket.on(
-      SEEN_AND_RECEIVE_MESSAGES,
-      (data: {
-        receiver: string
-        chatId: string // It is not always from the selected chat
-        numberOfMessages: number
-        status: "seen" | "receive"
-      }) => {
-        socket.to(data.chatId).emit(SEEN_AND_RECEIVE_MESSAGES, data)
-      }
-    )
+    const handleSeenAndReceiveMessages = (data: {
+      receiver: string
+      chatId: string // It is not always from the selected chat
+      numberOfMessages: number
+      status: "seen" | "receive"
+    }) => {
+      socket.to(data.chatId).emit(SEEN_AND_RECEIVE_MESSAGES, data)
+    }
 
-    // Handle typing indicator events
-    socket.on(
-      TYPING,
-      (data: { chatId: string; userId: string; isTyping: boolean }) => {
-        // Broadcast typing status to everyone in the chat except the typer
-        socket.to(data.chatId).emit(TYPING, data)
-      }
-    )
+    const handleTyping = (data: {
+      chatId: string
+      userId: string
+      isTyping: boolean
+    }) => {
+      socket.to(data.chatId).emit(TYPING, data) // Broadcast typing status to everyone in the chat except the typer
+    }
+
+    socket.on(NEW_MESSAGE, handleNewMessage) // Handle new message event
+    socket.on(SEEN_AND_RECEIVE_MESSAGE, handleSeenAndReceiveMessage) // This will broatcast one message
+    socket.on(SEEN_AND_RECEIVE_MESSAGES, handleSeenAndReceiveMessages) // This will broadcast whole chat receive and seen status
+    socket.on(TYPING, handleTyping) // Handle typing indicator events
   }
 
   /**
@@ -244,7 +252,7 @@ class SocketManager {
    * Cleans up user data and notifies other users
    */
   private setupDisconnectHandler(socket: Socket) {
-    socket.on("disconnect", () => {
+    const handleDisconnect = () => {
       const userId = socket.data.userId
 
       if (userId) {
@@ -263,7 +271,9 @@ class SocketManager {
 
         logger.info(`User ${userId} disconnected`)
       }
-    })
+    }
+
+    socket.on("disconnect", handleDisconnect)
   }
 }
 
