@@ -20,8 +20,13 @@ const userSlice = createSlice({
       state.imageUrl = action.payload.imageUrl
       state.isLoading = action.payload.isLoading
     },
+    clearUser: (state) => {
+      state.userId = ""
+      state.email = ""
+      state.imageUrl = ""
+    },
   },
 })
 
-export const { setUser } = userSlice.actions
+export const { setUser, clearUser } = userSlice.actions
 export default userSlice.reducer

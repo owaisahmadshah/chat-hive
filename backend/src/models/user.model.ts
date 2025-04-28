@@ -4,6 +4,7 @@ interface userDocument extends Document {
   clerkId: string
   email: String
   imageUrl: String
+  isSignedIn: boolean
   lastSignInAt: Date
   createdAt: Date
   updatedAt: Date
@@ -18,6 +19,10 @@ const userSchema = new mongoose.Schema<userDocument>(
       index: true,
     },
     imageUrl: String,
+    isSignedIn: {
+      type: Boolean,
+      default: false,
+    },
     lastSignInAt: {
       type: Date,
       Default: Date.now(),

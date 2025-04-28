@@ -52,6 +52,8 @@ const ChatSectionSidebar = ({
             className="max-w-[40px] max-h-[40px] rounded-full"
           />
         </li>
+        <li>
+        </li>
       </ul>
     </div>
   )

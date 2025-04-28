@@ -3,8 +3,8 @@ import { useState } from "react"
 import ChatNavbar from "@/features/chat-section/Components/ChatNavBar"
 import ChatList from "./Components/ChatList"
 import ChatSectionSidebar from "./Components/ChatSectionSidebar"
-import Settings from "../message-section/components/Settings"
-import Profile from "../message-section/components/Profile"
+import Settings from "./Components/Settings"
+import Profile from "./Components/Profile"
 
 type selectedComponentType = "chats" | "user_profile" | "settings"
 

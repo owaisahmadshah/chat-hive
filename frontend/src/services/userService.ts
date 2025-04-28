@@ -14,4 +14,22 @@ const getUser = async (clerkId: string, token: string | null) => {
   return data
 }
 
-export { getUser }
+const deleteUser = async (
+  clerkId: string,
+  userId: string,
+  token: string | null
+) => {
+  const { data } = await api.post(
+    "/v1/user/delete",
+    { userId, clerkId },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return data
+}
+
+export { getUser, deleteUser }

@@ -1,11 +1,14 @@
 import type { Request, Response } from "express"
 import { Webhook } from "svix"
+import { clerkClient } from "@clerk/express"
 
 import { asyncHandler } from "../utils/AsyncHandler.js"
 import logger from "../utils/logger.js"
 import { ApiError } from "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
+import { Chat } from "../models/chat.model.js"
+import { Message } from "../models/message.model.js"
 
 /**
  * @desc    Create a new user from clerk webhook
@@ -48,44 +51,43 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
     return new ApiError(500, "Error: Missing svix headers")
   }
 
-  // TODO remove any
-  let clerkUser: any
-
   try {
     // Verify the webhook signature using Svix
-    clerkUser = svixInstance.verify(JSON.stringify(payload), {
+    //@ts-ignore
+    const { data } = svixInstance.verify(JSON.stringify(payload), {
       "svix-id": svix_id as string,
       "svix-timestamp": svix_timestamp as string,
       "svix-signature": svix_signature as string,
     })
+
+    // Extract user data from the verified webhook payload
+    const userData = {
+      clerkId: data.id,
+      email: data.email_addresses[0].email_address,
+      imageUrl: data.image_url,
+      isSignedIn: true,
+    }
+
+    const user = await User.create(userData)
+    await user.save()
+
+    return res
+      .status(200)
+      .json(new ApiResponse(201, {}, "Successfully createdUser"))
   } catch (error) {
     // logger.error(error?.message)
     logger.error(error)
     throw new ApiError(500, "Internel Server Error")
   }
-
-  // Extract user data from the verified webhook payload
-  const userData = {
-    clerkId: clerkUser.data.id,
-    email: clerkUser.data.email_addresses[0].email_address,
-    imageUrl: clerkUser.data.image_url,
-  }
-
-  const user = await User.create(userData)
-  await user.save()
-
-  return res
-    .status(200)
-    .json(new ApiResponse(201, { user }, "Successfully createdUser"))
 })
 
 /**
- * @desc    Delete a user
+ * @desc    Deletes user data, including profile, chats and messages
  * @route   POST /api/v1/user/delete
  * @access  Private
  *
- * @param {Request} req - Express request object containing user clerkId
- * @param {Response} res - Express response object containg (delete user data)?
+ * @param {Request} req - Express request object containing userId and clerkId
+ * @param {Response} res - Express response message delete confirmation
  */
 const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SECRET
@@ -97,44 +99,18 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
     return new ApiError(500, "Internal Server Error")
   }
 
-  // Create new Svix instance with secret for webhook verification
-  const svixInstance = new Webhook(SIGNING_SECRET)
-
-  // Extract headers and payload from the request
-  const headers = req.headers
-  const payload = req.body
-
-  // Extract Svix verification headers
-  const svix_id = headers["svix-id"]
-  const svix_timestamp = headers["svix-timestamp"]
-  const svix_signature = headers["svix-signature"]
-
-  if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new ApiError(500, "Error: Missing svix headers")
-  }
-
-  // TODO fix any
-  let clerkUser: any
+  const { userId, clerkId } = req.body
 
   try {
-    // Verify the webhook signature using Svix
-    clerkUser = svixInstance.verify(JSON.stringify(payload), {
-      "svix-id": svix_id as string,
-      "svix-timestamp": svix_timestamp as string,
-      "svix-signature": svix_signature as string,
-    })
-  } catch (error) {
-    // logger.error(error?.message)
-    logger.error(error)
-    throw new ApiError(500, "Internel Server Error")
-  }
+    await clerkClient.users.deleteUser(clerkId)
 
-  try {
-    await User.findOneAndDelete({
-      clerkId: clerkUser?.data?.id,
-    })
+    await User.findOneAndDelete({ _id: userId })
+    await Chat.deleteMany({ $or: [{ users: userId }, { deletedBy: userId }] })
+    await Message.deleteMany({ sender: userId })
 
-    // TODO Delete all the chats, and messages of user
+    return res
+      .status(201)
+      .json(new ApiResponse(200, {}, "Deleted user successfully"))
   } catch (error: any) {
     logger.error("Error while deleting user", error)
     throw new ApiError(500, "Something went wrong", error)

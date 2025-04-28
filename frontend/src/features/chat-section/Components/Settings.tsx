@@ -1,16 +1,22 @@
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { HelpCircle, LockIcon } from "lucide-react"
+import { SignOutButton } from "@clerk/clerk-react"
+import { HelpCircle, LockIcon, LogOut, Trash } from "lucide-react"
 
 import { ModeToggle } from "@/components/mode-toggle"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { SignOutButton } from "@clerk/clerk-react"
+import useUserDelete from "@/hooks/useUserDelete"
 
 const Settings = () => {
-
   const listItemClasses = "flex items-center gap-2 justify-baseline w-[90%] cursor-pointer"
+
+  const { deleteUser } = useUserDelete()
+
+  const handleDelete = async () => {
+    await deleteUser()
+  }
 
   return (<main className="border-r h-full">
     <h1 className="text-2xl m-5"><strong>Settings</strong></h1>
@@ -23,7 +29,12 @@ const Settings = () => {
         <Separator />
         <li className={listItemClasses}><Button variant={"ghost"}><HelpCircle /></Button><p>Help</p></li>
         <Separator />
-        <li className={cn(listItemClasses, "text-red-400")}><Button variant={"ghost"}></Button><SignOutButton /></li>
+        <li className={cn(listItemClasses, "text-red-400")}>
+          <Trash />
+          <button onClick={handleDelete}>Delete Account</button>
+        </li>
+        <Separator />
+        <li className={cn(listItemClasses, "text-red-400")}><LogOut /><SignOutButton /></li>
       </ul>
     </ScrollArea>
   </main>
