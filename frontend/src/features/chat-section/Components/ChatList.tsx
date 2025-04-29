@@ -1,7 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux'
 
 import { RootState } from '@/store/store'
-import { Chat, ChatUser } from '@/types/chat-interface'
+import { Chat } from '@/types/chat-interface'
+import { ChatUser } from 'shared'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"

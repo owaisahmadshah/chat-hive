@@ -1,6 +1,6 @@
 import { Download } from "lucide-react"
 
-import { Message } from "@/features/message-section/types/message-interface"
+import { Message } from "shared"
 import MessageActions from "./MessageActions"
 import { Button } from "@/components/ui/button"
 import MessageImageView from "./MessageImageView"

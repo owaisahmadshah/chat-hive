@@ -1,10 +1,4 @@
-export interface ChatUser {
-  _id: string
-  email: string
-  imageUrl: string
-  updatedAt: Date
-  isUserOnline?: boolean
-}
+import { ChatUser } from "shared"
 
 export interface Chat {
   _id: string

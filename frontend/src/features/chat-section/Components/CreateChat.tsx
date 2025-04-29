@@ -14,7 +14,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { useChat } from "../hooks/useChat"
-import { ChatUser } from "@/types/chat-interface"
+import { ChatUser } from "shared"
 import CreateChatUserItem from "./CreateChatUserItem"
 
 const CreateChat = () => {

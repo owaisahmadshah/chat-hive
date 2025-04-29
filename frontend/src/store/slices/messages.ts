@@ -1,8 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import {
-  MessagesState,
-  Message,
-} from "@/features/message-section/types/message-interface"
+import { Message } from "shared"
+import { MessagesState } from "@/features/message-section/types/message-interface"
 
 const initialState: MessagesState = {}
 

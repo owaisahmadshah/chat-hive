@@ -4,7 +4,7 @@ import { CircleLoader, SyncLoader } from "react-spinners"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RootState } from "@/store/store"
-import { Message } from "@/features/message-section/types/message-interface"
+import { Message } from "shared"
 import MessageItem from "./MessageItem"
 import { useSocketService } from "@/hooks/useSocketService"
 import correctDate from "@/lib/correct-date"

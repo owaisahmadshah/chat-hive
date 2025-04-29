@@ -5,7 +5,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import ArrowDown from "../../../components/ArrowDown"
-import { Message } from "@/features/message-section/types/message-interface"
+import { Message } from "shared"
 import { useMessage } from "../hooks/useMessage"
 
 function MessageActions({ selectedMessage }: { selectedMessage: Message }) {

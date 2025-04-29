@@ -3,6 +3,7 @@ import { Server, Socket } from "socket.io"
 
 import { app } from "../app.js"
 import logger from "../utils/logger.js"
+import { User } from "../models/user.model.js"
 import {
   NEW_MESSAGE,
   TYPING,
@@ -14,9 +15,11 @@ import {
   USER_ONLINE_STATUS,
   SEEN_AND_RECEIVE_MESSAGE,
   SEEN_AND_RECEIVE_MESSAGES,
+  type handleSeenAndReceiveMessageType,
+  type newMessageType,
+  type handleSeenAndReceiveMessagesType,
+  type typingType,
 } from "shared"
-import type { Message } from "../types/message.socket.interface.js"
-import { User } from "../models/user.model.js"
 
 interface User {
   userId: string
@@ -167,10 +170,7 @@ class SocketManager {
    * Handles message-related events (new messages, typing indicators, message deletion)
    */
   private setupMessageHandlers(socket: Socket) {
-    const handleNewMessage = (
-      data: { chatId: string; message: Message; messageUsers: string[] },
-      callback: any
-    ) => {
+    const handleNewMessage = (data: newMessageType, callback: any) => {
       const { chatId, message, messageUsers } = data
 
       // Broadcast message to everyone in the chat room except sender
@@ -215,29 +215,19 @@ class SocketManager {
         })
     }
 
-    const handleSeenAndReceiveMessage = (data: {
-      receiver: string
-      chatId: string
-      messageId: string
-      status: "seen" | "receive"
-    }) => {
+    const handleSeenAndReceiveMessage = (
+      data: handleSeenAndReceiveMessageType
+    ) => {
       socket.to(data.chatId).emit(SEEN_AND_RECEIVE_MESSAGE, data)
     }
 
-    const handleSeenAndReceiveMessages = (data: {
-      receiver: string
-      chatId: string // It is not always from the selected chat
-      numberOfMessages: number
-      status: "seen" | "receive"
-    }) => {
+    const handleSeenAndReceiveMessages = (
+      data: handleSeenAndReceiveMessagesType
+    ) => {
       socket.to(data.chatId).emit(SEEN_AND_RECEIVE_MESSAGES, data)
     }
 
-    const handleTyping = (data: {
-      chatId: string
-      userId: string
-      isTyping: boolean
-    }) => {
+    const handleTyping = (data: typingType) => {
       socket.to(data.chatId).emit(TYPING, data) // Broadcast typing status to everyone in the chat except the typer
     }
 

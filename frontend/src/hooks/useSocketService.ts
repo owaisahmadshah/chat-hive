@@ -2,18 +2,8 @@ import { io, Socket } from "socket.io-client"
 import { useDispatch, useSelector } from "react-redux"
 import { useEffect, useRef } from "react"
 
-import {
-  NEW_MESSAGE,
-  USER_CONNECTED,
-  JOIN_CHAT,
-  TYPING,
-  USER_ONLINE,
-  USER_OFFLINE,
-  USER_ONLINE_STATUS,
-  SEEN_AND_RECEIVE_MESSAGE,
-  SEEN_AND_RECEIVE_MESSAGES,
-} from "shared"
-import { Message } from "@/features/message-section/types/message-interface"
+import { RootState } from "@/store/store"
+import useGetChat from "@/features/chat-section/hooks/getChat"
 import {
   addMessage,
   updateMessage,
@@ -25,8 +15,21 @@ import {
   updateChat,
   updateChatWithPersistentOrder,
 } from "@/store/slices/chats"
-import { RootState } from "@/store/store"
-import useGetChat from "@/features/chat-section/hooks/getChat"
+import {
+  NEW_MESSAGE,
+  USER_CONNECTED,
+  JOIN_CHAT,
+  TYPING,
+  USER_ONLINE,
+  USER_OFFLINE,
+  USER_ONLINE_STATUS,
+  SEEN_AND_RECEIVE_MESSAGE,
+  SEEN_AND_RECEIVE_MESSAGES,
+  Message,
+  typingType,
+  handleSeenAndReceiveMessageType,
+  handleSeenAndReceiveMessagesType,
+} from "shared"
 
 let socket: Socket | null = null // Singleton instance
 
@@ -60,9 +63,14 @@ const useSocketService = () => {
 
   //* ---Listeners---
   const setupListeners = () => {
-    if (!socket) return
+    if (!socket) {
+      return
+    }
 
-    const handleNewMessage = async (data: { message: Message }, callback: (response: { status: boolean; message: string }) => void) => {
+    const handleNewMessage = async (
+      data: { message: Message },
+      callback: (response: { status: boolean; message: string }) => void
+    ) => {
       const isChatExists = chatRef.current.findIndex(
         (chat) => chat._id === data.message.chatId
       )
@@ -141,11 +149,7 @@ const useSocketService = () => {
       )
     }
 
-    const handleTyping = (data: {
-      chatId: string
-      userId: string
-      isTyping: boolean
-    }) => {
+    const handleTyping = (data: typingType) => {
       const typing = {
         typer: data.userId,
         isTyping: data.isTyping,
@@ -166,12 +170,9 @@ const useSocketService = () => {
       }
     }
 
-    const handleSeenAndReceiveMessage = (data: {
-      receiver: string
-      chatId: string
-      messageId: string
-      status: "seen" | "receive"
-    }) => {
+    const handleSeenAndReceiveMessage = (
+      data: handleSeenAndReceiveMessageType
+    ) => {
       const { chatId, messageId, status } = data // receiver is not used here but maybe useful in the future
 
       //* Just update the message we have sent
@@ -184,12 +185,9 @@ const useSocketService = () => {
       )
     }
 
-    const handleSeenAndReceiveMessages = (data: {
-      receiver: string
-      chatId: string // It is not always from the selected chat
-      numberOfMessages: number
-      status: "seen" | "receive"
-    }) => {
+    const handleSeenAndReceiveMessages = (
+      data: handleSeenAndReceiveMessagesType
+    ) => {
       const { chatId, numberOfMessages, status, receiver } = data
 
       //* Just update the messages we have sent

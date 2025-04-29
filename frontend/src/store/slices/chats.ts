@@ -1,7 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit"
 import type { PayloadAction } from "@reduxjs/toolkit"
 
-import { ChatsState, Chat, ChatUser } from "@/types/chat-interface"
+import { ChatsState, Chat} from "@/types/chat-interface"
+import { ChatUser } from "shared"
 
 const initialState: ChatsState = {
   chats: [],
