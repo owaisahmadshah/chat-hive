@@ -9,7 +9,7 @@ import {
 } from "../services/chatService"
 import { RootState } from "@/store/store"
 import { clearChatMessages, setMessages } from "@/store/slices/messages"
-import { ChatUser } from "@/types/chat-interface"
+import { ChatUser } from "shared"
 import {
   addChat,
   setSelectedChat,
