@@ -1,9 +1,9 @@
 import { Routes, Route } from 'react-router-dom'
 
-import ContinueWithGoogle from "@/features/auth/continue-with-google-landing-page"
 import HomePage from '@/routes/HomePage'
 import PrivateRoute from '@/routes/PrivateRoute'
 import SignUpForm from '@/features/auth/SignUp'
+import SignInForm from '@/features/auth/SignIn'
 
 function App() {
   return (
@@ -15,7 +15,7 @@ function App() {
       } />
       <Route path="/sign-in" element={
         <PrivateRoute url="/sign-in" redirectTo="/">
-          <ContinueWithGoogle />
+          <SignInForm />
         </PrivateRoute>
       } />
       <Route path="/sign-up" element={

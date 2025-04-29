@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form"
 import { useState } from "react"
 import { z } from "zod"
 import { useSignUp } from "@clerk/clerk-react"
+import { Link } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -136,11 +137,11 @@ function SignUpForm() {
                 Did not receive a code?{" "}
                 <Button
                   onClick={async () => {
-                    // if (signUp) {
-                    //   await signUp.prepareEmailAddressVerification({
-                    //     strategy: "email_code",
-                    //   })
-                    // }
+                    if (signUp) {
+                      await signUp.prepareEmailAddressVerification({
+                        strategy: "email_code",
+                      })
+                    }
                   }}
                   variant={"ghost"}
                   className="hover:underline cursor-pointer"
@@ -220,9 +221,9 @@ function SignUpForm() {
                 </div>
                 <div className="mt-4 text-center text-sm">
                   Already have an account?{" "}
-                  <a href="sign-in" className="underline underline-offset-4">
+                  <Link to="/sign-in" className="underline underline-offset-4">
                     Sign in
-                  </a>
+                  </Link>
                 </div>
               </form>
             </CardContent>
