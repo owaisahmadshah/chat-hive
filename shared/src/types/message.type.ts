@@ -1,6 +1,6 @@
 export interface ChatUser {
     _id: string;
-    email: string;
+    username: string;
     imageUrl: string;
     updatedAt: Date;
     isUserOnline?: boolean;

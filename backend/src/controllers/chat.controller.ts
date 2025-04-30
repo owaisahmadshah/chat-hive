@@ -399,6 +399,7 @@ const getMessages = async (
         "messages._id": 1,
         "messages.sender._id": 1,
         "messages.sender.email": 1,
+        "messages.sender.username": 1,
         "messages.sender.imageUrl": 1,
         "messages.chatId": 1,
         "messages.message": 1,

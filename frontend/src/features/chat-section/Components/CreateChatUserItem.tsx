@@ -43,13 +43,15 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
 
   return (
     <>
-      <Avatar className="cursor-pointer">
-        <AvatarImage src={user.imageUrl} />
-        <AvatarFallback>CN</AvatarFallback>
-      </Avatar>
-      <p className="text-sm">
-        {`${user.email} ${user.email === uid ? " (You)" : ""}`}
-      </p>
+      <div className="flex justify-center items-center gap-5">
+        <Avatar className="cursor-pointer">
+          <AvatarImage src={user.imageUrl} />
+          <AvatarFallback>CN</AvatarFallback>
+        </Avatar>
+        <p className="text-sm">
+          {`${user.username} ${user._id === uid ? " (You)" : ""}`}
+        </p>
+      </div>
       {
         checkIfChatExists(user._id) ?
           <Button

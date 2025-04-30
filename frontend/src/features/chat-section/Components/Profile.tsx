@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 
 
 const Profile = () => {
-  const { imageUrl, email } = useSelector((state: RootState) => state.user)
+  const { imageUrl, username } = useSelector((state: RootState) => state.user)
 
   return (
     <main className="py-5 border-r h-[100vh]">
@@ -18,7 +18,7 @@ const Profile = () => {
               className="max-w-[200px] max-h-[200px] rounded-full"
             />
           </li>
-          <li><strong>{email}</strong></li>
+          <li><strong>{username}</strong></li>
         </ul>
       </ScrollArea>
     </main>

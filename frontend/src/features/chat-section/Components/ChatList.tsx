@@ -67,18 +67,18 @@ const Chats = () => {
     }
   }
 
-  function chatUserEmail(chatUsersList: ChatUser[]) {
+  function getChatUserName(chatUsersList: ChatUser[]) {
     if (chatUsersList.length === 1) {
-      return chatUsersList[0].email
+      return chatUsersList[0].username
     }
-    let email = ""
+    let username = ""
     for (let i = 0; i < chatUsersList.length; i++) {
       if (chatUsersList[i]._id !== userId) {
-        email = chatUsersList[i].email
+        username = chatUsersList[i].username
         break
       }
     }
-    return email
+    return username
   }
 
   return (
@@ -108,7 +108,7 @@ const Chats = () => {
                     </Avatar>
                     <div>
                       <p className="font-semibold text-l overflow-x-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
-                        {chatUserEmail(chat.users)}
+                        {getChatUserName(chat.users)}
                       </p>
                       <div className="flex justify-between min-w-[15vw]">
                         <div className="flex max-w-[140px] items-center gap-2"

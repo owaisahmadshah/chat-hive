@@ -40,6 +40,7 @@ function SignUpForm() {
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       email: "",
+      username: "",
       password: "",
       passwordConfirmation: "",
     },
@@ -69,7 +70,7 @@ function SignUpForm() {
   }
 
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
-    const { email, password } = data
+    const { email, username, password } = data
     if (password.trim() === "" || !isLoaded) {
       return
     }
@@ -80,6 +81,7 @@ function SignUpForm() {
     try {
       await signUp.create({
         emailAddress: email,
+        username: username,
         password: password
       })
 
@@ -164,7 +166,7 @@ function SignUpForm() {
             <CardHeader>
               <CardTitle className="text-2xl">Sign Up</CardTitle>
               <CardDescription>
-                Enter your email below to to create new account
+                Enter username and email to create new account
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -175,7 +177,19 @@ function SignUpForm() {
                 </div>
               )}
               <form autoComplete="off" onSubmit={handleSubmit(onSubmit)}>
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      type="username"
+                      placeholder="username"
+                      autoFocus
+                      required
+                      {...register("username")}
+                    />
+                    <p className="text-xs text-destructive" role="alert">{errors.username?.message}</p>
+                  </div>
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
@@ -214,9 +228,6 @@ function SignUpForm() {
                     className="w-full cursor-pointer"
                   >
                     {isSubmitting ? "Creating Account..." : "Create Account"}
-                  </Button>
-                  <Button variant="outline" className="w-full" disabled>
-                    Continue with Google
                   </Button>
                 </div>
                 <div className="mt-4 text-center text-sm">

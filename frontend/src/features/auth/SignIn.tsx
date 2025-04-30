@@ -42,7 +42,7 @@ function SignInForm() {
   } = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      email: "",
+      identifier: "",
       password: "",
     },
   })
@@ -59,7 +59,7 @@ function SignInForm() {
 
 
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
-    const { email, password } = data
+    const { identifier, password } = data
     if (password.trim() === "" || !isLoaded) {
       return
     }
@@ -69,7 +69,7 @@ function SignInForm() {
 
     try {
       const response = await signIn.create({
-        identifier: email,
+        identifier: identifier,
         password: password
       })
 
@@ -231,7 +231,7 @@ function SignInForm() {
             <CardHeader>
               <CardTitle className="text-2xl">Reset Password</CardTitle>
               <CardDescription>
-                Enter your email below to reset password
+                Enter your email to reset password
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -253,7 +253,7 @@ function SignInForm() {
                       autoFocus
                       required
                     />
-                    <p className="text-xs text-destructive" role="alert">{errors.email?.message}</p>
+                    <p className="text-xs text-destructive" role="alert">{errors.identifier?.message}</p>
                   </div>
                   <Button
                     type="submit"
@@ -278,7 +278,7 @@ function SignInForm() {
             <CardHeader>
               <CardTitle className="text-2xl">Sign In</CardTitle>
               <CardDescription>
-                Enter your email below to to sign in
+                Enter username or email to sign in
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -289,18 +289,18 @@ function SignInForm() {
                 </div>
               )}
               <form autoComplete="off" onSubmit={handleSubmit(onSubmit)}>
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">Username or email</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="m@example.com"
+                      id="identifier"
+                      type="text"
+                      placeholder="username or m@example.com"
                       autoFocus
                       required
-                      {...register("email")}
+                      {...register("identifier")}
                     />
-                    <p className="text-xs text-destructive" role="alert">{errors.email?.message}</p>
+                    <p className="text-xs text-destructive" role="alert">{errors.identifier?.message}</p>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>
@@ -327,9 +327,6 @@ function SignInForm() {
                       Forgot password
                     </Button>
                   </span>
-                  <Button variant="outline" className="w-full" disabled>
-                    Continue with Google
-                  </Button>
                 </div>
                 <div className="mt-4 text-center text-sm">
                   Do not have an account?{" "}

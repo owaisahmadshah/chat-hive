@@ -30,7 +30,7 @@ const MessageNavBar = () => {
             </Avatar>
           </li>
           <li className="flex flex-col items-start">
-            <strong className="text-lg cursor-pointer">{selectedChatUser?.email}</strong>
+            <strong className="text-lg cursor-pointer">{selectedChatUser?.username}</strong>
             <p className="text-xs text-muted-foreground">
               {
                 selectedChat?.typing && selectedChat?.typing.isTyping
@@ -49,7 +49,7 @@ const MessageNavBar = () => {
             className="rounded-full"
             loading="lazy"
           />
-          <DialogTitle className="cursor-pointer hover:underline">{selectedChatUser?.email}</DialogTitle>
+          <DialogTitle className="cursor-pointer hover:underline">{selectedChatUser?.username}</DialogTitle>
           <p className="text-muted-foreground">{selectedChat?.typing?.isTyping ? "Typing..." : selectedChatUser?.isUserOnline ? "Online" : "Offline"}</p>
           <Button variant={"destructive"} className="cursor-pointer">Delete Chat</Button>
         </DialogContent>

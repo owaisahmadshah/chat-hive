@@ -64,6 +64,7 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
     const userData = {
       clerkId: data.id,
       email: data.email_addresses[0].email_address,
+      username: data.username,
       imageUrl: data.image_url,
       isSignedIn: true,
     }
@@ -132,9 +133,8 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
   const { clerkId } = await req.body
 
   const user = await User.findOne({ clerkId }).select(
-    "_id fullName email imageUrl lastSignInAt"
+    "_id email username imageUrl lastSignInAt"
   )
-
   if (!user) {
     return new ApiError(404, "User not found")
   }
@@ -143,7 +143,7 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
 })
 
 /**
- * @desc    Get users data from the database that matches the email
+ * @desc    Get users data from the database that matches the identifier(can be anything, but now username)
  * @route   POST /api/v1/user/suggestions
  * @access  Private
  *
@@ -153,11 +153,9 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
  *                  (fullName, email, imageUrl, lastSeen)
  */
 const usersSuggestion = asyncHandler(async (req: Request, res: Response) => {
-  const { email } = req.body
+  const { identifier } = req.body
 
-  const users = await User.find({ email: email }).select(
-    "fullName email imageUrl lastSeen updatedAt"
-  )
+  const users = await User.find({ username: identifier })
 
   return res.status(200).json(new ApiResponse(200, { users }, "Success"))
 })

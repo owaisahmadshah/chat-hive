@@ -48,6 +48,7 @@ function useGetUserId() {
 
         const payload: User = {
           email: data.data.email,
+          username: data.data.username,
           userId: data.data._id,
           imageUrl: data.data.imageUrl,
           isLoading: false,

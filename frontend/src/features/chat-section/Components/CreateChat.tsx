@@ -20,6 +20,7 @@ import CreateChatUserItem from "./CreateChatUserItem"
 const CreateChat = () => {
   const [users, setUsers] = useState<ChatUser[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isUsername, setIsUsername] = useState<boolean>(false)
 
   const { fetchUsers } = useChat()
 
@@ -34,10 +35,12 @@ const CreateChat = () => {
   }, 500), [])
 
   const handleInputChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value.trim() === "") {
+    const searchUsername = e.target.value.trim()
+    setIsUsername(searchUsername !== "")
+    if (searchUsername === "") {
       return
     }
-    await debouncedSearch(e.target.value.trim())
+    await debouncedSearch(searchUsername)
   }
 
   return (
@@ -54,12 +57,12 @@ const CreateChat = () => {
         <SheetHeader>
           <SheetTitle>Create a new chat</SheetTitle>
           <SheetDescription>
-            Search by email and create your chat if user exists.
+            Enter username to create new chat
           </SheetDescription>
         </SheetHeader>
         <Input
-          type="email"
-          placeholder="Enter email..."
+          type="text"
+          placeholder="username"
           className="w-[80%] mx-auto"
           onChange={handleInputChange}
         />
@@ -72,7 +75,7 @@ const CreateChat = () => {
                   <CreateChatUserItem user={user} />
                 </li>
                 // TODO suggest user to invite this user if this user doesn't exists
-              )) : ""
+              )) : <p className="ml-[15%] text-muted-foreground text-sm">{!isLoading && isUsername &&  "User not found"}</p>
             }
           </ul>
         </ScrollArea>

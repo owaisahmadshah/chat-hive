@@ -31,11 +31,11 @@ const useChat = () => {
   )
 
   // This function will fetch users based on the search query of the user
-  const fetchUsers = async (email: string) => {
+  const fetchUsers = async (identifier: string) => {
     try {
       const token = await getToken()
 
-      const data = await fetchUser({ email }, token)
+      const data = await fetchUser({ identifier }, token)
       return data.data.users
     } catch (error) {
       console.error("Error fetching users", error)
