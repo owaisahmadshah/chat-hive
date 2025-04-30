@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux"
 import React, { useEffect, useRef, useState } from "react"
-import { CircleLoader, SyncLoader } from "react-spinners"
+// import { CircleLoader, SyncLoader } from "react-spinners"
+import { CircleLoader } from "react-spinners"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RootState } from "@/store/store"
@@ -75,7 +76,7 @@ const MessageList = () => {
 
   return (
     <ScrollArea
-      className="box-border border-r border-l h-[75vh] pb-3"
+      className="box-border border-r border-l h-[75vh]"
       ref={scrollRef}>
       <ul className={cn(
         "flex flex-col gap-1 p-2 px-15 h-[75vh]",
@@ -132,12 +133,12 @@ const MessageList = () => {
             :
             <MessageEmpty />
         }
-        {
+        {/* {
           selectedChat?.typing?.isTyping &&
           <li className="h-[50px] sticky bottom-0">
             <SyncLoader color="#C0C0C0" size={10} />
           </li>
-        }
+        } */}
       </ul>
     </ScrollArea >
   )
