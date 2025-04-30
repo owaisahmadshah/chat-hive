@@ -1,0 +1,1 @@
+export type selectedComponentType = "chats" | "user_profile" | "settings" | "friends"

@@ -9,6 +9,7 @@ import { User } from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { Chat } from "../models/chat.model.js"
 import { Message } from "../models/message.model.js"
+import { Friend } from "../models/friend.model.js"
 
 /**
  * @desc    Create a new user from clerk webhook
@@ -150,7 +151,7 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
  * @param {Request} req - Express request object containing user email(some alphabets)
  *
  * @param {Response} res - Express request object containing user details
- *                  (fullName, email, imageUrl, lastSeen)
+ *                  (_id, username, imageUrl, lastSeen)
  */
 const usersSuggestion = asyncHandler(async (req: Request, res: Response) => {
   const { identifier } = req.body
@@ -160,4 +161,79 @@ const usersSuggestion = asyncHandler(async (req: Request, res: Response) => {
   return res.status(200).json(new ApiResponse(200, { users }, "Success"))
 })
 
-export { createUser, deleteUser, getUser, usersSuggestion }
+/**
+ * @desc    Create new friend
+ * @route   POST /api/v1/user/create-friend
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing userId, friendId
+ *
+ * @param {Response} res - Express request object containing friend details
+ *                  (_id, username, imageUrl, lastSeen)
+ */
+const createFriend = asyncHandler(async (req: Request, res: Response) => {
+  const { userId, friendId } = req.body
+
+  const userData = {
+    user: userId,
+    friend: friendId,
+  }
+
+  const existedFriend = await Friend.findOne(userData).populate(
+    "friend",
+    "_id username imageUrl updatedAt"
+  )
+
+  if (existedFriend) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, { existedFriend }, "User exists"))
+  }
+
+  await Friend.create(userData)
+
+  const friend = await Friend.findOne(userData)
+    .select("_id friend")
+    .populate("friend", "_id username imageUrl updatedAt")
+
+  return res.status(201).json(new ApiResponse(200, { friend }, "Success"))
+})
+
+/**
+ * @desc    Get friends
+ * @route   POST /api/v1/user/get-friends
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing userId
+ *
+ * @param {Response} res - Express request object containing friends list
+ *                  [(_id, username, imageUrl, lastSeen)]
+ */
+const getFriends = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.body
+
+  const friends = await Friend.find({ user: userId })
+    .select("_id friend")
+    .populate("friend", "_id username imageUrl updatedAt")
+
+  return res.status(201).json(new ApiResponse(200, { friends }, "Success"))
+})
+
+/**
+ * @desc    Detele friend
+ * @route   POST /api/v1/user/delete-friend
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing friend document id
+ *
+ * @param {Response} res - Express request object containing message of sucess/failure
+ */
+const deleteFriend = asyncHandler(async (req: Request, res: Response) => {
+  const { friendDocumentId } = req.body
+
+  await Friend.findByIdAndDelete(friendDocumentId)
+
+  return res.status(200).json(new ApiResponse(200, {}, "Success"))
+})
+
+export { createUser, deleteUser, getUser, usersSuggestion, createFriend, getFriends, deleteFriend }
