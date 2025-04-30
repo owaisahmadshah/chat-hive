@@ -8,6 +8,7 @@ import { useSocketService } from "@/hooks/useSocketService"
 import usePresenceStatus from "@/hooks/usePresenceStatus"
 import { RootState } from "@/store/store"
 import useGetUserChatsAndMessages from "@/features/chat-section/hooks/useGetUserChatsAndMessages"
+import useGetFriends from "@/hooks/useGetFriends"
 
 
 const HomePage = () => {
@@ -17,6 +18,7 @@ const HomePage = () => {
   useSocketService() //* Initializes socket.io connection for real-time communication
   usePresenceStatus() //* This will update user online/offline status using socket.io
   useGetUserChatsAndMessages() //* Fetches user's chats and messages on application load
+  useGetFriends() //* Fetches friends
 
   const { isLoading } = useSelector((state: RootState) => state.chats)
 

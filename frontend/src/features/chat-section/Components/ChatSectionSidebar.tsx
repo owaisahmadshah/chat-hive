@@ -1,14 +1,13 @@
 import { cn } from "@/lib/utils"
 import { RootState } from "@/store/store";
-import { Settings } from "lucide-react";
+import { Contact2, Settings } from "lucide-react";
 import { useSelector } from "react-redux";
 import ChatButtonLogo from "./ChatButtonLogo";
-
-type SelectedComponentType = "chats" | "user_profile" | "settings"
+import { selectedComponentType } from "shared";
 
 type ChatSectionSidebarProps = {
-  selectedComponent: SelectedComponentType
-  setSelectedComponent: React.Dispatch<React.SetStateAction<SelectedComponentType>>
+  selectedComponent: selectedComponentType
+  setSelectedComponent: React.Dispatch<React.SetStateAction<selectedComponentType>>
 }
 
 const ChatSectionSidebar = ({
@@ -16,7 +15,7 @@ const ChatSectionSidebar = ({
   setSelectedComponent,
 }: ChatSectionSidebarProps) => {
   // Returns the class names for a sidebar item based on whether it's selected
-  const getItemClass = (name: SelectedComponentType) =>
+  const getItemClass = (name: selectedComponentType) =>
     cn(
       "cursor-pointer text-muted-foreground",
       selectedComponent === name && "text-foreground"
@@ -26,12 +25,18 @@ const ChatSectionSidebar = ({
 
   return (
     <div className="h-[100vh] w-[70px] border-r flex flex-col justify-between items-center py-10">
-      <ul>
+      <ul className="grid gap-4">
         <li
           className={getItemClass("chats")}
           onClick={() => setSelectedComponent("chats")}
         >
           <ChatButtonLogo />
+        </li>
+        <li
+          className={getItemClass("friends")}
+          onClick={() => setSelectedComponent("friends")}
+        >
+          <strong><Contact2 /></strong>
         </li>
       </ul>
 
@@ -51,8 +56,6 @@ const ChatSectionSidebar = ({
             alt={""}
             className="max-w-[40px] max-h-[40px] rounded-full"
           />
-        </li>
-        <li>
         </li>
       </ul>
     </div>

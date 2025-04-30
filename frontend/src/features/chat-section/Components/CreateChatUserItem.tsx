@@ -8,6 +8,8 @@ import { ChatUser } from "shared"
 import { useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useChat } from "../hooks/useChat"
+import useFriend from "../hooks/useFriend"
+import { Contact } from "lucide-react"
 
 const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
   // if chat exists we store the chat here and if user opens this chat we'll set this as selectedChat
@@ -17,9 +19,14 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
   const chats = useSelector((state: RootState) => state.chats.chats)
   const dispatch = useDispatch()
   const { createNewChat } = useChat()
+  const { createUser } = useFriend()
 
   const handleCreateChat = async (user: ChatUser) => {
     await createNewChat(user)
+  }
+
+  const handleAddFriend = async (user: ChatUser) => {
+    await createUser(user._id)
   }
 
   const handleOpenChat = (user: ChatUser) => {
@@ -52,6 +59,7 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
           {`${user.username} ${user._id === uid ? " (You)" : ""}`}
         </p>
       </div>
+      <Button onClick={() => handleAddFriend(user)}><Contact /></Button>
       {
         checkIfChatExists(user._id) ?
           <Button

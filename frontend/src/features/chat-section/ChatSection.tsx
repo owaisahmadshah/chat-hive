@@ -1,12 +1,12 @@
 import { useState } from "react"
 
 import ChatNavbar from "@/features/chat-section/Components/ChatNavBar"
-import ChatList from "./Components/ChatList"
-import ChatSectionSidebar from "./Components/ChatSectionSidebar"
-import Settings from "./Components/Settings"
-import Profile from "./Components/Profile"
-
-type selectedComponentType = "chats" | "user_profile" | "settings"
+import ChatList from "@/features/chat-section/Components/ChatList"
+import ChatSectionSidebar from "@/features/chat-section/Components/ChatSectionSidebar"
+import Settings from "@/features/chat-section/Components/Settings"
+import Profile from "@/features/chat-section/Components/Profile"
+import { selectedComponentType } from "shared"
+import Friends from "@/features/chat-section/Components/Friends"
 
 const ChatSection = () => {
   const [selectedComponent, setSelectedComponent] = useState<selectedComponentType>("chats")
@@ -17,12 +17,11 @@ const ChatSection = () => {
       <main className="flex flex-col w-full">
         {
           selectedComponent === "chats" ?
-            <>
-              <ChatNavbar />
-              <ChatList />
-            </>
+            <><ChatNavbar />
+              <ChatList /></>
             : selectedComponent === "settings" ? <Settings />
-              : <Profile />
+              : selectedComponent === "friends" ? <Friends />
+                : <Profile />
         }
       </main>
     </section>
