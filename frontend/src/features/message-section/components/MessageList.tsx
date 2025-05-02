@@ -76,7 +76,7 @@ const MessageList = () => {
 
   return (
     <ScrollArea
-      className="box-border border-r border-l h-[75vh]"
+      className="box-border border-r h-[75vh]"
       ref={scrollRef}>
       <ul className={cn(
         "flex flex-col gap-1 p-2 px-15 h-[75vh]",

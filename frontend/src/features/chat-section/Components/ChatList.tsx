@@ -82,8 +82,8 @@ const Chats = () => {
   }
 
   return (
-    <ScrollArea className="box-border border-r border-l h-[84vh]">
-      <ul className="flex flex-col max-h-[84vh]">
+    <ScrollArea className="box-border border-r h-[85vh]">
+      <ul className="flex flex-col max-h-[85vh]">
         {chats.chats.length === 0 && <NoChats />}
         {
           !chats.isLoading && chats.chats.length > 0 &&
