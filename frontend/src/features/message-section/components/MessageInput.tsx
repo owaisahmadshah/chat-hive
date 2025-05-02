@@ -163,14 +163,14 @@ function MessageInput() {
                     "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
                     "border w-[60vw] px-2 mt-1 resize-none rounded-sm" /**custom classes */
                   )}
-
+                  autoFocus
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isSendingMessage} className="w-[70px]">
+        <Button type="submit" disabled={isSendingMessage} className="w-[70px] cursor-pointer max-h-8">
           {isSendingMessage ? <ClipLoader size={20} /> : "Send"}
         </Button>
       </form>
