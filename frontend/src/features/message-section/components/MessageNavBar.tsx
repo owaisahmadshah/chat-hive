@@ -1,4 +1,5 @@
 import { useSelector } from "react-redux"
+import { useEffect, useState } from "react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RootState } from "@/store/store"
@@ -11,13 +12,33 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import useFriend from "@/features/chat-section/hooks/useFriend"
 
 
 const MessageNavBar = () => {
+  const [isFriend, setIsFriend] = useState(false)
 
   const { selectedChatUser, selectedChat } = useSelector((state: RootState) => state.chats)
+  const { friends } = useSelector((state: RootState) => state.friend)
+
+  const { createUser } = useFriend()
 
   useUserOnlineStatus()
+
+  useEffect(() => {
+    friends.forEach(friend => {
+      if (friend.friend._id === selectedChatUser?._id) {
+        setIsFriend(true)
+      }
+    })
+  }, [friends])
+
+  const addToFriends = async () => {
+    if (!selectedChatUser?._id) {
+      return
+    }
+    await createUser(selectedChatUser._id)
+  }
 
   return (
     <Dialog>
@@ -51,6 +72,11 @@ const MessageNavBar = () => {
           />
           <DialogTitle className="cursor-pointer hover:underline">{selectedChatUser?.username}</DialogTitle>
           <p className="text-muted-foreground">{selectedChat?.typing?.isTyping ? "Typing..." : selectedChatUser?.isUserOnline ? "Online" : "Offline"}</p>
+          {!isFriend && <Button
+            variant={"ghost"}
+            className="cursor-pointer"
+            onClick={addToFriends}
+          >Add to contacts</Button>}
           <Button variant={"destructive"} className="cursor-pointer">Delete Chat</Button>
         </DialogContent>
       </ul>
