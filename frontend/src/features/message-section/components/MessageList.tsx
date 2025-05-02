@@ -23,6 +23,7 @@ import MessageEmpty from "./MessageEmpty"
 const MessageList = () => {
   const [isDontScroll, setisDontScroll] = useState<boolean>(false)
   const [isArrowClicked, setIsArrowClicked] = useState<boolean>(false)
+  const [messageMeta, setMessageMeta] = useState<Set<string>>(new Set()) // Used to show/hide message (sent, receive or seen) and date/time
 
   const { updateReceiveAndSeenOfMessages } = useSocketService()
   const { getChatMessages } = useMessage()
@@ -74,6 +75,19 @@ const MessageList = () => {
     setIsArrowClicked(false)
   }
 
+  const toggleMessageMeta = (id: string) => {
+    setMessageMeta(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(id)) {
+        newSet.delete(id)
+      } else {
+        newSet.add(id)
+      }
+      return newSet
+    })
+  }
+
+
   return (
     <ScrollArea
       className="box-border border-r h-[75vh]"
@@ -115,19 +129,22 @@ const MessageList = () => {
                   message.sender._id === user.userId &&
                   "self-end bg-background flex items-center"
                 )}
+                  onClick={() => toggleMessageMeta(message._id)}
                 >
                   <MessageItem message={message} />
                 </li>
-                <div
-                  className={cn(
-                    message.sender._id === user.userId
-                      ? "self-end flex items-center justify-between w-[80px]"
-                      : "self-start"
-                  )}
-                >
-                  <p className={`text-[10px] text-muted-foreground`}>{correctDate(message.updatedAt)}</p>
-                  <p className="text-[10px]">{message.sender._id === user.userId && message.status}</p>
-                </div>
+                {(messageMeta.has(message._id) || index === messages.length - 1) &&
+                  <div
+                    className={cn(
+                      message.sender._id === user.userId
+                        ? "self-end flex items-center justify-between w-[80px]"
+                        : "self-start"
+                    )}
+                  >
+                    <p className={`text-[10px] text-muted-foreground`}>{correctDate(message.updatedAt)}</p>
+                    <p className="text-[10px]">{message.sender._id === user.userId && message.status}</p>
+                  </div>
+                }
               </React.Fragment>
             ))
             :
