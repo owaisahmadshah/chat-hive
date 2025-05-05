@@ -1,384 +1,195 @@
-# Chat Hive API Documentation
-
-This document provides detailed information about the Chat Hive API endpoints, request/response formats, and authentication requirements.
+# API Documentation
 
 ## Base URL
-
-```
-http://localhost:3000/api/v1
-```
+`/api/v1`
 
 ## Authentication
+All endpoints require authentication via Clerk. Include the Bearer token in the Authorization header.
 
-Most endpoints require authentication. Authentication is handled through Clerk, and the user ID should be included in the request body or as a parameter where specified.
+## Chat Endpoints
 
-## API Endpoints
-
-### Health Check
-
-#### GET /healthcheck
-
-Checks if the API is running.
-
-**Response:**
-
-```json
-{
-  "status": 200,
-  "message": "OK",
-  "data": {
-    "timestamp": "2023-03-01T12:00:00Z"
+### Create Chat
+- **Route**: `POST /chat/create`
+- **Body**:
+  ```typescript
+  {
+    admin: string,    // User ID of chat creator
+    users: string[]   // Array of user IDs in chat
   }
-}
-```
+  ```
+- **Response**: Created chat object with user details
 
-### Chat Endpoints
+### Delete Chat
+- **Route**: `POST /chat/delete`
+- **Body**:
+  ```typescript
+  {
+    userId: string,   // User requesting deletion
+    chatId: string    // Chat to delete
+  }
+  ```
+- **Response**: Deletion confirmation
 
-#### POST /chat/create
+### Get User Chats
+- **Route**: `POST /chat/get`
+- **Body**:
+  ```typescript
+  {
+    userId: string    // User whose chats to retrieve
+  }
+  ```
+- **Response**: Array of chats with messages
 
-Creates a new chat or returns an existing chat.
+### Get/Update Chat
+- **Route**: `POST /chat/getupdatechat`
+- **Body**:
+  ```typescript
+  {
+    chatId: string    // Chat to retrieve/update
+  }
+  ```
+- **Response**: Updated chat details
 
-**Request Body:**
+### Get Chat Messages
+- **Route**: `POST /chat/messages`
+- **Body**:
+  ```typescript
+  {
+    chatId: string,         // Chat ID
+    userId: string,         // Requesting user
+    userChatMessages: number // Message count
+  }
+  ```
+- **Response**: Array of messages
 
-```json
+## Message Endpoints
+
+### Create Message
+- **Route**: `POST /message/create`
+- **Body**: FormData with:
+  ```typescript
+  {
+    chatId: string,     // Target chat
+    message: string,    // Message content
+    sender: string,     // Sender ID
+    isPhoto?: boolean   // If message is an image
+  }
+  ```
+- **Response**: Created message object
+
+### Delete Message
+- **Route**: `POST /message/delete`
+- **Body**:
+  ```typescript
+  {
+    messageId: string,  // Message to delete
+    userId: string     // User requesting deletion
+  }
+  ```
+- **Response**: Deletion confirmation
+
+### Update Message Status
+- **Route**: `POST /message/updatestatus`
+- **Body**:
+  ```typescript
+  {
+    chatId: string,    // Chat containing messages
+    userId: string,    // User updating status
+    status: 'seen' | 'receive'
+  }
+  ```
+- **Response**: Status update confirmation
+
+## User Endpoints
+
+### Create User (Signup)
+- **Route**: `POST /user/signup`
+- **Body**: Webhook payload from Clerk
+- **Response**: Created user object
+
+### Delete User
+- **Route**: `POST /user/delete`
+- **Body**: Webhook payload for user deletion
+- **Response**: Deletion confirmation
+
+### Get User
+- **Route**: `POST /user/get`
+- **Body**:
+  ```typescript
+  {
+    userId: string    // User to retrieve
+  }
+  ```
+- **Response**: User details
+
+### Get User Suggestions
+- **Route**: `POST /user/suggestions`
+- **Body**:
+  ```typescript
+  {
+    identifier: string  // Username/email to search
+  }
+  ```
+- **Response**: Array of matching users
+
+## Friend Endpoints
+
+### Create Friend
+- **Route**: `POST /user/create-friend`
+- **Body**:
+  ```typescript
+  {
+    userId: string,    // User adding friend
+    friendId: string   // User to add as friend
+  }
+  ```
+- **Response**: Created friend relationship
+
+### Get Friends
+- **Route**: `POST /user/get-friends`
+- **Body**:
+  ```typescript
+  {
+    userId: string    // User whose friends to retrieve
+  }
+  ```
+- **Response**: Array of friend relationships
+
+### Delete Friend
+- **Route**: `POST /user/delete-friend`
+- **Body**:
+  ```typescript
+  {
+    friendDocumentId: string  // Friend relationship to delete
+  }
+  ```
+- **Response**: Deletion confirmation
+
+## Response Format
+
+All endpoints return responses in the following format:
+```typescript
 {
-  "admin": "",
-  "users": ["", ""]
+  statusCode: number,     // HTTP status code
+  data: any,             // Response data
+  message: string        // Success/error message
 }
 ```
 
-**Response:**
+## Error Handling
 
-```json
+Errors are returned in the following format:
+```typescript
 {
-  "statusCode": 201,
-  "data": {
-    "chat": {
-      "admin": {
-        "_id": "",
-        "email": "",
-        "imageUrl": "",
-        "lastSeen": ""
-      },
-      "users": [
-        {
-          "_id": "",
-          "email": "",
-          "imageUrl": "",
-          "lastSeen": ""
-        }
-      ],
-      "updatedAt": ""
-    }
-  },
-  "message": "Created new chat successfully"
+  statusCode: number,     // HTTP status code
+  message: string,       // Error message
+  stack?: string        // Stack trace (development only)
 }
 ```
-
-#### POST /chat/delete
-
-Marks a chat as deleted for a specific user.
-
-**Request Body:**
-
-```json
-{
-  "chatId": "",
-  "userId": ""
-}
-```
-
-**Response:**
-
-```json
-{
-  "statusCode": 201,
-  "data": {},
-  "message": "Success"
-}
-```
-
-#### POST /chat/get
-
-Gets all chats and messages for a user.
-
-**Request Body:**
-
-```json
-{
-  "userId": ""
-}
-```
-
-**Response:**
-
-```json
-{
-  "statusCode": 200,
-  "data": [
-    {
-      "_id": "",
-      "admin": {
-        "_id": "",
-        "email": "",
-        "imageUrl": "",
-        "lastSeen": ""
-      },
-      "chatUser": {
-        "_id": "",
-        "email": "",
-        "imageUrl": "",
-        "lastSeen": ""
-      },
-      "messages": [
-        {
-          "_id": "",
-          "sender": {
-            "_id": "",
-            "email": "",
-            "imageUrl": ""
-          },
-          "chatId": "",
-          "message": "",
-          "photoUrl": "",
-          "status": "",
-          "updatedAt": ""
-        }
-      ],
-      "lastMessage": {
-        "isPhoto": "",
-        "message": ""
-      },
-      "updatedAt": "",
-      "unreadMessages": "",
-      "numberOfMessages": ""
-    }
-  ],
-  "message": "Success"
-}
-```
-
-#### POST /chat/getupdatechat
-
-Update a chat.
-
-**Request Body:**
-
-```json
-{
-  "chatId": ""
-}
-```
-
-**Response:**
-
-```json
-{
-  "statusCode": 201,
-  "data": {
-    "chat": {
-      "_id": "",
-      "users": [
-        {
-          "_id": "",
-          "email": "",
-          "lastSeen": ""
-        }
-      ],
-      "lastMessage": {
-        "isPhoto": "",
-        "message": ""
-      },
-      "unreadMessages": "",
-      "updatedAt": ""
-    }
-  },
-  "message": "Successful"
-}
-```
-
-#### POST /chat/messsages
-
-Gives 30 older messages of a specific chat.
-
-**Request Body:**
-
-```json
-{
-  "chatId": "",
-  "userId": "",
-  "userChatMessages": ""
-}
-```
-
-**Response:**
-
-```json
-{
-  "statusCode": 200,
-  "data": {
-    "messages": [
-      {
-        "_id": "",
-        "sender": {
-          "_id": "",
-          "email": "",
-          "imageUrl": ""
-        },
-        "chatId": "",
-        "message": "",
-        "photoUrl": "",
-        "status": "",
-        "updatedAt": ""
-      }
-    ]
-  },
-  "message": "Success"
-}
-```
-
-### Message Endpoints
-
-#### POST /message/create
-
-Creates a new message.
-
-**Request Body:**
-
-```json
-{
-  "sender": "",
-  "chatId": "",
-  "message": "",
-  "status": ""
-}
-```
-
-**Request File Upload:**
-
-- Field name: `uploadedImage`
-- File type: Image (JPEG, PNG, etc.)
-
-**Response:**
-
-```json
-{
-  "statusCode": 201,
-  "data": {
-    "newMessage": {
-      "_id": "",
-      "sender": {
-        "_id": "",
-        "email": "",
-        "imageUrl": ""
-      },
-      "chatId": "",
-      "message": "",
-      "photoUrl": "",
-      "status": "",
-      "updatedAt": ""
-    }
-  },
-  "message": "Created message"
-}
-```
-
-#### POST /message/delete
-
-Marks a message as deleted for a specific user.
-
-**Request Body:**
-
-```json
-{
-  "messageId": "",
-  "userId": ""
-}
-```
-
-**Response:**
-
-```json
-{
-  "statusCode": 201,
-  "data": {},
-  "message": "Deleted Message successfully"
-}
-```
-
-#### POST /message/updatestatus
-
-Marks a bulk of messages as received or seen.
-
-**Request Body:**
-
-```json
-{
-  "messageId": "",
-  "userId": "",
-  "status": ""
-}
-```
-
-**Response:**
-
-```json
-{
-  "statusCode": 201,
-  "data": {},
-  "message": "Updated messages successfully"
-}
-```
-
-#### POST /message/updateonestatus
-
-Marks a message as received or seen.
-
-**Request Body:**
-
-```json
-{
-  "userId": "",
-  "messageId": "",
-  "status": ""
-}
-```
-
-**Response:**
-
-```json
-{
-  "statusCode": 201,
-  "data": {},
-  "message": "Updated message successfully"
-}
-```
-
-## Error Responses
-
-All endpoints return standardized error responses:
-
-```json
-{
-  "statusCode": 400,
-  "data": {},
-  "message": "Error message describing what went wrong"
-}
-```
-
-Common status codes:
-
-- 200: Successful
-- 202: Created
-- 400: Bad Request
-- 401: Unauthorized
-- 404: Not Found
-- 500: Internal Server Error
 
 ## Rate Limiting
-
-API requests are limited to 100 requests per minute per IP address.
+- No rate limiting implemented currently
+- Planned for future versions
 
 ## Versioning
-
-The current API version is v1. The version is included in the URL path.
+Current API version: v1

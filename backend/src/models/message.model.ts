@@ -11,7 +11,7 @@ interface messageDocument extends Document {
   updatedAt: Date
 }
 
-const messageSchema = new Schema<messageDocument>(
+const messageSchema = new mongoose.Schema<messageDocument>(
   {
     sender: {
       type: Schema.Types.ObjectId,
@@ -19,24 +19,27 @@ const messageSchema = new Schema<messageDocument>(
       required: true,
       index: true,
     },
-    deletedBy: {
-      type: [Schema.Types.ObjectId],
-      ref: "User",
-    },
+    deletedBy: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     chatId: {
       type: Schema.Types.ObjectId,
       ref: "Chat",
+      required: true,
       index: true,
     },
     message: {
-      type: "String",
+      type: String,
+      required: true,
     },
     photoUrl: {
-      type: "String",
-      default: "",
+      type: String,
     },
     status: {
-      type: "String",
+      type: String,
       enum: ["sent", "receive", "seen"],
       default: "sent",
     },

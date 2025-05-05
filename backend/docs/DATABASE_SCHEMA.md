@@ -1,110 +1,139 @@
-# Chat Hive Database Schema
-
-This document describes the MongoDB database schema used in the Chat Hive application, including collections, fields, indexes, and relationships.
+# Database Schema Documentation
 
 ## Collections Overview
 
-The database consists of the following collections:
-
-1. **users**: Stores user information
-2. **chats**: Stores chat conversations
-3. **messages**: Stores individual messages
-4. **contacts**: Stores user contacts
+The application uses MongoDB with the following main collections:
+- Users: Stores user profile and authentication information
+- Chats: Stores chat room information and metadata
+- Messages: Stores individual messages
+- Friends: Stores user relationships and friend lists
 
 ## Schema Details
 
 ### Users Collection
-
-Stores information about application users.
-
-```javascript
+```typescript
 {
-  _id: ObjectId,              // Unique identifier
-  name: String,               // User's full name
-  email: String,              // User's email address (unique)
-  profilePicture: String,     // URL to profile picture
-  status: String,             // User status (online, offline, away)
-  lastSeen: Date,             // Timestamp of last activity
-  createdAt: Date,            // Account creation timestamp
-  updatedAt: Date             // Last update timestamp
+  _id: ObjectId,
+  clerkId: string,        // External auth provider ID
+  username: string,       // User's display name
+  email: string,         // User's email address
+  imageUrl: string,      // Profile picture URL
+  lastSeen: Date,        // Last activity timestamp
+  createdAt: Date,       // Account creation date
+  updatedAt: Date        // Last profile update
 }
 ```
-
-**Indexes:**
-
-- `email`: Unique index for fast lookups by email
 
 ### Chats Collection
-
-Represents conversations between users.
-
-```javascript
+```typescript
 {
-  _id: ObjectId,              // Unique identifier
-  admin: ObjectId,            // User who created the chat (ref: users)
-  users: [ObjectId],          // Array of users in the chat (ref: users)
-  lastMessage: ObjectId,      // Reference to the last message (ref: messages)
-  deletedBy: [ObjectId],      // Users who have deleted this chat (ref: users)
-  createdAt: Date,            // Chat creation timestamp
-  updatedAt: Date             // Last update timestamp
+  _id: ObjectId,
+  admin: ObjectId,        // User who created the chat
+  users: [ObjectId],      // Array of participating users
+  lastMessage: ObjectId,  // Reference to last message
+  deletedBy: [ObjectId],  // Users who deleted this chat
+  createdAt: Date,
+  updatedAt: Date
 }
 ```
-
-**Indexes:**
-
-- `admin`: Index for finding chats by admin
-- `users`: Index for finding chats by participants
-- Compound index on `users` and `deletedBy` for efficient chat retrieval
 
 ### Messages Collection
-
-Stores individual messages within chats.
-
-```javascript
+```typescript
 {
-  _id: ObjectId,              // Unique identifier
-  sender: ObjectId,           // User who sent the message (ref: users)
-  chatId: ObjectId,           // Chat this message belongs to (ref: chats)
-  message: String,            // Text content of the message
-  photoUrl: String,           // URL to attached image (if any)
-  status: String,             // Message status (sent, received, seen)
-  deletedBy: [ObjectId],      // Users who have deleted this message (ref: users)
-  createdAt: Date,            // Message creation timestamp
-  updatedAt: Date             // Last update timestamp
+  _id: ObjectId,
+  chatId: ObjectId,       // Reference to parent chat
+  sender: ObjectId,       // User who sent the message
+  message: string,        // Message content
+  isPhoto: boolean,       // Whether message is an image
+  status: string,         // sent/received/seen
+  deletedBy: [ObjectId],  // Users who deleted this message
+  createdAt: Date,
+  updatedAt: Date
 }
 ```
 
-**Indexes:**
-
-- `chatId`: Index for finding messages by chat
-- `sender`: Index for finding messages by sender
-- Compound index on `chatId` and `createdAt` for efficient message retrieval
+### Friends Collection
+```typescript
+{
+  _id: ObjectId,
+  userId: ObjectId,       // User who added the friend
+  friendId: ObjectId,     // The added friend
+  createdAt: Date,
+  updatedAt: Date
+}
+```
 
 ## Relationships
 
-1. **User to Chats**: One-to-many relationship (a user can participate in multiple chats)
-2. **Chat to Messages**: One-to-many relationship (a chat contains multiple messages)
-3. **User to Messages**: One-to-many relationship (a user can send multiple messages)
+### One-to-Many
+- User -> Messages (One user can send many messages)
+- Chat -> Messages (One chat contains many messages)
+- User -> Chats (One user can be in many chats)
+
+### Many-to-Many
+- Users <-> Chats (Users can be in multiple chats, chats can have multiple users)
+- Users <-> Friends (Users can have multiple friends, users can be friends of multiple users)
 
 ## Data Integrity
 
-The application maintains referential integrity through application logic. When implementing transactions, the following operations should be atomic:
+1. **Referential Integrity**
+   - Message deletion cascades to chat lastMessage updates
+   - User deletion cascades to messages and chats
+   - Chat deletion cascades to messages
 
-1. Creating a message and updating the chat's lastMessage
-2. Deleting a chat and marking all its messages as deleted for a user
-3. User account deletion and cleaning up related data
+2. **Soft Deletion**
+   - Messages and chats use deletedBy arrays
+   - Allows per-user deletion without affecting others
+   - Maintains chat history for other participants
+
+3. **Timestamps**
+   - All collections include createdAt/updatedAt
+   - Automatic updates via Mongoose middleware
+   - Enables activity tracking and sorting
 
 ## Schema Evolution
 
-As the application evolves, the schema may need to change. Consider the following best practices:
+1. **Current Version: 1.0**
+   - Basic chat functionality
+   - One-on-one conversations
+   - Text and image messages
 
-1. Use schema versioning for major changes
-2. Implement migration scripts for schema updates
-3. Design for backward compatibility when possible
+2. **Planned Extensions**
+   - Group chat support
+   - Message reactions
+   - Message threading
+   - Rich media support
 
 ## Performance Considerations
 
-1. Use appropriate indexes for frequent query patterns
-2. Consider time-to-live (TTL) indexes for temporary data
-3. Implement pagination for large collections (messages)
-4. Use projection to limit fields returned in queries
+1. **Indexes**
+```typescript
+// Users Collection
+- clerkId: 1 (unique)
+- email: 1 (unique)
+- username: 1
+
+// Chats Collection
+- users: 1
+- admin: 1
+- updatedAt: -1
+
+// Messages Collection
+- chatId: 1
+- sender: 1
+- createdAt: 1
+
+// Friends Collection
+- userId: 1
+- friendId: 1
+```
+
+2. **Query Optimization**
+   - Compound indexes for common queries
+   - Projection to limit field retrieval
+   - Pagination for message history
+
+3. **Data Access Patterns**
+   - Recent messages first
+   - Chat list by last activity
+   - Online user status tracking

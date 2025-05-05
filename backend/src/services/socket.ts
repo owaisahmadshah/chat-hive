@@ -28,24 +28,27 @@ interface User {
 }
 
 /**
- * Manages all real-time socket connections and chat functionality
- * This class handles user connections, chat rooms, and message broadcasting
+ * @desc    Manages all real-time socket connections and chat functionality.
+ *          This class handles user connections, chat rooms, and message broadcasting.
  */
 class SocketManager {
   private io: Server // Socket.io server instance
 
-  // activeUsers: A map that keeps track of currently online users.
-  // Key: userId, Value: { userId, socketId, activeChat }.
-  // Helps in quick lookup of a user’s connection and active chat.
+  /**
+   * @desc    Tracks currently online users. Key: userId, Value: User object
+   *          Used for quick lookup of user's connection and active chat
+   */
   private activeUsers: Map<string, User>
 
-  // chatRooms: A map that tracks which users are in which chat.
-  // Key: chatId, Value: Set of userIds.
-  // Used to manage chat participants and broadcast messages efficiently.
+  /**
+   * @desc    Tracks which users are in which chat. Key: chatId, Value: Set of userIds
+   *          Used to manage chat participants and broadcast messages efficiently
+   */
   private chatRooms: Map<string, Set<string>>
 
-  // onlineUsers: A map that tracks all online users
-  // key: userId, Value: boolean
+  /**
+   * @desc    Tracks all online users. Key: userId, Value: boolean
+   */
   private onlineUsers: Map<string, boolean>
 
   constructor(server: Server) {
@@ -57,7 +60,7 @@ class SocketManager {
   }
 
   /**
-   * Sets up the main socket.io connection handler
+   * @desc    Sets up the main socket.io connection handler and initializes event listeners
    */
   private initialize() {
     this.io.on("connection", (socket: Socket) => {
@@ -70,8 +73,8 @@ class SocketManager {
   }
 
   /**
-   * Handles user connection events
-   * When a user connects, they're added to the activeUsers map
+   * @desc    Handles user connection events and maintains active user tracking
+   * @param {Socket} socket - The socket instance for the connected user
    */
   private setupUserHandlers(socket: Socket) {
     const handleUserConnected = (userId: string) => {
@@ -137,8 +140,8 @@ class SocketManager {
   }
 
   /**
-   * Handles chat room related events (joining, creating, deleting)
-   * Socket.io rooms are used to group connections for targeted message broadcasting
+   * @desc    Handles chat room related events like joining and messaging
+   * @param {Socket} socket - The socket instance for the connected user
    */
   private setupChatHandlers(socket: Socket) {
     const handleJoinChat = (chatId: string) => {
@@ -167,7 +170,8 @@ class SocketManager {
   }
 
   /**
-   * Handles message-related events (new messages, typing indicators, message deletion)
+   * @desc    Handles message-related events including new messages, status updates and typing
+   * @param {Socket} socket - The socket instance for the connected user
    */
   private setupMessageHandlers(socket: Socket) {
     const handleNewMessage = (data: newMessageType, callback: any) => {
@@ -238,8 +242,8 @@ class SocketManager {
   }
 
   /**
-   * Handles user disconnection events
-   * Cleans up user data and notifies other users
+   * @desc    Handles user disconnection cleanup
+   * @param {Socket} socket - The socket instance for the disconnected user
    */
   private setupDisconnectHandler(socket: Socket) {
     const handleDisconnect = () => {

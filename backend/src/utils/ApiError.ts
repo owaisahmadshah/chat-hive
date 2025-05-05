@@ -1,24 +1,33 @@
 class ApiError extends Error {
   statusCode: number
-  data: null = null
-  success: false = false
+  data: any
+  success: boolean
   errors: any[]
 
+  /**
+   * @desc    Creates a new API error instance
+   * @param   {number} statusCode - HTTP status code for the error
+   * @param   {string} message - Error message describing what went wrong
+   * @param   {any[]} [errors=[]] - Array of specific error details
+   * @param   {string} [stack=""] - Error stack trace
+   */
   constructor(
     statusCode: number,
-    message: string = "Something went wrong",
+    message = "Something went wrong",
     errors: any[] = [],
-    stack?: string
+    stack = ""
   ) {
     super(message)
     this.statusCode = statusCode
+    this.data = null
+    this.message = message
+    this.success = false
     this.errors = errors
 
-    // Set the stack trace properly if provided
     if (stack) {
       this.stack = stack
     } else {
-      Error.captureStackTrace?.(this, this.constructor)
+      Error.captureStackTrace(this, this.constructor)
     }
   }
 }
