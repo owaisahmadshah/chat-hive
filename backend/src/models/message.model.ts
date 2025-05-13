@@ -33,10 +33,10 @@ const messageSchema = new mongoose.Schema<messageDocument>(
     },
     message: {
       type: String,
-      required: true,
     },
     photoUrl: {
       type: String,
+      default: "",
     },
     status: {
       type: String,
