@@ -1,6 +1,9 @@
 import api from "@/lib/axiosInstance"
 
-const fetchUser = async (identifier: { identifier: string }, token: string | null) => {
+const fetchUser = async (
+  identifier: { identifier: string },
+  token: string | null
+) => {
   const { data } = await api.post("/v1/user/suggestions", identifier, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -28,10 +31,11 @@ const deleteChatService = async (
   },
   token: string | null
 ) => {
-  const data = await api.post("/v1/chat/delete", deleteChat, {
+  const data = await api.delete("/v1/chat/delete", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    data: deleteChat,
   })
   return data
 }

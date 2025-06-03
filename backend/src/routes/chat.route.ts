@@ -25,7 +25,7 @@ router.route("/create").post(requireAuth(), createChat)
  * @access Private
  * @requires Authentication
  */
-router.route("/delete").post(requireAuth(), deleteChat)
+router.route("/delete").delete(requireAuth(), deleteChat)
 
 /**
  * @route POST /api/v1/chat/get

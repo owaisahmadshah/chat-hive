@@ -20,7 +20,7 @@ All endpoints require authentication via Clerk. Include the Bearer token in the 
 - **Response**: Created chat object with user details
 
 ### Delete Chat
-- **Route**: `POST /chat/delete`
+- **Route**: `DELETE /chat/delete`
 - **Body**:
   ```typescript
   {
@@ -156,7 +156,7 @@ All endpoints require authentication via Clerk. Include the Bearer token in the 
 - **Response**: Array of friend relationships
 
 ### Delete Friend
-- **Route**: `POST /user/delete-friend`
+- **Route**: `DELETE /user/delete-friend`
 - **Body**:
   ```typescript
   {

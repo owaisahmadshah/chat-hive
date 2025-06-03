@@ -19,7 +19,7 @@ router
     upload.fields([{ name: "uploadedImage", maxCount: 1 }]),
     createMessage
   )
-router.route("/delete").post(requireAuth(), deleteMessage)
+router.route("/delete").delete(requireAuth(), deleteMessage)
 router.route("/updatestatus").post(requireAuth(), updateMessagesStatus)
 router.route("/updateonestatus").post(requireAuth(), updateMessageStatus)
 

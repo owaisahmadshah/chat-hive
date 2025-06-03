@@ -17,10 +17,11 @@ const deleteMessageService = async (
   },
   token: string | null
 ) => {
-  const { data } = await api.post("/v1/message/delete", messageBody, {
+  const { data } = await api.delete("/v1/message/delete", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    data: messageBody,
   })
   return data
 }
