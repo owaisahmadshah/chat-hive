@@ -52,6 +52,11 @@ function useGetUserId() {
           userId: data.data._id,
           imageUrl: data.data.imageUrl,
           isLoading: false,
+          about: data.data.about,
+          isShowAbout: data.data.isShowAbout,
+          isShowLastSeen: data.data.isShowLastSeen,
+          isReadReceipts: data.data.isReadReceipts,
+          isShowProfileImage: data.data.isShowProfileImage,
         }
 
         dispatch(setUser(payload))

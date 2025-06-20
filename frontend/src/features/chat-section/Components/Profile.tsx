@@ -3,9 +3,10 @@ import { useSelector } from "react-redux"
 import { RootState } from "@/store/store"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-
 const Profile = () => {
-  const { imageUrl, username } = useSelector((state: RootState) => state.user)
+  const { imageUrl, username, about } = useSelector(
+    (state: RootState) => state.user
+  )
 
   return (
     <main className="py-5 border-r h-[100vh]">
@@ -18,7 +19,15 @@ const Profile = () => {
               className="max-w-[200px] max-h-[200px] rounded-full"
             />
           </li>
-          <li><strong>{username}</strong></li>
+          <li>
+            <strong>{username}</strong>
+          </li>
+          <li>
+            <p className="text-sm">
+              <strong>About: </strong>
+              {about.length > 0 ? about : ""}
+            </p>
+          </li>
         </ul>
       </ScrollArea>
     </main>
