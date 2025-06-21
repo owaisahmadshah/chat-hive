@@ -10,6 +10,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { Chat } from "../models/chat.model.js"
 import { Message } from "../models/message.model.js"
 import { Friend } from "../models/friend.model.js"
+import type { Document } from "mongoose"
 
 /**
  * @desc    Create a new user from clerk webhook
@@ -237,6 +238,15 @@ const deleteFriend = asyncHandler(async (req: Request, res: Response) => {
   return res.status(200).json(new ApiResponse(200, {}, "Success"))
 })
 
+/**
+ * @desc    Update user profile
+ * @route   POST /api/v1/user/update-user-fields
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing user id, field(name of the field) and fieldValue(value of field)
+ *
+ * @param {Response} res - Express request object containing message of sucess/failure and update user object
+ */
 const updateUserShowStatus = asyncHandler(
   async (req: Request, res: Response) => {
     const { userId, field, fieldValue } = req.body
@@ -250,7 +260,25 @@ const updateUserShowStatus = asyncHandler(
     ;(user as any)[field] = fieldValue
     await user.save()
 
-    return res.json(201).json(new ApiResponse(201, user, "Success"))
+    const updatedUser = await User.findById(userId)
+      .select(
+        "_id email username imageUrl lastSignInAt about isShowAbout isShowLastSeen isReadReceipts isShowProfileImage"
+      )
+      .lean()
+
+    if (!updatedUser) {
+      throw new ApiError(404, "User not found")
+    }
+
+    const responseUser = {
+      ...updatedUser,
+      userId: updatedUser._id,
+    }
+
+    // @ts-ignore
+    delete responseUser._id
+
+    return res.status(201).json(new ApiResponse(201, responseUser, "Success"))
   }
 )
 
