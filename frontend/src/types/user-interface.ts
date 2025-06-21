@@ -7,8 +7,8 @@ export interface User {
   imageUrl: string
   isLoading: boolean
   about: string
-  isShowAbout: TShowType
-  isShowLastSeen: TShowType
+  showAbout: TShowType
+  showLastSeen: TShowType
   isReadReceipts: boolean
-  isShowProfileImage: TShowType
+  showProfileImage: TShowType
 }

@@ -8,10 +8,10 @@ interface userDocument extends Document {
   imageUrl: string
   isSignedIn: boolean
   about: string
-  isShowAbout: TShowType
-  isShowLastSeen: TShowType
+  showAbout: TShowType
+  showLastSeen: TShowType
+  showProfileImage: TShowType
   isReadReceipts: boolean
-  isShowProfileImage: TShowType
   createdAt: Date
   updatedAt: Date
 }
@@ -48,17 +48,17 @@ const userSchema = new mongoose.Schema<userDocument>(
       type: String,
       default: "Hey there!",
     },
-    isShowAbout: {
+    showAbout: {
       type: String,
       enum: ["contacts", "public", "private"],
       default: "public",
     },
-    isShowLastSeen: {
+    showLastSeen: {
       type: String,
       enum: ["contacts", "public", "private"],
       default: "public",
     },
-    isShowProfileImage: {
+    showProfileImage: {
       type: String,
       enum: ["contacts", "public", "private"],
       default: "public",

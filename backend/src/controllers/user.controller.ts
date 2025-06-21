@@ -135,7 +135,7 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
   const { clerkId } = await req.body
 
   const user = await User.findOne({ clerkId }).select(
-    "_id email username imageUrl lastSignInAt about isShowAbout isShowLastSeen isReadReceipts isShowProfileImage"
+    "_id email username imageUrl lastSignInAt about isReadReceipts showAbout showLastSeen showProfileImage"
   )
 
   if (!user) {
@@ -262,7 +262,7 @@ const updateUserShowStatus = asyncHandler(
 
     const updatedUser = await User.findById(userId)
       .select(
-        "_id email username imageUrl lastSignInAt about isShowAbout isShowLastSeen isReadReceipts isShowProfileImage"
+        "_id email username imageUrl lastSignInAt about isReadReceipts showAbout showLastSeen showProfileImage"
       )
       .lean()
 

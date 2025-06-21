@@ -53,10 +53,10 @@ function useGetUserId() {
           imageUrl: data.data.imageUrl,
           isLoading: false,
           about: data.data.about,
-          isShowAbout: data.data.isShowAbout,
-          isShowLastSeen: data.data.isShowLastSeen,
+          showAbout: data.data.showAbout,
+          showLastSeen: data.data.showLastSeen,
           isReadReceipts: data.data.isReadReceipts,
-          isShowProfileImage: data.data.isShowProfileImage,
+          showProfileImage: data.data.showProfileImage,
         }
 
         dispatch(setUser(payload))
