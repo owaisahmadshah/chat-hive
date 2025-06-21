@@ -1,5 +1,5 @@
 import { SignOutButton } from "@clerk/clerk-react"
-import { HelpCircle, LockIcon, LogOut, Trash } from "lucide-react"
+import { HelpCircle, LogOut, Trash } from "lucide-react"
 import { useSelector } from "react-redux"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -46,10 +46,7 @@ const Settings = () => {
             <Input placeholder="Search settings" disabled />
           </li>
           <li className={listItemClasses}>
-            <Button variant={"ghost"}>
-              <LockIcon />
-            </Button>
-            <p>About</p>
+            <p className="w-[50%]">About</p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost">{user.showAbout}</Button>
@@ -92,10 +89,7 @@ const Settings = () => {
           </li>
           <Separator />
           <li className={listItemClasses}>
-            <Button variant={"ghost"}>
-              <LockIcon />
-            </Button>
-            <p>Last Seen</p>
+            <p className="w-[50%]">Last Seen</p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost">{user.showLastSeen}</Button>
@@ -138,10 +132,7 @@ const Settings = () => {
           </li>
           <Separator />
           <li className={listItemClasses}>
-            <Button variant={"ghost"}>
-              <LockIcon />
-            </Button>
-            <p>Profile Picture</p>
+            <p className="w-[50%]">Profile Picture</p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost">{user.showProfileImage}</Button>
@@ -184,23 +175,41 @@ const Settings = () => {
           </li>
           <Separator />
           <li className={listItemClasses}>
-            <Button variant={"ghost"}>
-              <LockIcon />
-            </Button>
-            <p>Read Receipts</p>
+            <p className="w-[50%]">Read Receipts</p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost">
+                  {user.isReadReceipts ? "on" : "off"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      updateUserField({
+                        field: "isReadReceipts",
+                        fieldValue: !user.isReadReceipts,
+                      })
+                    }
+                  >
+                    {user.isReadReceipts ? "off" : "on"}
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </li>
           <Separator />
           <li className={listItemClasses}>
+            <p className="w-[50%]">ChangeTheme</p>
             <ModeToggle />
             {/**ModeToggle is already inside a button */}
-            <p>ChangeTheme</p>
           </li>
           <Separator />
           <li className={listItemClasses}>
+            <p className="w-[50%]">Help</p>
             <Button variant={"ghost"}>
               <HelpCircle />
             </Button>
-            <p>Help</p>
           </li>
           <Separator />
           <li className={cn(listItemClasses, "text-red-400")}>
