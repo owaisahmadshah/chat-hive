@@ -6,6 +6,7 @@ import {
   deleteUser,
   getFriends,
   getUser,
+  updateUserShowStatus,
   usersSuggestion,
 } from "../controllers/user.controller.js"
 import { requireAuth } from "@clerk/express"
@@ -19,5 +20,6 @@ router.route("/suggestions").post(usersSuggestion, requireAuth())
 router.route("/create-friend").post(createFriend, requireAuth())
 router.route("/delete-friend").delete(deleteFriend, requireAuth())
 router.route("/get-friends").post(getFriends, requireAuth())
+router.route("/update-user-fields").post(updateUserShowStatus, requireAuth())
 
 export default router

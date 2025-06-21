@@ -10,7 +10,7 @@ interface userDocument extends Document {
   about: string
   isShowAbout: TShowType
   isShowLastSeen: TShowType
-  isReadReceipts: TShowType
+  isReadReceipts: boolean
   isShowProfileImage: TShowType
   createdAt: Date
   updatedAt: Date
@@ -64,9 +64,8 @@ const userSchema = new mongoose.Schema<userDocument>(
       default: "public",
     },
     isReadReceipts: {
-      type: String,
-      enum: ["contacts", "public", "private"],
-      default: "public",
+      type: Boolean,
+      default: true,
     },
   },
   {

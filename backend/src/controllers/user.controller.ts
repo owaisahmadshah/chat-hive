@@ -237,6 +237,23 @@ const deleteFriend = asyncHandler(async (req: Request, res: Response) => {
   return res.status(200).json(new ApiResponse(200, {}, "Success"))
 })
 
+const updateUserShowStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { userId, field, fieldValue } = req.body
+
+    const user = await User.findById(userId)
+
+    if (!user) {
+      throw new ApiError(404, "User not found")
+    }
+
+    ;(user as any)[field] = fieldValue
+    await user.save()
+
+    return res.json(201).json(new ApiResponse(201, user, "Success"))
+  }
+)
+
 export {
   createUser,
   deleteUser,
@@ -245,4 +262,5 @@ export {
   createFriend,
   getFriends,
   deleteFriend,
+  updateUserShowStatus,
 }

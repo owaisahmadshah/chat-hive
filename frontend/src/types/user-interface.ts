@@ -9,6 +9,6 @@ export interface User {
   about: string
   isShowAbout: TShowType
   isShowLastSeen: TShowType
-  isReadReceipts: TShowType
+  isReadReceipts: boolean
   isShowProfileImage: TShowType
 }

@@ -11,7 +11,7 @@ const initialState: User = {
   about: "",
   isShowAbout: "private",
   isShowLastSeen: "private",
-  isReadReceipts: "private",
+  isReadReceipts: true,
   isShowProfileImage: "private",
   isLoading: true,
 }
@@ -42,7 +42,7 @@ const userSlice = createSlice({
       state.about = ""
       state.isShowAbout = "private"
       state.isShowLastSeen = "private"
-      state.isReadReceipts = "private"
+      state.isReadReceipts = true
       state.isShowProfileImage = "private"
       state.isLoading = false
     },
