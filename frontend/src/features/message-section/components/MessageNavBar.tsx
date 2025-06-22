@@ -14,11 +14,12 @@ import {
 import { Button } from "@/components/ui/button"
 import useFriend from "@/features/chat-section/hooks/useFriend"
 
-
 const MessageNavBar = () => {
   const [isFriend, setIsFriend] = useState(false)
 
-  const { selectedChatUser, selectedChat } = useSelector((state: RootState) => state.chats)
+  const { selectedChatUser, selectedChat } = useSelector(
+    (state: RootState) => state.chats
+  )
   const { friends } = useSelector((state: RootState) => state.friend)
 
   const { createUser } = useFriend()
@@ -26,8 +27,8 @@ const MessageNavBar = () => {
   useUserOnlineStatus()
 
   useEffect(() => {
-    friends.forEach(friend => {
-      if (friend.friend._id === selectedChatUser?._id) {
+    friends.forEach((friend) => {
+      if (friend.friend?._id === selectedChatUser?._id) {
         setIsFriend(true)
       }
     })
@@ -51,33 +52,50 @@ const MessageNavBar = () => {
             </Avatar>
           </li>
           <li className="flex flex-col items-start">
-            <strong className="text-lg cursor-pointer">{selectedChatUser?.username}</strong>
+            <strong className="text-lg cursor-pointer">
+              {selectedChatUser?.username}
+            </strong>
             <p className="text-xs text-muted-foreground">
-              {
-                selectedChat?.typing && selectedChat?.typing.isTyping
-                  ? "typing..." :
-                  selectedChatUser?.isUserOnline
-                    ? "online"
-                    : selectedChatUser?.updatedAt && correctDate(selectedChatUser?.updatedAt)
-              }
+              {selectedChat?.typing && selectedChat?.typing.isTyping
+                ? "typing..."
+                : selectedChatUser?.isUserOnline
+                ? "online"
+                : selectedChatUser?.updatedAt &&
+                  correctDate(selectedChatUser?.updatedAt)}
             </p>
           </li>
         </DialogTrigger>
         <DialogContent className="flex flex-col items-center">
-          <img src={selectedChatUser?.imageUrl} alt=""
+          <img
+            src={selectedChatUser?.imageUrl}
+            alt=""
             height="150px"
             width="150px"
             className="rounded-full"
             loading="lazy"
           />
-          <DialogTitle className="cursor-pointer hover:underline">{selectedChatUser?.username}</DialogTitle>
-          <p className="text-muted-foreground">{selectedChat?.typing?.isTyping ? "Typing..." : selectedChatUser?.isUserOnline ? "Online" : "Offline"}</p>
-          {!isFriend && <Button
-            variant={"ghost"}
-            className="cursor-pointer"
-            onClick={addToFriends}
-          >Add to contacts</Button>}
-          <Button variant={"destructive"} className="cursor-pointer">Delete Chat</Button>
+          <DialogTitle className="cursor-pointer hover:underline">
+            {selectedChatUser?.username}
+          </DialogTitle>
+          <p className="text-muted-foreground">
+            {selectedChat?.typing?.isTyping
+              ? "Typing..."
+              : selectedChatUser?.isUserOnline
+              ? "Online"
+              : "Offline"}
+          </p>
+          {!isFriend && (
+            <Button
+              variant={"ghost"}
+              className="cursor-pointer"
+              onClick={addToFriends}
+            >
+              Add to contacts
+            </Button>
+          )}
+          <Button variant={"destructive"} className="cursor-pointer">
+            Delete Chat
+          </Button>
         </DialogContent>
       </ul>
     </Dialog>

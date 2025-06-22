@@ -10,7 +10,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { Chat } from "../models/chat.model.js"
 import { Message } from "../models/message.model.js"
 import { Friend } from "../models/friend.model.js"
-import type { Document } from "mongoose"
+import { uploadOnCloudinary } from "../utils/Cloudinary.js"
 
 /**
  * @desc    Create a new user from clerk webhook
@@ -282,6 +282,36 @@ const updateUserShowStatus = asyncHandler(
   }
 )
 
+/**
+ * @desc    Create a new message.
+ * @route   POST /api/v1/message/create
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing chat details (sender, message, imnage)
+ * @param {Response} res - Express response object to return message details
+ */
+const uploadProfileImage = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = await req.body
+
+  // @ts-ignore
+  const profileImage = req.files?.profileImage?.[0]?.path
+
+  if (profileImage) {
+    throw new ApiError(401, "Profile picture not found")
+  }
+
+  const uploadImageUrl = await uploadOnCloudinary(profileImage)
+
+  const imageUrl = uploadImageUrl?.url
+  logger.info("Uploaded Profile Image")
+
+  const user = await User.findByIdAndUpdate(userId, { imageUrl }, { new: true })
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, user, "Updated profile image"))
+})
+
 export {
   createUser,
   deleteUser,
@@ -291,4 +321,5 @@ export {
   getFriends,
   deleteFriend,
   updateUserShowStatus,
+  uploadProfileImage,
 }
