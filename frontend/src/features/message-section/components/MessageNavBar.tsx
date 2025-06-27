@@ -47,7 +47,13 @@ const MessageNavBar = () => {
         <DialogTrigger className="flex gap-5 items-center">
           <li className="cursor-pointer">
             <Avatar>
-              <AvatarImage src={selectedChatUser?.imageUrl} />
+              <AvatarImage
+                src={
+                  selectedChatUser?.showProfileImage == "public"
+                    ? selectedChatUser?.imageUrl
+                    : "./default-image.png"
+                }
+              />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
           </li>
@@ -56,7 +62,9 @@ const MessageNavBar = () => {
               {selectedChatUser?.username}
             </strong>
             <p className="text-xs text-muted-foreground">
-              {selectedChat?.typing && selectedChat?.typing.isTyping
+              {!selectedChatUser?.showLastSeen
+                ? ""
+                : selectedChat?.typing && selectedChat?.typing.isTyping
                 ? "typing..."
                 : selectedChatUser?.isUserOnline
                 ? "online"
@@ -67,7 +75,11 @@ const MessageNavBar = () => {
         </DialogTrigger>
         <DialogContent className="flex flex-col items-center">
           <img
-            src={selectedChatUser?.imageUrl}
+            src={
+              selectedChatUser?.showProfileImage
+                ? selectedChatUser?.imageUrl
+                : "./default-image.png"
+            }
             alt=""
             height="150px"
             width="150px"
@@ -78,11 +90,17 @@ const MessageNavBar = () => {
             {selectedChatUser?.username}
           </DialogTitle>
           <p className="text-muted-foreground">
-            {selectedChat?.typing?.isTyping
+            {!selectedChatUser?.showLastSeen
+              ? ""
+              : selectedChat?.typing?.isTyping
               ? "Typing..."
               : selectedChatUser?.isUserOnline
               ? "Online"
               : "Offline"}
+          </p>
+          <p>
+            <strong>About:</strong>
+            {selectedChatUser?.showAbout ? selectedChatUser.about : ""}
           </p>
           {!isFriend && (
             <Button

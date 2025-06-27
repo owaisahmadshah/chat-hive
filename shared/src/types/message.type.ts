@@ -1,9 +1,15 @@
+type TShowType = "contacts" | "public" | "private"
 export interface ChatUser {
     _id: string;
     username: string;
     imageUrl: string;
     updatedAt: Date;
     isUserOnline?: boolean;
+    about: string;
+    showAbout: TShowType;
+    showLastSeen: TShowType;
+    showProfileImage: TShowType;
+    isReadReceipts: boolean;
 }
 
 export interface Message {
