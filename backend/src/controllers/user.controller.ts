@@ -1,6 +1,4 @@
 import type { Request, Response } from "express"
-import { Webhook } from "svix"
-import { clerkClient } from "@clerk/express"
 
 import { asyncHandler } from "../utils/AsyncHandler.js"
 import logger from "../utils/logger.js"
@@ -11,77 +9,316 @@ import { Chat } from "../models/chat.model.js"
 import { Message } from "../models/message.model.js"
 import { Friend } from "../models/friend.model.js"
 import { uploadOnCloudinary } from "../utils/Cloudinary.js"
+import { generateExpiryTime, generateOTP } from "../utils/otp.js"
+import sendEmail from "../utils/sendEmail.js"
+import jwt from "jsonwebtoken"
 
 /**
- * @desc    Create a new user from clerk webhook
+ * @desc    Create a new user
  * @route   POST /api/v1/user/signup
  * @access  Public
  *
- * @param {Request} req - Express request object containing user details
- *                  (clerkId, fullName, email, imageUrl, lastSeen, lastSignInAt,
- *                  createdAt, updatedAt)
- * @param {Response} res - Express response object containg user data
- *
- * @details This controller handles webhook events from Clerk authentication service.
- *          It verifies the webhook signature using Svix, extracts user data from the payload,
- *          and creates a new user in the database. The verification process ensures
- *          that the webhook request is legitimate and comes from Clerk.
+ * @param {Request} req - Express request object containing user details(email, username, password)
  */
 const createUser = asyncHandler(async (req: Request, res: Response) => {
-  const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SECRET
+  const { email, username, password } = req.body
 
-  if (!SIGNING_SECRET) {
-    logger.error(
-      "Error: Please add SIGNING_SECRET from Clerk Dashboard to .env"
-    )
-    return new ApiError(500, "Internal Server Error")
+  if (!email || !username || !password) {
+    throw new ApiError(400, "Email, username, and password are required")
   }
 
-  // Create new Svix instance with secret for webhook verification
-  const svixInstance = new Webhook(SIGNING_SECRET)
+  // Check if user already exists
+  const existingUser = await User.findOne({
+    $or: [{ email }, { username }],
+  })
 
-  // Extract headers and payload from the request
-  const headers = req.headers
-  const payload = req.body
-
-  // Extract Svix verification headers
-  const svix_id = headers["svix-id"]
-  const svix_timestamp = headers["svix-timestamp"]
-  const svix_signature = headers["svix-signature"]
-
-  if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new ApiError(500, "Error: Missing svix headers")
+  if (existingUser) {
+    throw new ApiError(409, "User with this email or username already exists")
   }
 
-  try {
-    // Verify the webhook signature using Svix
-    //@ts-ignore
-    const { data } = svixInstance.verify(JSON.stringify(payload), {
-      "svix-id": svix_id as string,
-      "svix-timestamp": svix_timestamp as string,
-      "svix-signature": svix_signature as string,
-    })
+  const otpCode = generateOTP()
+  const otpExpiry = generateExpiryTime()
 
-    // Extract user data from the verified webhook payload
-    const userData = {
-      clerkId: data.id,
-      email: data.email_addresses[0].email_address,
-      username: data.username,
-      imageUrl: data.image_url,
-      isSignedIn: true,
+  // Sending otp email
+  const isOtpSent = await sendEmail(email, otpCode)
+
+  if (!isOtpSent) {
+    throw new ApiError(500, "Internal server error.")
+  }
+
+  await User.create({
+    email,
+    username,
+    password,
+    otp: otpCode,
+    otpExpiry,
+  })
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, {}, "Created account successfully."))
+})
+
+const generateAccessAndRefreshToken = async (
+  userId: string
+): Promise<{ accessToken: string; refreshToken: string }> => {
+  const user = await User.findById(userId)
+
+  if (!user) {
+    throw new ApiError(404, "User not found.")
+  }
+
+  const accessToken = user.generateAccessToken()
+  const refreshToken = user.generateRefreshToken()
+
+  await User.updateOne({ _id: user._id }, { refreshToken })
+
+  return { accessToken, refreshToken }
+}
+
+/**
+ * @desc    Verifies users accounts and also set new password if provided with otp
+ * @route   POST /api/v1/user/verify-otp
+ * @access  Public
+ *
+ * @param {Request} req - Express request object containing identifier(email, username), otpCode and password(optional)
+ * @param {Response} res - Express response message valid otp confirmation
+ */
+const verifyOtpAndSetNewPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { identifier, otpCode, password } = req.body
+
+    if (!identifier || !otpCode) {
+      throw new ApiError(400, "Identifier and otp are required")
     }
 
-    const user = await User.create(userData)
-    await user.save()
+    const dbUser = await User.findOne({
+      $or: [
+        {
+          email: identifier,
+        },
+        {
+          username: identifier,
+        },
+      ],
+    })
+
+    if (!dbUser) {
+      throw new ApiError(404, "User not found")
+    }
+
+    const { otp, otpExpiry } = dbUser
+
+    if (new Date() > otpExpiry) {
+      throw new ApiError(410, "OTP")
+    }
+
+    if (otp !== otpCode) {
+      throw new ApiError(401, "Incorrect otp code.")
+    }
+
+    if (!dbUser.isVerified) {
+      await User.updateOne({ _id: dbUser._id }, { isVerified: true })
+    }
+
+    // If user sets new password
+    if (password) {
+      dbUser.password = password
+      await dbUser.save()
+    }
+
+    return res.status(204).json(new ApiResponse(204, {}, "OTP verified."))
+  }
+)
+
+/**
+ * @desc    Sign in users if they are verified else will send a new verification code
+ * @route   POST /api/v1/user/sign-in
+ * @access  Public
+ *
+ * @param {Request} req - Express request object containing identifier(email, username), and password
+ * @param {Response} res - Express response set access and refresh tokens
+ */
+const signIn = asyncHandler(async (req: Request, res: Response) => {
+  const { identifier, password } = req.body
+
+  const dbUser = await User.findOne({
+    $or: [{ email: identifier }, { username: identifier }],
+  })
+
+  if (!dbUser) {
+    throw new ApiError(404, "User with this email/username is not found.")
+  }
+
+  // If user has account but didn't verified.
+  if (!dbUser.isVerified) {
+    const otpCode = generateOTP()
+    const otpExpiry = generateExpiryTime()
+
+    // Sending otp email
+    const isOtpSent = await sendEmail(dbUser.email, otpCode)
+
+    if (!isOtpSent) {
+      throw new ApiError(500, "Internal server error.")
+    }
+
+    dbUser.otp = otpCode
+    dbUser.otpExpiry = otpExpiry
+    await dbUser.save({ validateBeforeSave: false })
+
+    throw new ApiError(
+      403,
+      "Account not verified. Please verify your account with the OTP sent to your email."
+    )
+  }
+
+  const isPasswordCorrect = await dbUser.isPasswordCorrect(password)
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, "Incorrect Password")
+  }
+
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    dbUser._id as string
+  )
+
+  dbUser.refreshToken = refreshToken
+
+  await dbUser.save({ validateBeforeSave: false })
+
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  }
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(new ApiResponse(204, {}, "Signed In successfully."))
+})
+
+/**
+ * @desc    Resends otp.
+ * @route   POST /api/v1/user/resend-otp
+ * @access  Public
+ *
+ * @param {Request} req - Express request object containing identifier(email, username)
+ * @param {Response} res - Express response message sent otp confirmation
+ */
+const resendOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { identifier } = req.body
+
+  const user = await User.findOne({
+    $or: [{ email: identifier }, { username: identifier }],
+  })
+
+  if (!user) {
+    throw new ApiError(404, "User not found")
+  }
+
+  const otp = generateOTP()
+  const otpExpiry = generateExpiryTime()
+
+  const isOtpSent = await sendEmail(
+    user.email,
+    otp,
+    "Chat-Hive account verification code"
+  )
+
+  if (!isOtpSent) {
+    throw new ApiError(500, "Internal server error.")
+  }
+
+  user.otp = otp
+  user.otpExpiry = otpExpiry
+
+  await user.save({ validateBeforeSave: false })
+
+  return res
+    .status(200)
+    .json(new ApiResponse(204, {}, "Successfully sent otp."))
+})
+
+/**
+ * @desc    Generates refresh access token
+ * @route   POST /api/v1/user/refresh-token
+ * @access  Public
+ *
+ * @param {Request} req - Express request object containing old token
+ * @param {Response} res - Express response set new refresh and access tokens
+ */
+const generateRefreshAccessToken = asyncHandler(
+  async (req: Request, res: Response) => {
+    const token =
+      req.cookies.refreshToken ||
+      req.headers["authorization"]?.replace(/^Bearer\s+/i, "").trim()
+
+    if (!token) {
+      throw new ApiError(401, "Refresh token is required.")
+    }
+
+    const decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET!)
+
+    const user = await User.findById((decodedToken as any)._id)
+
+    if (!user) {
+      throw new ApiError(401, "Invalid refresh token")
+    }
+
+    if (token !== user.refreshToken) {
+      throw new ApiError(401, "Invalid refresh token")
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      user._id as string
+    )
+
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    }
 
     return res
       .status(200)
-      .json(new ApiResponse(201, {}, "Successfully createdUser"))
-  } catch (error) {
-    // logger.error(error?.message)
-    logger.error(error)
-    throw new ApiError(500, "Internel Server Error")
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(new ApiResponse(205, {}, ""))
   }
+)
+
+/**
+ * @desc    Sets new password
+ * @route   POST /api/v1/user/change-password
+ * @access  Private
+ *
+ * @param {Request} req - Express request object containing old and new password
+ * @param {Response} res - Express response
+ */
+const changePassword = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ApiError(401, "Authenticated user not found in request")
+  }
+
+  const { oldPassword, newPassword } = req.body
+
+  const user = await User.findById(req.user._id as string)
+
+  if (!user) {
+    throw new ApiError(404, "User not found")
+  }
+
+  if (!user.isPasswordCorrect(oldPassword)) {
+    throw new ApiError(400, "Original password isn't correct")
+  }
+
+  user.password = newPassword
+
+  await user.save()
+
+  return res
+    .status(200)
+    .json(new ApiResponse(204, {}, "Successfully changed password"))
 })
 
 /**
@@ -93,26 +330,26 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
  * @param {Response} res - Express response message delete confirmation
  */
 const deleteUser = asyncHandler(async (req: Request, res: Response) => {
-  const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SECRET
-
-  if (!SIGNING_SECRET) {
-    logger.error(
-      "Error: Please add SIGNING_SECRET from Clerk Dashboard to .env"
-    )
-    return new ApiError(500, "Internal Server Error")
+  if (!req.user) {
+    throw new ApiError(401, "Authenticated user not found in request")
   }
 
-  const { userId, clerkId } = req.body
+  const { _id } = req.user
 
   try {
-    await clerkClient.users.deleteUser(clerkId)
+    await User.findOneAndDelete({ _id: _id })
+    await Chat.deleteMany({ $or: [{ users: _id }, { deletedBy: _id }] })
+    await Message.deleteMany({ sender: _id })
 
-    await User.findOneAndDelete({ _id: userId })
-    await Chat.deleteMany({ $or: [{ users: userId }, { deletedBy: userId }] })
-    await Message.deleteMany({ sender: userId })
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    }
 
     return res
-      .status(201)
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
       .json(new ApiResponse(200, {}, "Deleted user successfully"))
   } catch (error: any) {
     logger.error("Error while deleting user", error)
@@ -314,6 +551,12 @@ const uploadProfileImage = asyncHandler(async (req: Request, res: Response) => {
 
 export {
   createUser,
+  generateAccessAndRefreshToken,
+  verifyOtpAndSetNewPassword,
+  signIn,
+  resendOtp,
+  generateRefreshAccessToken,
+  changePassword,
   deleteUser,
   getUser,
   usersSuggestion,

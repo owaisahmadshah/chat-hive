@@ -1,7 +1,8 @@
 import { Router } from "express"
-import { requireAuth } from "@clerk/express"
 
 import { upload } from "../middlewares/multer.middleware.js"
+import { auth } from "../middlewares/auth.middleware.js"
+
 import {
   createMessage,
   deleteMessage,
@@ -15,12 +16,12 @@ const router = Router()
 router
   .route("/create")
   .post(
-    requireAuth(),
+    auth,
     upload.fields([{ name: "uploadedImage", maxCount: 1 }]),
     createMessage
   )
-router.route("/delete").delete(requireAuth(), deleteMessage)
-router.route("/updatestatus").post(requireAuth(), updateMessagesStatus)
-router.route("/updateonestatus").post(requireAuth(), updateMessageStatus)
+router.route("/delete").delete(auth, deleteMessage)
+router.route("/updatestatus").post(auth, updateMessagesStatus)
+router.route("/updateonestatus").post(auth, updateMessageStatus)
 
 export default router

@@ -9,24 +9,37 @@ import {
   updateUserShowStatus,
   uploadProfileImage,
   usersSuggestion,
+  verifyOtpAndSetNewPassword,
+  signIn,
+  resendOtp,
+  generateRefreshAccessToken,
+  changePassword,
 } from "../controllers/user.controller.js"
-import { requireAuth } from "@clerk/express"
 import { upload } from "../middlewares/multer.middleware.js"
+import { auth } from "../middlewares/auth.middleware.js"
 
 const router = Router()
 
+// Public routes
 router.route("/signup").post(createUser)
-router.route("/delete").delete(deleteUser, requireAuth())
-router.route("/user").post(getUser, requireAuth())
-router.route("/suggestions").post(usersSuggestion, requireAuth())
-router.route("/create-friend").post(createFriend, requireAuth())
-router.route("/delete-friend").delete(deleteFriend, requireAuth())
-router.route("/get-friends").post(getFriends, requireAuth())
-router.route("/update-user-fields").post(updateUserShowStatus, requireAuth())
+router.route("/verify-otp").post(verifyOtpAndSetNewPassword)
+router.route("/sign-in").post(signIn)
+router.route("/resent-otp").post(resendOtp)
+router.route("/refresh-token").post(generateRefreshAccessToken)
+
+// Private routes
+router.route("/delete").delete(auth, deleteUser)
+router.route("/delete-friend").delete(auth, deleteFriend)
+router.route("/change-password").post(auth, changePassword)
+router.route("/user").post(auth, getUser)
+router.route("/create-friend").post(auth, createFriend)
+router.route("/suggestions").post(auth, usersSuggestion)
+router.route("/update-user-fields").post(auth, updateUserShowStatus)
+router.route("/get-friends").post(auth, getFriends)
 router
   .route("/update-profile-image")
   .post(
-    requireAuth(),
+    auth,
     upload.fields([{ name: "profileImage", maxCount: 1 }]),
     uploadProfileImage
   )
