@@ -1,7 +1,6 @@
 import express from "express"
 import morgan from "morgan"
 import cors from "cors"
-import { clerkMiddleware } from "@clerk/express"
 
 import logger from "./utils/logger.js"
 
@@ -38,9 +37,6 @@ app.use(
     },
   })
 )
-
-// Authentication middleware
-app.use(clerkMiddleware()) // https://clerk.com/docs/upgrade-guides/node-to-express#migrate-from-clerk-express-require-auth
 
 // Import route handlers
 import healthCheckRouter from "./routes/healthCheck.route.js"

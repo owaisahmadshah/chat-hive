@@ -24,7 +24,7 @@ const router = Router()
 router.route("/signup").post(createUser)
 router.route("/verify-otp").post(verifyOtpAndSetNewPassword)
 router.route("/sign-in").post(signIn)
-router.route("/resent-otp").post(resendOtp)
+router.route("/resend-otp").post(resendOtp)
 router.route("/refresh-token").post(generateRefreshAccessToken)
 
 // Private routes

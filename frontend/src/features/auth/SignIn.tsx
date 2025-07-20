@@ -2,8 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useState } from "react"
 import { z } from "zod"
-import { useSignIn } from "@clerk/clerk-react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -23,6 +22,7 @@ import {
 } from "@/components/ui/input-otp"
 import { AlertCircle } from "lucide-react"
 import { resetPasswordSchema } from "./types/resetPasswordSchema"
+import { useAuth } from "./hooks/useAuth"
 
 function SignInForm() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
@@ -31,14 +31,18 @@ function SignInForm() {
   const [email, setEmail] = useState<string | null>(null)
   const [isCodeSent, setIsCodeSent] = useState(false)
   const [verificationCode, setVerificationCode] = useState("")
-  const [verificationError, setVerificationError] = useState<string | null>(null)
+  const [verificationError, setVerificationError] = useState<string | null>(
+    null
+  )
 
-  const { signIn, isLoaded, setActive } = useSignIn()
+  const navigate = useNavigate()
+
+  const { signIn, forgetPassword, resendOtp } = useAuth()
 
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -54,220 +58,209 @@ function SignInForm() {
     formState: { errors: resetErrors },
   } = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
-  });
-
-
+  })
 
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     const { identifier, password } = data
-    if (password.trim() === "" || !isLoaded) {
+    if (password.trim() === "") {
       return
     }
 
     setIsSubmitting(true)
     setAuthError(null)
 
-    try {
-      const response = await signIn.create({
-        identifier: identifier,
-        password: password
-      })
+    const { success, error } = await signIn({ identifier, password })
 
-      await setActive({
-        session: response.createdSessionId,
-        redirectUrl: "/"
-      })
-    } catch (error) {
+    if (success) {
+      navigate("/")
+    } else {
       console.error("Error while signing", error)
-
       setAuthError("Error while signing")
-    } finally {
-      setIsSubmitting(false)
     }
+    setIsSubmitting(false)
   }
 
   const sendCode = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!email || !isLoaded) {
+    if (!email) {
       return
     }
 
     setIsSubmitting(true)
     setAuthError(null)
 
-    try {
-      await signIn.create({
-        strategy: "reset_password_email_code",
-        identifier: email
-      })
+    const { success, error } = await resendOtp({ identifier: email })
 
+    if (success) {
       setIsCodeSent(true)
-    } catch (error) {
+    } else {
       console.error("Error while sending reset code", error)
       setAuthError("Error while sending code")
-    } finally {
-      setIsSubmitting(false)
     }
+
+    setIsSubmitting(false)
   }
 
-  const handleResetVerification = async (data: z.infer<typeof resetPasswordSchema>) => {
-    if (!isLoaded || verificationCode.trim().length !== 6) {
+  const handleResetVerification = async (
+    data: z.infer<typeof resetPasswordSchema>
+  ) => {
+    if (verificationCode.trim().length !== 6 || !email) {
       return
     }
 
     setIsSubmitting(true)
     setVerificationError(null)
 
-    try {
-      const result = await signIn.attemptFirstFactor({ strategy: "reset_password_email_code", code: verificationCode, password: data.password })
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId, redirectUrl: "/" })
-      } else {
-        setVerificationError(result.status)
-      }
-    } catch (error) {
-      console.error("Error verifying otp", error)
+    const { success, error } = await forgetPassword({
+      identifier: email,
+      otpCode: verificationCode,
+      password: data.password,
+    })
 
+    if (!success) {
+      console.error("Error verifying otp", error)
       setAuthError("Error verifying otp")
-    } finally {
-      setIsSubmitting(false)
     }
+
+    setIsSubmitting(false)
   }
 
+  const handleResendCode = async () => {}
 
   if (isCodeSent) {
-    return <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm mx-auto">
-        <Card className="pl-[10%]">
-          <CardHeader>
-            <CardTitle className="text-2xl">Email Verification</CardTitle>
-            <CardDescription>
-              Enter new password and one-time OTP below
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {verificationError && (
-              <div className="bg-destructive p-4 rounded-lg mb-6 flex items-center gap-2">
-                <AlertCircle className="h-5 w-5" />
-                <p>{verificationError}</p>
-              </div>
-            )}
-            <form autoComplete="off" onSubmit={handleSubmitReset(handleResetVerification)}>
-              <div className="grid gap-2">
-                <Label htmlFor="password">New Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  {...registerReset("password")}
-                />
-                <p className="text-xs text-destructive" role="alert">{errors.password?.message}</p>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  required
-                  {...registerReset("passwordConfirmation")}
-                />
-                <p className="text-xs text-destructive" role="alert">{resetErrors.passwordConfirmation?.message}</p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>Your one-time OTP</Label>
-                <InputOTP
-                  maxLength={6}
-                  value={verificationCode}
-                  onChange={(code) => setVerificationCode(code)}
-                  className="mx-auto"
-                >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
-              <div>
-                <Button
-                  type="submit"
-                  className="cursor-pointer my-3"
-                >{isSubmitting ? "Resetting..." : "Reset"}</Button>
-              </div>
-            </form>
-            <p className="text-sm">
-              Did not receive a code?{" "}
-              <Button
-                onClick={async () => {
-                  console.log("sending")
-                  if (signIn && email) {
-                    await signIn.create({
-                      strategy: "reset_password_email_code",
-                      identifier: email
-                    })
-                  }
-                }}
-                variant={"ghost"}
-                className="hover:underline cursor-pointer"
-              >
-                Resend code
-              </Button>
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  }
-
-  if (isForgotPassword) {
-    return <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className={"flex flex-col gap-6"}>
-          <Card>
+    return (
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm mx-auto">
+          <Card className="pl-[10%]">
             <CardHeader>
-              <CardTitle className="text-2xl">Reset Password</CardTitle>
+              <CardTitle className="text-2xl">Email Verification</CardTitle>
               <CardDescription>
-                Enter your email to reset password
+                Enter new password and one-time OTP below
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {authError && (
+              {verificationError && (
                 <div className="bg-destructive p-4 rounded-lg mb-6 flex items-center gap-2">
                   <AlertCircle className="h-5 w-5" />
-                  <p>{authError}</p>
+                  <p>{verificationError}</p>
                 </div>
               )}
-              <form autoComplete="off" onSubmit={sendCode}>
-                <div className="flex flex-col gap-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="m@example.com"
-                      onChange={(e) => setEmail(e.target.value)}
-                      autoFocus
-                      required
-                    />
-                    <p className="text-xs text-destructive" role="alert">{errors.identifier?.message}</p>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full cursor-pointer"
+              <form
+                autoComplete="off"
+                onSubmit={handleSubmitReset(handleResetVerification)}
+              >
+                <div className="grid gap-2">
+                  <Label htmlFor="password">New Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    {...registerReset("password")}
+                  />
+                  <p className="text-xs text-destructive" role="alert">
+                    {errors.password?.message}
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    required
+                    {...registerReset("passwordConfirmation")}
+                  />
+                  <p className="text-xs text-destructive" role="alert">
+                    {resetErrors.passwordConfirmation?.message}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label>Your one-time OTP</Label>
+                  <InputOTP
+                    maxLength={6}
+                    value={verificationCode}
+                    onChange={(code) => setVerificationCode(code)}
+                    className="mx-auto"
                   >
-                    {isSubmitting ? "Sending code..." : "Send code"}
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <div>
+                  <Button type="submit" className="cursor-pointer my-3">
+                    {isSubmitting ? "Resetting..." : "Reset"}
                   </Button>
                 </div>
               </form>
+              <p className="text-sm">
+                Did not receive a code?{" "}
+                <Button
+                  onClick={handleResendCode}
+                  variant={"ghost"}
+                  className="hover:underline cursor-pointer"
+                >
+                  Resend code
+                </Button>
+              </p>
             </CardContent>
           </Card>
         </div>
       </div>
-    </div>
+    )
+  }
+
+  if (isForgotPassword) {
+    return (
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm">
+          <div className={"flex flex-col gap-6"}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Reset Password</CardTitle>
+                <CardDescription>
+                  Enter your email to reset password
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {authError && (
+                  <div className="bg-destructive p-4 rounded-lg mb-6 flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5" />
+                    <p>{authError}</p>
+                  </div>
+                )}
+                <form autoComplete="off" onSubmit={sendCode}>
+                  <div className="flex flex-col gap-6">
+                    <div className="grid gap-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="m@example.com"
+                        onChange={(e) => setEmail(e.target.value)}
+                        autoFocus
+                        required
+                      />
+                      <p className="text-xs text-destructive" role="alert">
+                        {errors.identifier?.message}
+                      </p>
+                    </div>
+                    <Button type="submit" className="w-full cursor-pointer">
+                      {isSubmitting ? "Sending code..." : "Send code"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -300,7 +293,9 @@ function SignInForm() {
                       required
                       {...register("identifier")}
                     />
-                    <p className="text-xs text-destructive" role="alert">{errors.identifier?.message}</p>
+                    <p className="text-xs text-destructive" role="alert">
+                      {errors.identifier?.message}
+                    </p>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>
@@ -310,12 +305,11 @@ function SignInForm() {
                       required
                       {...register("password")}
                     />
-                    <p className="text-xs text-destructive" role="alert">{errors.password?.message}</p>
+                    <p className="text-xs text-destructive" role="alert">
+                      {errors.password?.message}
+                    </p>
                   </div>
-                  <Button
-                    type="submit"
-                    className="w-full cursor-pointer"
-                  >
+                  <Button type="submit" className="w-full cursor-pointer">
                     {isSubmitting ? "Signing in..." : "Sign in"}
                   </Button>
                   <span>

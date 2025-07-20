@@ -14,3 +14,5 @@ export const signUpSchema = z
     message: "Passwords don't match.",
     path: ["passwordConfirmation"],
   })
+
+export type TSignUpSchema = z.infer<typeof signUpSchema>
