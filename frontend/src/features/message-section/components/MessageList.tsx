@@ -1,6 +1,5 @@
 import { useSelector } from "react-redux"
 import React, { useEffect, useRef, useState } from "react"
-// import { CircleLoader, SyncLoader } from "react-spinners"
 import { CircleLoader } from "react-spinners"
 
 import { ScrollArea } from "@/components/ui/scroll-area"

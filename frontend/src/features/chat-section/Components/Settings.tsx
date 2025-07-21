@@ -1,4 +1,3 @@
-import { SignOutButton } from "@clerk/clerk-react"
 import { HelpCircle, LogOut, Trash } from "lucide-react"
 import { useSelector } from "react-redux"
 
@@ -219,7 +218,7 @@ const Settings = () => {
           <Separator />
           <li className={cn(listItemClasses, "text-red-400")}>
             <LogOut />
-            <SignOutButton />
+            <p>Sign Out</p>
           </li>
         </ul>
       </ScrollArea>

@@ -1,6 +1,5 @@
 import { useDispatch, useSelector } from "react-redux"
 import axios from "axios"
-import { useAuth } from "@clerk/clerk-react"
 
 import { addMessage, deleteMessage, setMessages } from "@/store/slices/messages"
 import { RootState } from "@/store/store"
@@ -14,8 +13,6 @@ import { useSocketService } from "@/hooks/useSocketService"
 import { useRef } from "react"
 
 const useMessage = () => {
-  const { getToken } = useAuth()
-
   const dispatch = useDispatch()
 
   const userId = useSelector((state: RootState) => state.user.userId)
@@ -44,9 +41,7 @@ const useMessage = () => {
         selectedChatRef.current.users.length === 1 ? "seen" : "sent"
       ) // If user.length === 1 then we are sending message to self, so status is seen otherwise sent
 
-      const token = await getToken()
-
-      const data = await sendMessage(formData, token)
+      const data = await sendMessage(formData)
 
       const filteredMessage = data.data.filteredMessage
 
@@ -91,17 +86,11 @@ const useMessage = () => {
     }
 
     try {
-      const token = await getToken()
-
       const selectedChatId = selectedChatRef.current?._id
 
-      await deleteMessageService(
-        {
-          messageId,
-          userId,
-        },
-        token
-      )
+      await deleteMessageService({
+        messageId,
+      })
 
       const chatMessages = allMessagesRef.current[selectedChatId]
       const lastMessage = {
@@ -143,17 +132,11 @@ const useMessage = () => {
     }
 
     try {
-      const token = await getToken()
-
-      const { data } = await getChatMessagesService(
-        {
-          chatId,
-          userId,
-          userChatMessages:
-            allMessagesRef.current[selectedChatRef.current?._id].length,
-        },
-        token
-      )
+      const { data } = await getChatMessagesService({
+        chatId,
+        userChatMessages:
+          allMessagesRef.current[selectedChatRef.current?._id].length,
+      })
 
       dispatch(
         setMessages({

@@ -1,6 +1,5 @@
 import axios from "axios"
 import { useDispatch, useSelector } from "react-redux"
-import { useAuth } from "@clerk/clerk-react"
 
 import {
   createChat,
@@ -19,8 +18,6 @@ import {
 import { useSocketService } from "@/hooks/useSocketService"
 
 const useChat = () => {
-  const { getToken } = useAuth()
-
   const dispatch = useDispatch()
 
   const { joinSocketChat } = useSocketService()
@@ -33,9 +30,7 @@ const useChat = () => {
   // This function will fetch users based on the search query of the user
   const fetchUsers = async (identifier: string) => {
     try {
-      const token = await getToken()
-
-      const data = await fetchUser({ identifier }, token)
+      const data = await fetchUser({ identifier })
       return data.data.users
     } catch (error) {
       console.error("Error fetching users", error)
@@ -48,13 +43,11 @@ const useChat = () => {
 
   const createNewChat = async (user: ChatUser) => {
     try {
-      const token = await getToken()
-
       const usersSet = new Set([user._id, userId])
       const uniqueUsers = Array.from(usersSet)
 
       const chatBody = { admin: userId, users: uniqueUsers }
-      const { data } = await createChat(chatBody, token)
+      const { data } = await createChat(chatBody)
 
       //* Emitting new chat event to the server
       joinSocketChat(data.data?.chat[0]._id)
@@ -72,11 +65,9 @@ const useChat = () => {
 
   const deleteAChat = async (chatId: string) => {
     try {
-      const token = await getToken()
-
       const deleteChatBody = { userId, chatId }
 
-      await deleteChatService(deleteChatBody, token)
+      await deleteChatService(deleteChatBody)
 
       if (chatId === selectedChat?._id) {
         dispatch(setSelectedChat(null))

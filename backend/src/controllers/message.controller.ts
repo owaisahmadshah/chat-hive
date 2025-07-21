@@ -6,6 +6,7 @@ import logger from "../utils/logger.js"
 import { Message } from "../models/message.model.js"
 import { Chat } from "../models/chat.model.js"
 import { User } from "../models/user.model.js"
+import { ApiError } from "../utils/ApiError.js"
 
 /**
  * @desc    Create a new message.
@@ -79,18 +80,27 @@ const deleteMessage = asyncHandler(async (req: Request, res: Response) => {
   // TODO Update backend to properly delete lastMessage and add the second last message as lastMessage
   // TODO get chatId and update the lastMessage based on user update
   // TODO figure out how to update lastMessage
-  const { messageId, userId } = await req.body
 
-  const deleteMessage = await Message.findById(messageId)
+  if (!req.user) {
+    throw new ApiError(401, "Unauthorized")
+  }
+
+  const userId = req.user._id
+  const { messageId } = await req.body
+
+  // const deleteMessage = await Message.findById(messageId)
+  const deleteMessage = await Message.findByIdAndUpdate(
+    messageId,
+    {
+      $addToSet: { deletedBy: userId },
+    },
+    { new: true }
+  )
 
   if (!deleteMessage) {
     return res.status(404).json(new ApiResponse(404, {}, "Message not found"))
   }
 
-  if (deleteMessage?.deletedBy) {
-    deleteMessage.deletedBy = [...deleteMessage.deletedBy, userId]
-  }
-  await deleteMessage.save()
   return res
     .status(201)
     .json(new ApiResponse(201, {}, "Deleted Message successfully"))
@@ -106,7 +116,12 @@ const deleteMessage = asyncHandler(async (req: Request, res: Response) => {
  */
 const updateMessagesStatus = asyncHandler(
   async (req: Request, res: Response) => {
-    const { chatId, userId, status } = await req.body
+    if (!req.user) {
+      throw new ApiError(401, "Unauthorized")
+    }
+
+    const userId = req.user._id
+    const { chatId, status } = await req.body
 
     let statusQuery = ["sent"]
     if (status === "seen") {
@@ -140,7 +155,7 @@ const updateMessagesStatus = asyncHandler(
 
 const updateMessageStatus = asyncHandler(
   async (req: Request, res: Response) => {
-    const { userId, messageId, status } = await req.body
+    const { messageId, status } = await req.body
 
     await Message.findByIdAndUpdate(
       messageId,

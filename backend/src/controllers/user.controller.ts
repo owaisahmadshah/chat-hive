@@ -370,7 +370,6 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
  *                   updatedAt)
  */
 const getUser = asyncHandler(async (req: Request, res: Response) => {
-  // const { clerkId } = await req.body
   const reqUser = req.user
 
   if (!reqUser) {

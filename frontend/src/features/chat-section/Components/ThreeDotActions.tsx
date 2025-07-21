@@ -1,5 +1,4 @@
 import { MoreVertical } from "lucide-react"
-import { SignOutButton } from "@clerk/clerk-react"
 
 import {
   DropdownMenu,
@@ -22,7 +21,7 @@ const ThreeDotsMenu = () => {
             Create New Group
           </DropdownMenuItem>
           <DropdownMenuItem className="text-red-500 cursor-pointer" onSelect={(e) => e.preventDefault()}>
-            <SignOutButton />
+            <p>Sign Out</p>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

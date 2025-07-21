@@ -5,6 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { Chat } from "../models/chat.model.js"
 import mongoose from "mongoose"
 import { Message } from "../models/message.model.js"
+import { ApiError } from "../utils/ApiError.js"
 
 /**
  * @desc    Create a new chat if it doesn't exist or return the existing chat.
@@ -137,22 +138,27 @@ const getCreatingChatDetails = async (chatId: mongoose.Types.ObjectId) => {
  * @route   POST /api/v1/chat/delete
  * @access  Private
  *
- * @param {Request} req - Express request object containing chatId and userId
+ * @param {Request} req - Express request object containing user and chatId
  * @param {Response} res - Express response object
  */
 const deleteChat = asyncHandler(async (req: Request, res: Response) => {
-  const { chatId, userId } = await req.body
+  if (!req.user) {
+    throw new ApiError(401, "Unauthorized")
+  }
 
-  const deletedChat = await Chat.findById(chatId)
+  const userId = req.user._id
+  const { chatId } = req.body
+
+  // This action won't update chat timestamps, so other user won't get wrong timestamps
+  // agar e user ki delete pray khur usersN pachan time change no boi
+  const deletedChat = await Chat.findByIdAndUpdate(
+    chatId,
+    { $addToSet: { deletedBy: userId } },
+    { new: true, timestamps: false }
+  )
 
   if (!deletedChat) {
     return res.status(404).json(new ApiResponse(404, {}, "Chat not found"))
-  }
-
-  if (deletedChat?.deletedBy) {
-    deletedChat.deletedBy = [...deletedChat.deletedBy, userId]
-  } else {
-    deletedChat.deletedBy = [userId]
   }
 
   const deleteMessagesOptions = [
@@ -172,9 +178,6 @@ const deleteChat = asyncHandler(async (req: Request, res: Response) => {
 
   await Message.bulkWrite(deleteMessagesOptions)
 
-  // This action won't update chat timestamps, so other user won't get wrong timestamps
-  await deletedChat.save({ timestamps: false }) // agar e user ki delete pray khur usersN pachan time change no boi
-
   return res.status(201).json(new ApiResponse(201, {}, "Success"))
 })
 
@@ -183,12 +186,16 @@ const deleteChat = asyncHandler(async (req: Request, res: Response) => {
  * @route   POST /api/v1/chat/get
  * @access  Private
  *
- * @param {Request} req - Express request object containing chats details (userId)
+ * @param {Request} req - Express request object containing user
  * @param {Response} res - Express response object contains all the chats and messages of a user
  */
 const getChatsAndMessages = asyncHandler(
   async (req: Request, res: Response) => {
-    const { userId } = await req.body
+    if (!req.user) {
+      throw new ApiError(401, "Unauthorized")
+    }
+
+    const userId = req.user._id
 
     // Without converting match won't match these b/c these are stored as mongoose object id
     const objectId: mongoose.Types.ObjectId = new mongoose.Types.ObjectId(
@@ -478,7 +485,12 @@ const getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
 })
 
 const getMoreMessages = asyncHandler(async (req: Request, res: Response) => {
-  const { chatId, userId, userChatMessages } = await req.body
+  if (!req.user) {
+    throw new ApiError(401, "Unauthorized")
+  }
+  
+  const userId = req.user._id
+  const { chatId, userChatMessages } = await req.body
 
   const { messages } = await getMessages(chatId, userId, userChatMessages)
 
