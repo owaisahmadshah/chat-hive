@@ -1,5 +1,5 @@
-import { Navigate, RouteProps } from 'react-router-dom'
-import useCustomAuth from '@/hooks/useCustomAuth'
+import { Navigate, RouteProps } from "react-router-dom"
+import useRequireAuth from "@/hooks/useRequireAuth"
 
 type PrivateRouteProps = RouteProps & {
   url: string
@@ -8,17 +8,17 @@ type PrivateRouteProps = RouteProps & {
 }
 
 const PrivateRoute = ({ url, redirectTo, children }: PrivateRouteProps) => {
-  const { isAuthenticated, isLoading } = useCustomAuth();
+  const { isSignedIn, isLoading } = useRequireAuth()
 
   if (isLoading) {
     return
   }
 
-  if (!isAuthenticated && url === "/") {
+  if (!isSignedIn && url === "/") {
     return <Navigate to={redirectTo} replace />
   }
 
-  if (isAuthenticated && (url === "/sign-in" || url === "/sign-up")) {
+  if (isSignedIn && (url === "/sign-in" || url === "/sign-up")) {
     return <Navigate to={redirectTo} replace />
   }
 

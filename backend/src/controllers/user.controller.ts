@@ -190,7 +190,8 @@ const signIn = asyncHandler(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
   }
-
+  console.log(accessToken)
+  console.log(refreshToken)
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -369,9 +370,14 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
  *                   updatedAt)
  */
 const getUser = asyncHandler(async (req: Request, res: Response) => {
-  const { clerkId } = await req.body
+  // const { clerkId } = await req.body
+  const reqUser = req.user
 
-  const user = await User.findOne({ clerkId }).select(
+  if (!reqUser) {
+    throw new ApiError(401, "Unauthorized")
+  }
+
+  const user = await User.findById(reqUser._id).select(
     "_id email username imageUrl lastSignInAt about isReadReceipts showAbout showLastSeen showProfileImage"
   )
 

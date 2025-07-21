@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux"
 
-import useGetUserId from "@/hooks/useGetUserId"
+import useGetUserId from "@/hooks/useGetUser"
 import ChatSection from "@/features/chat-section/ChatSection"
 import MessageSection from "@/features/message-section/MessageSection"
 import Loader from "@/components/Loader"

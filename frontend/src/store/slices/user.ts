@@ -14,6 +14,7 @@ const initialState: User = {
   isReadReceipts: true,
   showProfileImage: "private",
   isLoading: true,
+  isSignedIn: false,
 }
 
 const userSlice = createSlice({

@@ -11,4 +11,5 @@ export interface User {
   showLastSeen: TShowType
   isReadReceipts: boolean
   showProfileImage: TShowType
+  isSignedIn: boolean
 }

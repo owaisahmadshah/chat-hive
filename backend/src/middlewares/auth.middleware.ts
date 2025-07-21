@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction } from "express"
-import { asyncHandler } from "../utils/AsyncHandler.js"
 import { ApiError } from "../utils/ApiError.js"
 import jwt from "jsonwebtoken"
 import { User } from "../models/user.model.js"
@@ -15,7 +14,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     req["headers"].authorization?.replace(/^Bearer\s+/i, "").trim()
 
   if (!token) {
-    return next(new ApiError(401, "Unauthorized!"))
+    return next(new ApiError(401, "Unauthorized"))
   }
 
   try {
