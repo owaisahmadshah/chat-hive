@@ -1,7 +1,7 @@
 import api from "@/lib/axiosInstance"
 
-const fetchUser = async (identifier: { identifier: string }) => {
-  const { data } = await api.post("/v1/user/suggestions", identifier)
+const fetchUser = async (username: { username: string }) => {
+  const { data } = await api.post("/v1/user/suggestions", username)
   return data
 }
 
