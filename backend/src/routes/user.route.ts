@@ -14,6 +14,7 @@ import {
   resendOtp,
   generateRefreshAccessToken,
   changePassword,
+  uniqueUsername,
 } from "../controllers/user.controller.js"
 import { upload } from "../middlewares/multer.middleware.js"
 import { auth } from "../middlewares/auth.middleware.js"
@@ -26,6 +27,7 @@ router.route("/verify-otp").post(verifyOtpAndSetNewPassword)
 router.route("/sign-in").post(signIn)
 router.route("/resend-otp").post(resendOtp)
 router.route("/refresh-token").post(generateRefreshAccessToken)
+router.route("/unique-username").get(uniqueUsername)
 
 // Private routes
 router.route("/delete").delete(auth, deleteUser)

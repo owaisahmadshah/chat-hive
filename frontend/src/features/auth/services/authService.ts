@@ -22,3 +22,8 @@ export const signInService = async (data: TSignInSchema) => {
   const response = await api.post("/v1/user/sign-in", data)
   return response.data
 }
+
+export const uniqueUsername = async (data: { username: string }) => {
+  const response = await api.get("/v1/user/unique-username", { params: data })
+  return response.data
+}

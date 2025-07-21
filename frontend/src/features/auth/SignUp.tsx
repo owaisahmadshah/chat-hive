@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { z } from "zod"
 import { Link, useNavigate } from "react-router-dom"
 
@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/input-otp"
 import { AlertCircle } from "lucide-react"
 import { useAuth } from "./hooks/useAuth"
+import debounce from "lodash.debounce"
+import { cn } from "@/lib/utils"
 
 function SignUpForm() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
@@ -32,14 +34,19 @@ function SignUpForm() {
   const [verificationError, setVerificationError] = useState<string | null>(
     null
   )
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
+    null
+  )
+  const [checkingUsername, setCheckingUsername] = useState(false)
 
   const navigate = useNavigate()
 
-  const { signUp, verifyOtp, resendOtp } = useAuth()
+  const { signUp, verifyOtp, resendOtp, uniqueUserUsername } = useAuth()
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
@@ -50,6 +57,26 @@ function SignUpForm() {
       passwordConfirmation: "",
     },
   })
+
+  const usernameValue = watch("username")
+
+  const debouncedSearch = useCallback(
+    debounce(async (username: string) => {
+      if (!username.trim() || username.trim().length < 4) return
+
+      setCheckingUsername(true)
+
+      const available = await uniqueUserUsername(username.trim())
+
+      setUsernameAvailable(available)
+      setCheckingUsername(false)
+    }, 500),
+    []
+  )
+
+  useEffect(() => {
+    debouncedSearch(usernameValue?.trim())
+  }, [usernameValue])
 
   const handleVerificationSubmit = async () => {
     if (verificationCode.trim().length !== 6) {
@@ -188,6 +215,23 @@ function SignUpForm() {
                       required
                       {...register("username")}
                     />
+                    {checkingUsername ? (
+                      <p className="text-xs">"Checking username..."</p>
+                    ) : usernameAvailable !== null &&
+                      usernameValue.length > 3 ? (
+                      <p
+                        className={cn(
+                          usernameAvailable ? "text-green-500" : "text-red-500",
+                          "text-xs"
+                        )}
+                      >
+                        {usernameAvailable
+                          ? "Username is available"
+                          : "Username is already taken"}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                     <p className="text-xs text-destructive" role="alert">
                       {errors.username?.message}
                     </p>

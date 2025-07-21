@@ -81,15 +81,16 @@ const generateAccessAndRefreshToken = async (
  * @route   POST /api/v1/user/verify-otp
  * @access  Public
  *
- * @param {Request} req - Express request object containing identifier(email, username), otpCode and password(optional)
+ * @param {Request} req - Express request object containing username(email, username), otpCode and password(optional)
  * @param {Response} res - Express response message valid otp confirmation
  */
 const verifyOtpAndSetNewPassword = asyncHandler(
   async (req: Request, res: Response) => {
     const { identifier, otpCode, password } = req.body
-
+    console.log(req.body)
+    console.log(identifier, otpCode, password)
     if (!identifier || !otpCode) {
-      throw new ApiError(400, "Identifier and otp are required")
+      throw new ApiError(400, "username and otp are required")
     }
 
     const dbUser = await User.findOne({
@@ -110,7 +111,7 @@ const verifyOtpAndSetNewPassword = asyncHandler(
     const { otp, otpExpiry } = dbUser
 
     if (new Date() > otpExpiry) {
-      throw new ApiError(410, "OTP")
+      throw new ApiError(410, "OTP Expired")
     }
 
     if (otp !== otpCode) {
@@ -136,7 +137,7 @@ const verifyOtpAndSetNewPassword = asyncHandler(
  * @route   POST /api/v1/user/sign-in
  * @access  Public
  *
- * @param {Request} req - Express request object containing identifier(email, username), and password
+ * @param {Request} req - Express request object containing username(email, username), and password
  * @param {Response} res - Express response set access and refresh tokens
  */
 const signIn = asyncHandler(async (req: Request, res: Response) => {
@@ -204,7 +205,7 @@ const signIn = asyncHandler(async (req: Request, res: Response) => {
  * @route   POST /api/v1/user/resend-otp
  * @access  Public
  *
- * @param {Request} req - Express request object containing identifier(email, username)
+ * @param {Request} req - Express request object containing username(email, username)
  * @param {Response} res - Express response message sent otp confirmation
  */
 const resendOtp = asyncHandler(async (req: Request, res: Response) => {
@@ -388,7 +389,7 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
 })
 
 /**
- * @desc    Get users data from the database that matches the identifier(can be anything, but now username)
+ * @desc    Get users data from the database that matches the username(can be anything, but now username)
  * @route   POST /api/v1/user/suggestions
  * @access  Private
  *
@@ -398,9 +399,9 @@ const getUser = asyncHandler(async (req: Request, res: Response) => {
  *                  (_id, username, imageUrl, lastSeen)
  */
 const usersSuggestion = asyncHandler(async (req: Request, res: Response) => {
-  const { identifier } = req.body
+  const { username } = req.body
 
-  const users = await User.find({ username: identifier })
+  const users = await User.find({ username: username })
 
   return res.status(200).json(new ApiResponse(200, { users }, "Success"))
 })
@@ -554,6 +555,32 @@ const uploadProfileImage = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(201, user, "Updated profile image"))
 })
 
+/**
+ * @desc    Get user by username.
+ * @route   POST /api/v1/user/unique-username
+ * @access  Public
+ *
+ * @param {Request} req - Express request object containing username
+ * @param {Response} res - Express response object to return message details
+ */
+const uniqueUsername = asyncHandler(async (req: Request, res: Response) => {
+  const { username } = req.query
+
+  const user = await User.findOne({ username }).select(
+    "_id email username imageUrl"
+  )
+
+  if (!user) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, { user, isUnique: true }, "Got users"))
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { user, isUnique: false }, "Got users"))
+})
+
 export {
   createUser,
   generateAccessAndRefreshToken,
@@ -570,4 +597,5 @@ export {
   deleteFriend,
   updateUserShowStatus,
   uploadProfileImage,
+  uniqueUsername,
 }

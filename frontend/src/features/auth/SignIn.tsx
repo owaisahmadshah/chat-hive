@@ -34,13 +34,16 @@ function SignInForm() {
   const [verificationError, setVerificationError] = useState<string | null>(
     null
   )
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [verifyUserCode, setVerifyUserCode] = useState("")
 
   const navigate = useNavigate()
 
-  const { signIn, forgetPassword, resendOtp } = useAuth()
+  const { signIn, forgetPassword, resendOtp, verifyOtp } = useAuth()
 
   const {
     register,
+    watch,
     handleSubmit,
     formState: { errors },
   } = useForm<z.infer<typeof signInSchema>>({
@@ -50,6 +53,8 @@ function SignInForm() {
       password: "",
     },
   })
+
+  const watchEmail = watch("identifier")
 
   // This form data is for reset button
   const {
@@ -69,10 +74,15 @@ function SignInForm() {
     setIsSubmitting(true)
     setAuthError(null)
 
-    const { success, error } = await signIn({ identifier, password })
+    const { success, isVerified, error } = await signIn({
+      identifier,
+      password,
+    })
 
     if (success) {
       navigate("/")
+    } else if (!isVerified) {
+      setIsVerifying(true)
     } else {
       console.error("Error while signing", error)
       setAuthError("Error while signing")
@@ -126,7 +136,101 @@ function SignInForm() {
     setIsSubmitting(false)
   }
 
-  const handleResendCode = async () => {}
+  const handleVerify = async () => {
+    console.log(verifyUserCode, watchEmail, email)
+    if (!verifyUserCode.trim() || verifyUserCode.length !== 6 || !watchEmail) {
+      return
+    }
+    setVerificationError(null)
+    setIsSubmitting(true)
+
+    const { success, error } = await verifyOtp({
+      identifier: watchEmail,
+      otpCode: verifyUserCode,
+    })
+
+    if (success) {
+      setAuthError(null)
+      setIsCodeSent(false)
+      setIsVerifying(false)
+      setIsForgotPassword(false)
+      navigate("/sign-in", { replace: true })
+    } else {
+      setAuthError("Error verifying otp")
+      console.error("Otp verification error", error)
+    }
+    setIsSubmitting(false)
+  }
+
+  const handleResendCode = async () => {
+    if (!watchEmail) {
+      return
+    }
+
+    const { success, error } = await resendOtp({ identifier: watchEmail })
+
+    if (!success) {
+      console.error("Resend code error:", error)
+    }
+  }
+
+  if (isVerifying) {
+    return (
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm mx-auto">
+          <Card className="pl-[10%]">
+            <CardHeader>
+              <CardTitle className="text-2xl">Email Verification</CardTitle>
+              <CardDescription>
+                Enter new password and one-time OTP below
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {verificationError && (
+                <div className="bg-destructive p-4 rounded-lg mb-6 flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5" />
+                  <p>{verificationError}</p>
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <Label>Your one-time OTP</Label>
+                <InputOTP
+                  maxLength={6}
+                  value={verifyUserCode}
+                  onChange={(code) => setVerifyUserCode(code)}
+                  className="mx-auto"
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+              <div>
+                <Button onClick={handleVerify} className="cursor-pointer my-3">
+                  {isSubmitting ? "Verifying..." : "Verify"}
+                </Button>
+              </div>
+              <p className="text-sm">
+                Did not receive a code?{" "}
+                <Button
+                  onClick={handleResendCode}
+                  variant={"ghost"}
+                  className="hover:underline cursor-pointer"
+                >
+                  Resend code
+                </Button>
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   if (isCodeSent) {
     return (

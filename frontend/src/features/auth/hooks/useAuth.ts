@@ -12,6 +12,7 @@ import {
   resendOtpService,
   signInService,
   signUpService,
+  uniqueUsername,
   verifyOtpService,
 } from "../services/authService"
 
@@ -31,34 +32,36 @@ export const useAuth = () => {
     } catch (err) {
       console.error("Error while sign up", err)
 
-      // 3. Normalize the error payload you want to propagate
       let normalizedError = "Something went wrong"
       if (axios.isAxiosError(err)) {
         normalizedError = err.response?.data ?? err.message
         console.error("Axios error details:", normalizedError)
       }
 
-      // 4. Always return the same shape, but mark success as false
       return { success: false, error: normalizedError }
     }
   }
 
   const signIn = async (
     signInData: TSignInSchema
-  ): Promise<{ success: boolean; error?: any }> => {
+  ): Promise<{ success: boolean; isVerified: boolean; error?: any }> => {
     try {
       await signInService(signInData)
-      return { success: true, error: null }
+
+      return { success: true, isVerified: true, error: null }
     } catch (err) {
       console.error("Error while sign up", err)
 
       let normalizedError = "Something went wrong"
       if (axios.isAxiosError(err)) {
+        if (err?.status === 403) {
+          return { success: false, isVerified: false }
+        }
         normalizedError = err.response?.data ?? err.message
         console.error("Axios error details:", normalizedError)
       }
 
-      return { success: false, error: normalizedError }
+      return { success: false, isVerified: false, error: normalizedError }
     }
   }
 
@@ -120,5 +123,23 @@ export const useAuth = () => {
     }
   }
 
-  return { signUp, signIn, verifyOtp, resendOtp, forgetPassword }
+  const uniqueUserUsername = async (username: string): Promise<boolean> => {
+    try {
+      const data = await uniqueUsername({ username })
+
+      return data.data.isUnique
+    } catch (error) {
+      console.error(error)
+      return false
+    }
+  }
+
+  return {
+    signUp,
+    signIn,
+    verifyOtp,
+    resendOtp,
+    forgetPassword,
+    uniqueUserUsername,
+  }
 }
