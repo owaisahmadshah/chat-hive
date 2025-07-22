@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useState } from "react"
 import { z } from "zod"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, Navigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -36,8 +36,7 @@ function SignInForm() {
   )
   const [isVerifying, setIsVerifying] = useState(false)
   const [verifyUserCode, setVerifyUserCode] = useState("")
-
-  const navigate = useNavigate()
+  const [redirect, setRedirect] = useState(false);
 
   const { signIn, forgetPassword, resendOtp, verifyOtp } = useAuth()
 
@@ -80,7 +79,7 @@ function SignInForm() {
     })
 
     if (success) {
-      navigate("/")
+      setRedirect(true)
     } else if (!isVerified) {
       setIsVerifying(true)
     } else {
@@ -154,7 +153,6 @@ function SignInForm() {
       setIsCodeSent(false)
       setIsVerifying(false)
       setIsForgotPassword(false)
-      navigate("/sign-in", { replace: true })
     } else {
       setAuthError("Error verifying otp")
       console.error("Otp verification error", error)
@@ -172,6 +170,10 @@ function SignInForm() {
     if (!success) {
       console.error("Resend code error:", error)
     }
+  }
+
+  if (redirect) {
+    return <Navigate to='/' replace />
   }
 
   if (isVerifying) {

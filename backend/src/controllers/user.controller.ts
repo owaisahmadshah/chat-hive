@@ -87,8 +87,7 @@ const generateAccessAndRefreshToken = async (
 const verifyOtpAndSetNewPassword = asyncHandler(
   async (req: Request, res: Response) => {
     const { identifier, otpCode, password } = req.body
-    console.log(req.body)
-    console.log(identifier, otpCode, password)
+
     if (!identifier || !otpCode) {
       throw new ApiError(400, "username and otp are required")
     }

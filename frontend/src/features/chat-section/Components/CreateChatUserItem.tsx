@@ -73,8 +73,11 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
           {`${user.username} ${user._id === uid ? " (You)" : ""}`}
         </p>
       </div>
-      {!isFriend(user._id) && (
-        <Button onClick={() => handleAddFriend(user)}>
+      {!isFriend(user._id) && checkIfChatExists(user._id) && (
+        <Button
+          onClick={() => handleAddFriend(user)}
+          className="cursor-pointer"
+        >
           Add to contacts
         </Button>
       )}
