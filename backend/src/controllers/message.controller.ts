@@ -20,52 +20,111 @@ const createMessage = asyncHandler(async (req: Request, res: Response) => {
   const { sender, chatId, message, status } = await req.body
 
   // @ts-ignore
-  const uploadedImage = req.files?.uploadedImage?.[0]?.path
-  let uploadImage
+  const uploadedImages = req.files?.uploadedImage
 
-  if (uploadedImage) {
+  // Get user details once
+  const userSent = await User.findById(sender).select("-clerkId -lastSignInAt")
+  if (!userSent) {
+    throw new ApiError(404, "User not fouond")
+  }
+
+  const messages = []
+
+  // If just a text message
+  if (!uploadedImages || uploadedImages?.length < 1) {
+    const newMessage = await Message.create({
+      sender,
+      chatId,
+      photoUrl: "",
+      message,
+      status,
+    })
+
+    const filteredMessage = {
+      _id: newMessage._id,
+      sender: userSent,
+      chatId: newMessage.chatId,
+      message: newMessage.message,
+      photoUrl: newMessage.photoUrl,
+      status: newMessage.status,
+      updatedAt: newMessage.updatedAt,
+    }
+
+    messages.push(filteredMessage)
+  } else if (uploadedImages.length === 1) {
+    let uploadImage
     try {
-      const uploadImageUrl = await uploadOnCloudinary(uploadedImage)
+      const uploadImageUrl = await uploadOnCloudinary(uploadedImages[0].path)
 
       uploadImage = uploadImageUrl?.url
-      logger.info("Uploaded Image")
     } catch (error) {
       uploadImage = ""
       logger.error("Something went wrong while uploading Image")
     }
+
+    const newMessage = await Message.create({
+      sender,
+      chatId,
+      message,
+      photoUrl: uploadImage,
+      status,
+    })
+
+    const filteredMessage = {
+      _id: newMessage._id,
+      sender: userSent,
+      chatId: newMessage.chatId,
+      message: newMessage.message,
+      photoUrl: newMessage.photoUrl,
+      status: newMessage.status,
+      updatedAt: newMessage.updatedAt,
+    }
+
+    messages.push(filteredMessage)
+  } else {
+    for (let i = 0; i < uploadedImages.length; i++) {
+      let uploadImage
+      try {
+        const uploadImageUrl = await uploadOnCloudinary(uploadedImages[i].path)
+
+        uploadImage = uploadImageUrl?.url
+      } catch (error) {
+        uploadImage = ""
+        logger.error("Something went wrong while uploading Image")
+      }
+
+      // In this case if user send multiple images there must not be any text, just pure images
+      const newMessage = await Message.create({
+        sender,
+        chatId,
+        message: "",
+        photoUrl: uploadImage,
+        status,
+      })
+
+      const filteredMessage = {
+        _id: newMessage._id,
+        sender: userSent,
+        chatId: newMessage.chatId,
+        message: newMessage.message,
+        photoUrl: newMessage.photoUrl,
+        status: newMessage.status,
+        updatedAt: newMessage.updatedAt,
+      }
+
+      messages.push(filteredMessage)
+    }
   }
 
-  const newMessage = await Message.create({
-    sender,
-    chatId,
-    message,
-    photoUrl: uploadImage,
-    status,
-  })
-
   await Chat.findByIdAndUpdate(chatId, {
-    lastMessage: newMessage._id,
+    lastMessage: messages[messages.length - 1]?._id,
     deletedBy: [], // If other user has deleted chat and we want to rejoin him the chat, we must do this
     updatedAt: new Date(),
   })
 
-  const userSent = await User.findOne({ _id: newMessage.sender }).select(
-    "-clerkId -lastSignInAt"
-  )
-
-  const filteredMessage = {
-    _id: newMessage._id,
-    sender: userSent,
-    chatId: newMessage.chatId,
-    message: newMessage.message,
-    photoUrl: newMessage.photoUrl,
-    status: newMessage.status,
-    updatedAt: newMessage.updatedAt,
-  }
-
   return res
     .status(201)
-    .json(new ApiResponse(201, { filteredMessage }, "Created message"))
+    .json(new ApiResponse(201, { messages }, "Created messages"))
 })
 
 /**

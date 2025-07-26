@@ -11,6 +11,7 @@ import {
 import { setSelectedChat, updateChat } from "@/store/slices/chats"
 import { useSocketService } from "@/hooks/useSocketService"
 import { useRef } from "react"
+import { Message } from "shared"
 
 const useMessage = () => {
   const dispatch = useDispatch()
@@ -43,27 +44,30 @@ const useMessage = () => {
 
       const data = await sendMessage(formData)
 
-      const filteredMessage = data.data.filteredMessage
+      const messages = data.data.messages
 
-      const newMessage = {
-        chatId: selectedChatId,
-        message: filteredMessage,
-      }
-
-      dispatch(addMessage(newMessage))
-      dispatch(
-        updateChat({
+      // Adding messages one by one
+      messages.forEach((message: Message) => {
+        const newMessage = {
           chatId: selectedChatId,
-          updates: {
-            updatedAt: filteredMessage.updatedAt,
-            lastMessage: {
-              isPhoto: filteredMessage.photoUrl !== "",
-              message: filteredMessage.message,
+          message: message,
+        }
+
+        dispatch(addMessage(newMessage))
+        dispatch(
+          updateChat({
+            chatId: selectedChatId,
+            updates: {
+              updatedAt: message.updatedAt,
+              lastMessage: {
+                isPhoto: message.photoUrl !== "",
+                message: message.message,
+              },
+              unreadMessages: 0,
             },
-            unreadMessages: 0,
-          },
-        })
-      )
+          })
+        )
+      })
 
       dispatch(
         setSelectedChat({ ...selectedChatRef.current, unreadMessages: 0 })
@@ -71,7 +75,10 @@ const useMessage = () => {
 
       const messageUsers = selectedChatRef.current?.users?.map((u) => u._id)
 
-      sendSocketMessage(filteredMessage, messageUsers)
+      // Sending message one by one using socket
+      messages.forEach((message: Message) => {
+        sendSocketMessage(message, messageUsers)
+      })
     } catch (error) {
       console.error("Error sending message", error)
       if (axios.isAxiosError(error)) {

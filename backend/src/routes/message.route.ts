@@ -17,7 +17,7 @@ router
   .route("/create")
   .post(
     auth,
-    upload.fields([{ name: "uploadedImage", maxCount: 1 }]),
+    upload.fields([{ name: "uploadedImage", maxCount: 15 }]),
     createMessage
   )
 router.route("/delete").delete(auth, deleteMessage)

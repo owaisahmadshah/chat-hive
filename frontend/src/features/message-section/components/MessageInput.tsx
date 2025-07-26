@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useEffect, useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
-import TextareaAutosize from 'react-textarea-autosize'
+import TextareaAutosize from "react-textarea-autosize"
 
 import {
   Form,
@@ -22,7 +22,6 @@ import { cn } from "@/lib/utils"
 import { ClipLoader } from "react-spinners"
 
 function MessageInput() {
-
   const [isPictureSelected, setIsPictureSelected] = useState<boolean>(false)
   const [isSendingMessage, setIsSendingMessage] = useState<boolean>(false)
 
@@ -33,7 +32,7 @@ function MessageInput() {
     resolver: zodResolver(messageSchema),
     defaultValues: {
       userInputMessage: "",
-      uploadedImage: undefined
+      uploadedImage: undefined,
     },
   })
 
@@ -45,13 +44,15 @@ function MessageInput() {
     formData.append("message", values.userInputMessage)
 
     if (values.uploadedImage && values.uploadedImage.length > 0) {
-      // Array.from(values.uploadedImage).forEach((file) => {
-      //   formData.append("uploadedImage", file) // Append each file individually
-      // })
-      formData.append("uploadedImage", values.uploadedImage[0]) // If sending one file
+      for (let i = 0; i < values.uploadedImage.length; i++) {
+        formData.append("uploadedImage", values.uploadedImage[i])
+      }
     }
 
-    if (values.userInputMessage.trim() === "" && values?.uploadedImage === undefined) {
+    if (
+      values.userInputMessage.trim() === "" &&
+      values?.uploadedImage === undefined
+    ) {
       setIsSendingMessage(false)
       return
     }
@@ -107,7 +108,8 @@ function MessageInput() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
         autoComplete="off"
         className="min-h-[15vh] flex items-center justify-center gap-2 border-t"
         encType="multipart/form-data"
@@ -121,19 +123,19 @@ function MessageInput() {
                 className="hidden"
                 onChange={setOnChangePicture}
                 accept="image/*"
+                multiple
               />
               <Label
                 htmlFor="uploadedImage"
                 className="cursor-pointer bg-background text-foreground p-2 rounded-full flex items-center justify-center"
                 hidden={isPictureSelected}
               >
-                {!isPictureSelected && <Plus className="w-3 h-3 text-muted-foreground" />}
+                {!isPictureSelected && (
+                  <Plus className="w-3 h-3 text-muted-foreground" />
+                )}
               </Label>
               {isPictureSelected && (
-                <Button
-                  variant="ghost"
-                  onClick={removePicture}
-                >
+                <Button variant="ghost" onClick={removePicture}>
                   <Trash2 className="w-2 h-2 text-muted-foreground" />
                 </Button>
               )}
@@ -170,12 +172,16 @@ function MessageInput() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isSendingMessage} className="w-[70px] cursor-pointer max-h-8">
+        <Button
+          type="submit"
+          disabled={isSendingMessage}
+          className="w-[70px] cursor-pointer max-h-8"
+        >
           {isSendingMessage ? <ClipLoader size={20} /> : "Send"}
         </Button>
       </form>
     </Form>
-  );
+  )
 }
 
 export default MessageInput
