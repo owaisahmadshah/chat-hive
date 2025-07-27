@@ -13,8 +13,14 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import useFriend from "@/features/chat-section/hooks/useFriend"
+import { cn } from "@/lib/utils"
+import { ArrowLeft } from "lucide-react"
 
-const MessageNavBar = () => {
+const MessageNavBar = ({
+  setValue,
+}: {
+  setValue: React.Dispatch<React.SetStateAction<boolean>>
+}) => {
   const [isFriend, setIsFriend] = useState(false)
 
   const { selectedChatUser, selectedChat } = useSelector(
@@ -43,7 +49,13 @@ const MessageNavBar = () => {
 
   return (
     <Dialog>
-      <ul className="w-[100%] h-[10vh] pt-2 pl-2 bg-background border-b border-r">
+      <ul className="w-[100%] flex items-center h-[10vh] pt-2 pl-2 bg-background border-b border-r">
+        <span
+          className={cn("sm:hidden cursor-pointer")}
+          onClick={() => setValue(false)}
+        >
+          <ArrowLeft />
+        </span>
         <DialogTrigger className="flex gap-5 items-center">
           <li className="cursor-pointer">
             <Avatar>

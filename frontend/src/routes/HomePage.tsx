@@ -9,9 +9,12 @@ import usePresenceStatus from "@/hooks/usePresenceStatus"
 import { RootState } from "@/store/store"
 import useGetUserChatsAndMessages from "@/features/chat-section/hooks/useGetUserChatsAndMessages"
 import useGetFriends from "@/hooks/useGetFriends"
-
+import { useState } from "react"
 
 const HomePage = () => {
+  // Pointer for responsiveness of
+  const [isChatSelected, setIsChatSelected] = useState(false)
+
   // Initialize essential hooks for application functionality
   // All these methods will be initialzied if and only if user is authenticated
   useGetUserId() //* This will get the user data and userId which is crucial for making api requests
@@ -23,13 +26,15 @@ const HomePage = () => {
   const { isLoading } = useSelector((state: RootState) => state.chats)
 
   return (
-    <>{
-      isLoading ? <Loader />
-        : <main className="flex">
-          <ChatSection />
-          <MessageSection />
+    <>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <main className="flex max-h-screen">
+          <ChatSection value={isChatSelected} setValue={setIsChatSelected} />
+          <MessageSection value={isChatSelected} setValue={setIsChatSelected} />
         </main>
-    }
+      )}
     </>
   )
 }

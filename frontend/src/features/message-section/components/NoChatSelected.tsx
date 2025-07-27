@@ -1,7 +1,7 @@
 const NoChatSelected = () => {
   return (<>
     {
-      <div className="w-[75vw] h-[99vh] flex flex-col items-center justify-center bg-background text-foreground">
+      <div className="max-sm:hidden w-[75vw] h-[99vh] flex flex-col items-center justify-center bg-background text-foreground">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
