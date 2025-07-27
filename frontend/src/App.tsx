@@ -4,17 +4,10 @@ import HomePage from "@/routes/HomePage"
 import PrivateRoute from "@/routes/PrivateRoute"
 import SignUpForm from "@/features/auth/SignUp"
 import SignInForm from "@/features/auth/SignIn"
-import { useSelector } from "react-redux"
-import { RootState } from "./store/store"
 import useGetUser from "./hooks/useGetUser"
 
 function App() {
-  const { isLoading } = useSelector((state: RootState) => state.user)
   useGetUser()
-
-  if (isLoading) {
-    return <div>Loading...</div>
-  }
 
   return (
     <Routes>
