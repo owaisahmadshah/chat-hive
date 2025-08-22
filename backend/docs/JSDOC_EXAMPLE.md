@@ -69,9 +69,20 @@ Example:
  * @desc    User document interface for authentication and profile data.
  */
 interface userDocument extends Document {
-  clerkId: string;
-  fullName: String;
-  // Other properties
+  username: string;
+  email: string;
+  password: string;
+  imageUrl: string;
+  isSignedIn: boolean;
+  about: string;
+  showAbout: string;
+  showLastSeen: string;
+  showProfileImage: string;
+  isReadReceipts: boolean;
+  refreshToken: string;
+  otp: string;
+  otpExpiry: Date;
+  isVerified: boolean;
 }
 
 /**
@@ -79,7 +90,13 @@ interface userDocument extends Document {
  */
 const userSchema = new mongoose.Schema<userDocument>(
   {
-    // Schema definition
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+    // Other fields...
   },
   {
     timestamps: true,

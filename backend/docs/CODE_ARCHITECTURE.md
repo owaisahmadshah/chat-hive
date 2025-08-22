@@ -54,6 +54,10 @@ Controllers handle the business logic:
 1. **ApiResponse**: Standardizes API responses
 2. **AsyncHandler**: Wraps async functions to handle errors
 3. **Cloudinary**: Manages image uploads
+4. **ApiError**: Custom error class for API errors
+5. **Logger**: Winston-based logging utility
+6. **OTP**: OTP generation and validation
+7. **SendEmail**: Email service for OTP delivery
 
 ## Real-time Communication
 
@@ -78,19 +82,26 @@ The real-time communication is implemented using Socket.IO with the following fe
 ## Authentication Flow
 
 1. **User Registration**
-   - Email verification via OTP
-   - Password validation and hashing
-   - User profile creation
+   - Email validation
+   - Username uniqueness check
+   - Password hashing with bcrypt
+   - User profile creation with default settings
 
 2. **User Login**
-   - Username/email authentication
-   - JWT token generation
-   - Session management
+   - Email/password authentication
+   - Access token generation
+   - Refresh token management
+   - Online status tracking
 
 3. **Authorization**
-   - Protected route middleware
-   - Token verification
-   - Role-based access control
+   - JWT middleware for protected routes
+   - Token verification and refresh
+   - User-specific access control
+
+4. **Password Reset**
+   - OTP generation and email delivery
+   - Time-limited OTP validation
+   - Secure password update
 
 ## Error Handling
 

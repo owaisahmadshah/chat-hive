@@ -4,7 +4,7 @@
 `/api/v1`
 
 ## Authentication
-All endpoints require authentication via Clerk. Include the Bearer token in the Authorization header.
+Most endpoints require authentication via JWT token. Include the Bearer token in the Authorization header. Some endpoints are public and don't require authentication.
 
 ## Chat Endpoints
 
@@ -66,19 +66,21 @@ All endpoints require authentication via Clerk. Include the Bearer token in the 
 
 ### Create Message
 - **Route**: `POST /message/create`
+- **Access**: Private
 - **Body**: FormData with:
   ```typescript
   {
-    chatId: string,     // Target chat
-    message: string,    // Message content
-    sender: string,     // Sender ID
-    isPhoto?: boolean   // If message is an image
+    chatId: string,        // Target chat
+    message: string,       // Message content
+    sender: string,        // Sender ID
+    uploadedImage?: File[] // Optional image files (up to 15)
   }
   ```
 - **Response**: Created message object
 
 ### Delete Message
-- **Route**: `POST /message/delete`
+- **Route**: `DELETE /message/delete`
+- **Access**: Private
 - **Body**:
   ```typescript
   {
@@ -88,8 +90,9 @@ All endpoints require authentication via Clerk. Include the Bearer token in the 
   ```
 - **Response**: Deletion confirmation
 
-### Update Message Status
+### Update Messages Status
 - **Route**: `POST /message/updatestatus`
+- **Access**: Private
 - **Body**:
   ```typescript
   {
@@ -100,37 +103,85 @@ All endpoints require authentication via Clerk. Include the Bearer token in the 
   ```
 - **Response**: Status update confirmation
 
+### Update Single Message Status
+- **Route**: `POST /message/updateonestatus`
+- **Access**: Private
+- **Body**:
+  ```typescript
+  {
+    messageId: string,  // Message to update
+    status: 'seen' | 'receive'
+  }
+  ```
+- **Response**: Status update confirmation
+
 ## User Endpoints
+
+### Public Endpoints
 
 ### Create User (Signup)
 - **Route**: `POST /user/signup`
-- **Body**: Webhook payload from Clerk
+- **Access**: Public
 - **Response**: Created user object
 
+### Sign In
+- **Route**: `POST /user/sign-in`
+- **Access**: Public
+- **Response**: Authentication tokens and user details
+
+### Verify OTP
+- **Route**: `POST /user/verify-otp`
+- **Access**: Public
+- **Response**: Password update confirmation
+
+### Resend OTP
+- **Route**: `POST /user/resend-otp`
+- **Access**: Public
+- **Response**: OTP resend confirmation
+
+### Refresh Token
+- **Route**: `POST /user/refresh-token`
+- **Access**: Public
+- **Response**: New access token
+
+### Check Username Uniqueness
+- **Route**: `GET /user/unique-username`
+- **Access**: Public
+- **Response**: Username availability status
+
+### Protected Endpoints
+
 ### Delete User
-- **Route**: `POST /user/delete`
-- **Body**: Webhook payload for user deletion
+- **Route**: `DELETE /user/delete`
+- **Access**: Private
 - **Response**: Deletion confirmation
 
+### Change Password
+- **Route**: `POST /user/change-password`
+- **Access**: Private
+- **Response**: Password change confirmation
+
 ### Get User
-- **Route**: `POST /user/get`
+- **Route**: `POST /user/user`
 - **Body**:
   ```typescript
   {
     userId: string    // User to retrieve
   }
   ```
+- **Access**: Private
 - **Response**: User details
 
-### Get User Suggestions
-- **Route**: `POST /user/suggestions`
-- **Body**:
-  ```typescript
-  {
-    identifier: string  // Username/email to search
-  }
-  ```
-- **Response**: Array of matching users
+### Update User Show Status
+- **Route**: `POST /user/update-user-fields`
+- **Access**: Private
+- **Response**: Updated user status
+
+### Update Profile Image
+- **Route**: `POST /user/update-profile-image`
+- **Access**: Private
+- **Body**: FormData with profile image
+- **Response**: Updated user profile
 
 ## Friend Endpoints
 
@@ -186,6 +237,14 @@ Errors are returned in the following format:
   stack?: string        // Stack trace (development only)
 }
 ```
+
+## Health Check Endpoint
+
+### Check API Health
+- **Route**: `GET /healthcheck`
+- **Access**: Public
+- **Description**: Returns the health status of the API
+- **Response**: Health status confirmation
 
 ## Rate Limiting
 - No rate limiting implemented currently

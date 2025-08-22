@@ -16,9 +16,10 @@ The core of the real-time functionality is the `SocketManager` class which manag
 - Message seen/received status
 
 ### Data Structures
-- `activeUsers`: Map<string, User> - Tracks online users with their socket info
+- `activeUsers`: Map<string, User> - Tracks online users with their socket info and active chat
 - `chatRooms`: Map<string, Set<string>> - Manages chat room participants
 - `onlineUsers`: Map<string, boolean> - Tracks user online status
+- User interface includes: userId, socketId, activeChat
 
 ## User Management
 

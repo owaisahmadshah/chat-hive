@@ -14,13 +14,22 @@ The application uses MongoDB with the following main collections:
 ```typescript
 {
   _id: ObjectId,
-  clerkId: string,        // External auth provider ID
-  username: string,       // User's display name
+  username: string,       // User's unique username
   email: string,         // User's email address
-  imageUrl: string,      // Profile picture URL
-  lastSeen: Date,        // Last activity timestamp
-  createdAt: Date,       // Account creation date
-  updatedAt: Date        // Last profile update
+  imageUrl: string,      // Profile picture URL (default: "./default-profile-picture.jpg")
+  isSignedIn: boolean,   // User's current sign-in status
+  about: string,         // User's about text (default: "Hey there!")
+  showAbout: string,     // Privacy setting for about ("contacts"|"public"|"private")
+  showLastSeen: string,  // Privacy setting for last seen ("contacts"|"public"|"private")
+  showProfileImage: string, // Privacy setting for profile image ("contacts"|"public"|"private")
+  isReadReceipts: boolean, // Whether read receipts are enabled
+  refreshToken: string,  // JWT refresh token
+  otp: string,          // One-time password for verification
+  otpExpiry: Date,      // OTP expiration timestamp
+  isVerified: boolean,  // Account verification status
+  password: string,     // Hashed password
+  createdAt: Date,      // Account creation date
+  updatedAt: Date       // Last profile update
 }
 ```
 
@@ -30,7 +39,6 @@ The application uses MongoDB with the following main collections:
   _id: ObjectId,
   admin: ObjectId,        // User who created the chat
   users: [ObjectId],      // Array of participating users
-  lastMessage: ObjectId,  // Reference to last message
   deletedBy: [ObjectId],  // Users who deleted this chat
   createdAt: Date,
   updatedAt: Date
@@ -43,9 +51,9 @@ The application uses MongoDB with the following main collections:
   _id: ObjectId,
   chatId: ObjectId,       // Reference to parent chat
   sender: ObjectId,       // User who sent the message
-  message: string,        // Message content
-  isPhoto: boolean,       // Whether message is an image
-  status: string,         // sent/received/seen
+  message: string,        // Text message content (optional)
+  photoUrl: string,       // URL of the attached photo (default: "")
+  status: string,         // Message status (sent/receive/seen)
   deletedBy: [ObjectId],  // Users who deleted this message
   createdAt: Date,
   updatedAt: Date
@@ -56,8 +64,8 @@ The application uses MongoDB with the following main collections:
 ```typescript
 {
   _id: ObjectId,
-  userId: ObjectId,       // User who added the friend
-  friendId: ObjectId,     // The added friend
+  user: ObjectId,         // User who added the friend
+  friend: ObjectId,       // The added friend
   createdAt: Date,
   updatedAt: Date
 }
@@ -93,39 +101,42 @@ The application uses MongoDB with the following main collections:
 
 ## Schema Evolution
 
-1. **Current Version: 1.0**
-   - Basic chat functionality
+1. **Current Version: 2.0**
+   - Enhanced user profiles with privacy settings
+   - JWT-based authentication
+   - OTP verification system
    - One-on-one conversations
    - Text and image messages
+   - Read receipts
+   - Last seen status
+   - User about section
+   - Profile image support
 
 2. **Planned Extensions**
    - Group chat support
    - Message reactions
    - Message threading
-   - Rich media support
+   - Voice messages
+   - Video calls
 
 ## Performance Considerations
 
 1. **Indexes**
 ```typescript
 // Users Collection
-- clerkId: 1 (unique)
 - email: 1 (unique)
-- username: 1
+- username: 1 (unique)
 
 // Chats Collection
-- users: 1
 - admin: 1
-- updatedAt: -1
 
 // Messages Collection
-- chatId: 1
 - sender: 1
-- createdAt: 1
+- chatId: 1
 
 // Friends Collection
-- userId: 1
-- friendId: 1
+- user: 1
+- friend: 1
 ```
 
 2. **Query Optimization**
