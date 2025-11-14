@@ -190,8 +190,7 @@ const signIn = asyncHandler(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
   }
-  console.log(accessToken)
-  console.log(refreshToken)
+
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)

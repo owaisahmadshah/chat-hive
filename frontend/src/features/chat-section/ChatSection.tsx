@@ -3,7 +3,6 @@ import React, { useState } from "react"
 import ChatNavbar from "@/features/chat-section/Components/ChatNavBar"
 import ChatList from "@/features/chat-section/Components/ChatList"
 import ChatSectionSidebar from "@/features/chat-section/Components/ChatSectionSidebar"
-import Settings from "@/features/chat-section/Components/Settings"
 import Profile from "@/features/chat-section/Components/Profile"
 import { selectedComponentType } from "shared"
 import Friends from "@/features/chat-section/Components/Friends"
@@ -22,23 +21,22 @@ const ChatSection = ({
   return (
     <section
       className={cn(
-        "flex bg-background min-w-0 w-[500px]",
+        "flex bg-background md:min-w-[420px] w-[420px] border-r border-border/40",
         "max-sm:w-full",
-        value && "max-sm:hidden"
+        value && "max-sm:hidden",
+        "transition-all duration-300"
       )}
     >
       <ChatSectionSidebar
         selectedComponent={selectedComponent}
         setSelectedComponent={setSelectedComponent}
       />
-      <main className="flex flex-col w-full">
+      <main className="flex flex-col w-full overflow-hidden">
         {selectedComponent === "chats" ? (
           <>
             <ChatNavbar />
             <ChatList setValue={setValue} />
           </>
-        ) : selectedComponent === "settings" ? (
-          <Settings />
         ) : selectedComponent === "friends" ? (
           <Friends />
         ) : (

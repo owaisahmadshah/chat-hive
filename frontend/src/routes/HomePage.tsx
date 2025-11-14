@@ -1,4 +1,5 @@
 import { useSelector } from "react-redux"
+import { useState } from "react"
 
 import useGetUserId from "@/hooks/useGetUser"
 import ChatSection from "@/features/chat-section/ChatSection"
@@ -9,28 +10,27 @@ import usePresenceStatus from "@/hooks/usePresenceStatus"
 import { RootState } from "@/store/store"
 import useGetUserChatsAndMessages from "@/features/chat-section/hooks/useGetUserChatsAndMessages"
 import useGetFriends from "@/hooks/useGetFriends"
-import { useState } from "react"
 
 const HomePage = () => {
-  // Pointer for responsiveness of
   const [isChatSelected, setIsChatSelected] = useState(false)
 
-  // Initialize essential hooks for application functionality
-  // All these methods will be initialzied if and only if user is authenticated
-  useGetUserId() //* This will get the user data and userId which is crucial for making api requests
-  useSocketService() //* Initializes socket.io connection for real-time communication
-  usePresenceStatus() //* This will update user online/offline status using socket.io
-  useGetUserChatsAndMessages() //* Fetches user's chats and messages on application load
-  useGetFriends() //* Fetches friends
+  // Initialize essential hooks
+  useGetUserId()
+  useSocketService()
+  usePresenceStatus()
+  useGetUserChatsAndMessages()
+  useGetFriends()
 
   const { isLoading } = useSelector((state: RootState) => state.chats)
 
   return (
     <>
       {isLoading ? (
-        <Loader />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/10">
+          <Loader />
+        </div>
       ) : (
-        <main className="flex max-h-screen">
+        <main className="flex max-h-screen overflow-hidden bg-background">
           <ChatSection value={isChatSelected} setValue={setIsChatSelected} />
           <MessageSection value={isChatSelected} setValue={setIsChatSelected} />
         </main>

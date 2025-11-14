@@ -1,17 +1,18 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer"
+import logger from "./logger.js"
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
   auth: {
     user: process.env.NODE_MAILER_USER,
     pass: process.env.NODE_MAILER_PASSWORD,
   },
-});
+})
 
 const sendEmail = async (
   email: string,
   otp: string,
-  subject: string = 'Your Chat-Hive OTP',
+  subject: string = "Your Chat-Hive OTP"
 ): Promise<boolean> => {
   try {
     await transporter.sendMail({
@@ -31,11 +32,12 @@ const sendEmail = async (
           <p><strong>Chat-Hive Team</strong></p>
         </div>
       `,
-    });
-    return true;
+    })
+    return true
   } catch (error) {
-    return false;
+    logger.error(`Error in sending mail to -> ${error}`)
+    return false
   }
-};
+}
 
-export default sendEmail;
+export default sendEmail

@@ -21,7 +21,13 @@ const MessageSection = ({
   }
 
   return (
-    <section className={cn("w-full hidden", value && "block", "sm:block")}>
+    <section
+      className={cn(
+        "w-full hidden flex-col bg-background",
+        value && "flex",
+        "sm:flex"
+      )}
+    >
       <MessageNavBar setValue={setValue} />
       <MessageList />
       <MessageInput />
