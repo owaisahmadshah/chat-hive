@@ -24,6 +24,14 @@ This project is organized as a monorepo using pnpm workspaces:
 -   `frontend/` - React application with Shadcn UI components
 -   `backend/` - Express.js server with Socket.io integration
 
+## 📚 Documentation
+
+For full documentation, please visit the [docs](./docs/README.md) folder.
+
+- [Getting Started](./docs/getting-started.md)
+- [Architecture](./docs/architecture.md)
+- [API Reference](./docs/api-reference.md)
+
 ## 📦 Installation
 
 1. **Clone the repository:**
