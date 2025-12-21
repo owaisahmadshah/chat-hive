@@ -80,9 +80,9 @@ const useMessage = () => {
         sendSocketMessage(message, messageUsers)
       })
     } catch (error) {
-      console.error("Error sending message", error)
+      // console.error("Error sending message", error)
       if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
+        // console.error("Axios error details:", error.response?.data)
       }
     }
   }
@@ -126,9 +126,9 @@ const useMessage = () => {
         )
       }
     } catch (error) {
-      console.error("Error deleting message", error)
+      // console.error("Error deleting message", error)
       if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
+        // console.error("Axios error details:", error.response?.data)
       }
     }
   }
@@ -152,9 +152,9 @@ const useMessage = () => {
         })
       )
     } catch (error) {
-      console.error("Error deleting message", error)
+      // console.error("Error deleting message", error)
       if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
+        // console.error("Axios error details:", error.response?.data)
       }
     }
   }

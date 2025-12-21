@@ -15,11 +15,10 @@ function useGetUser() {
       try {
         const data = await getUser()
 
-        
         if (data.statusCode !== 200) {
           return
         }
-        
+
         const payload: User = {
           email: data.data.email,
           username: data.data.username,
@@ -40,7 +39,7 @@ function useGetUser() {
         // console.error("Error getting userId", error)
         if (axios.isAxiosError(error)) {
           // console.error("Axios error details:", error.response?.data.message)
-        }p
+        }
       }
     }
 

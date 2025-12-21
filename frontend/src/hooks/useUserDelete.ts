@@ -13,7 +13,7 @@ const useUserDelete = () => {
       dispatch(clearUser())
       navigate("/sign-in")
     } catch (error) {
-      console.error("Error deleting user", error)
+      // console.error("Error deleting user", error)
     }
   }
 

@@ -19,7 +19,7 @@ const useFriend = () => {
 
       dispatch(addFriend(data.friend))
     } catch (error) {
-      console.error("Error while creating friend", error)
+      // console.error("Error while creating friend", error)
     }
   }
 
@@ -28,7 +28,7 @@ const useFriend = () => {
       await deleteFriendService({ friendDocumentId })
       dispatch(deleteFriend(friendDocumentId))
     } catch (error) {
-      console.error("Error while deleting friend", error)
+      // console.error("Error while deleting friend", error)
     }
   }
 

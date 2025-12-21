@@ -54,9 +54,9 @@ function useGetUserChatsAndMessages() {
             dispatch(setChats(allChats))
           }
         } catch (error) {
-          console.error("Error getting userId", error)
+          // console.error("Error getting userId", error)
           if (axios.isAxiosError(error)) {
-            console.error("Axios error details:", error.response?.data)
+            // console.error("Axios error details:", error.response?.data)
           }
         }
       })()

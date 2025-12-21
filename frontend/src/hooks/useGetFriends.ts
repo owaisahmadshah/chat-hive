@@ -13,7 +13,7 @@ const useGetFriends = () => {
 
         dispatch(setFriends(data.friends))
       } catch (error) {
-        console.error("Error while fetching friends", error)
+        // console.error("Error while fetching friends", error)
       }
     }
 

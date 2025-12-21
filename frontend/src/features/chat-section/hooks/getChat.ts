@@ -15,9 +15,9 @@ const useGetChat = () => {
       dispatch(addChat(data.data?.chat[0]))
       dispatch(setMessages({ chatId: data.data?.chat[0]._id, messages: [] }))
     } catch (error) {
-      console.error("Error sending message", error)
+      // console.error("Error sending message", error)
       if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
+        // console.error("Axios error details:", error.response?.data)
       }
     }
   }

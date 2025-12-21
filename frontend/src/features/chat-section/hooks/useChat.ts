@@ -33,9 +33,9 @@ const useChat = () => {
       const data = await fetchUser({ username })
       return data.data.users
     } catch (error) {
-      console.error("Error fetching users", error)
+      // console.error("Error fetching users", error)
       if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
+        // console.error("Axios error details:", error.response?.data)
       }
       return []
     }
@@ -56,9 +56,9 @@ const useChat = () => {
       dispatch(setSelectedChatUser(user))
       dispatch(setSelectedChat(data.data?.chat[0]))
     } catch (error) {
-      console.error("Error creating new chat", error)
+      // console.error("Error creating new chat", error)
       if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
+        // console.error("Axios error details:", error.response?.data)
       }
     }
   }
@@ -76,9 +76,9 @@ const useChat = () => {
       dispatch(deleteChat(chatId))
       dispatch(clearChatMessages(chatId))
     } catch (error) {
-      console.error("Error deleting chat", error)
+      // console.error("Error deleting chat", error)
       if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
+        // console.error("Axios error details:", error.response?.data)
       }
     }
   }

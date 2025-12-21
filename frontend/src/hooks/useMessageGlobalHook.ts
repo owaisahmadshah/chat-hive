@@ -16,9 +16,9 @@ const useMessageGlobalHook = () => {
         status,
       })
     } catch (error) {
-      console.error("Error updating messages status", error)
+      // console.error("Error updating messages status", error)
       if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
+        // console.error("Axios error details:", error.response?.data)
       }
     }
   }
@@ -33,9 +33,9 @@ const useMessageGlobalHook = () => {
         status,
       })
     } catch (error) {
-      console.error("Error updating message status", error)
+      // console.error("Error updating message status", error)
       if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
+        // console.error("Axios error details:", error.response?.data)
       }
     }
   }
