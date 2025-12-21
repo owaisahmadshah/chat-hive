@@ -7,6 +7,8 @@ interface IUser extends Document, TCreateUser {
   isPasswordCorrect(password: string): Promise<boolean>
   generateAccessToken(): string
   generateRefreshToken(): string
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 const userSchema = new mongoose.Schema<IUser>(

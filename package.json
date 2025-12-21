@@ -5,11 +5,13 @@
   "scripts": {
     "dev:frontend": "pnpm --filter frontend dev",
     "dev:backend": "pnpm --filter backend dev",
+    "dev:shared": "pnpm --filter shared --watch",
     "dev": "pnpm run -r dev",
-    "build": "pnpm --filter frontend build && pnpm --filter backend build",
+    "build": "pnpm run build:backend && pnpm run build:frontend",
+    "build:shared": "pnpm --filter shared build",
+    "build:backend": "pnpm --filter shared build && pnpm --filter backend build",
+    "build:frontend": "pnpm --filter shared build && pnpm --filter frontend build",
     "lint": "pnpm --filter frontend lint && pnpm --filter backend lint"
   },
   "packageManager": "pnpm@10.4.1"
 }
-
-
