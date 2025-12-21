@@ -1,5 +1,4 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
   "buildCommand": "pnpm -w run build:frontend",
   "outputDirectory": "frontend/dist",
   "installCommand": "pnpm install"
