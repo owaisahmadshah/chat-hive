@@ -186,16 +186,29 @@ const signIn = asyncHandler(async (req: Request, res: Response) => {
 
   await dbUser.save({ validateBeforeSave: false })
 
-  const options = {
+  const accessTokenOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === "PRODUCTION",
+    sameSite: (process.env.NODE_ENV === "PRODUCTION" ? "none" : "lax") as
+      | "none"
+      | "lax",
+    maxAge: 50 * 60 * 1000, // 50 minutes
+  }
+
+  const refreshTokenOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "PRODUCTION",
+    sameSite: (process.env.NODE_ENV === "PRODUCTION" ? "none" : "lax") as
+      | "none"
+      | "lax",
+    maxAge: 25 * 24 * 60 * 60 * 1000, // 25 days
   }
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(new ApiResponse(204, {}, "Signed In successfully."))
+    .cookie("accessToken", accessToken, accessTokenOptions)
+    .cookie("refreshToken", refreshToken, refreshTokenOptions)
+    .json(new ApiResponse(200, {}, "Signed In successfully."))
 })
 
 /**
@@ -274,15 +287,28 @@ const generateRefreshAccessToken = asyncHandler(
       user._id as string
     )
 
-    const options = {
+    const accessTokenOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "PRODUCTION",
+      sameSite: (process.env.NODE_ENV === "PRODUCTION" ? "none" : "lax") as
+        | "none"
+        | "lax",
+      maxAge: 50 * 60 * 1000, // 50 minutes
+    }
+
+    const refreshTokenOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "PRODUCTION",
+      sameSite: (process.env.NODE_ENV === "PRODUCTION" ? "none" : "lax") as
+        | "none"
+        | "lax",
+      maxAge: 25 * 24 * 60 * 60 * 1000, // 25 days
     }
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, accessTokenOptions)
+      .cookie("refreshToken", refreshToken, refreshTokenOptions)
       .json(new ApiResponse(205, {}, ""))
   }
 )
