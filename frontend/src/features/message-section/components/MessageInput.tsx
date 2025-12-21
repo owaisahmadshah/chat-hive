@@ -107,7 +107,7 @@ function MessageInput() {
   }, [])
 
   return (
-    <div className="border-t bg-background/95 backdrop-blur-sm">
+    <div className="bg-background/95 backdrop-blur-sm">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -168,7 +168,7 @@ function MessageInput() {
                         {...field}
                         placeholder="Type your message..."
                         minRows={1}
-                        maxRows={4}
+                        maxRows={2}
                         onBlur={() => {
                           field.onBlur()
                           handleTypingBlur()
@@ -212,6 +212,7 @@ function MessageInput() {
                   <Send className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </>
               )}
+              
             </Button>
           </div>
         </form>

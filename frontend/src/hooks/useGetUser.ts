@@ -37,10 +37,10 @@ function useGetUser() {
         dispatch(setUser(payload))
       } catch (error) {
         dispatch(clearUser())
-        console.error("Error getting userId", error)
+        // console.error("Error getting userId", error)
         if (axios.isAxiosError(error)) {
-          console.error("Axios error details:", error.response?.data)
-        }
+          // console.error("Axios error details:", error.response?.data.message)
+        }p
       }
     }
 

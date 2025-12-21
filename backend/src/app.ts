@@ -58,4 +58,9 @@ app.use("/api/v1/chat", chatRoute)
 app.use("/api/v1/message", messageRoute)
 app.use("/api/v1/user", userRouter)
 
+// Error middleware
+import { errorHandler } from "./middlewares/error.middleware.js"
+
+app.use(errorHandler)
+
 export { app }

@@ -114,7 +114,7 @@ const verifyOtpAndSetNewPassword = asyncHandler(
     }
 
     if (otp !== otpCode) {
-      throw new ApiError(401, "Incorrect otp code.")
+      throw new ApiError(400, "Incorrect otp code.")
     }
 
     if (!dbUser.isVerified) {

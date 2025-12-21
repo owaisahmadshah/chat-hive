@@ -93,12 +93,12 @@ const MessageList = () => {
 
   return (
     <ScrollArea
-      className="flex-1 max-h-[calc(100vh-8rem)] bg-gradient-to-b from-background to-muted/5"
+      className="flex-1 max-h-[calc(96vh-8rem)] bg-gradient-to-b from-background to-muted/5"
       ref={scrollRef}
     >
       <ul
         className={cn(
-          "flex flex-col gap-2 p-4 min-h-full",
+          "flex flex-col gap-2 p-4",
           selectedChat?.typing?.isTyping && "pb-32"
         )}
       >

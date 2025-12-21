@@ -44,6 +44,7 @@ function SignUpForm() {
     null
   )
   const [checkingUsername, setCheckingUsername] = useState(false)
+  const [resendError, setResendError] = useState<null | string>(null)
 
   const navigate = useNavigate()
 
@@ -99,8 +100,8 @@ function SignUpForm() {
     if (success) {
       navigate("/sign-in")
     } else {
-      setAuthError("Invalid verification code. Please try again.")
-      console.error("Otp verification error", error)
+      setVerificationError(error)
+      // console.error("Otp verification error", error)
     }
 
     setIsSubmitting(false)
@@ -119,16 +120,16 @@ function SignUpForm() {
       setIdentifier(email ?? username)
       setIsVerifying(true)
     } else {
-      console.error("Error creating account", error)
-      setAuthError("Failed to create account. Please try again.")
+      setAuthError(error)
     }
     setIsSubmitting(false)
   }
 
   const handleResendCode = async () => {
+    setResendError(null)
     const { success, error } = await resendOtp({ identifier })
     if (!success) {
-      console.error("Resend code:", error)
+      setResendError(error)
     }
   }
 
@@ -237,6 +238,9 @@ function SignUpForm() {
                   >
                     Resend Code
                   </Button>
+                  {resendError && (
+                    <span className="text-xs text-red-500">{resendError}</span>
+                  )}
                 </div>
               </div>
             </CardContent>

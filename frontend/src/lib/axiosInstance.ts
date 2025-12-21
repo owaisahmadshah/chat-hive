@@ -22,8 +22,8 @@ api.interceptors.response.use(
     if (
       error.response.status === 401 &&
       !originalRequest._retry &&
-      (error.response.statusText === "Unauthorized" ||
-        error.response.statusText === "Unauthorized: Invalid or expired token")
+      (error.response.data.message === "Unauthorized" ||
+        error.response.data.message === "Unauthorized: Invalid or expired token")
     ) {
       originalRequest._retry = true
 

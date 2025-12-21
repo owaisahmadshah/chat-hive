@@ -30,12 +30,12 @@ export const useAuth = () => {
 
       return { success: true }
     } catch (err) {
-      console.error("Error while sign up", err)
+      // console.error("Error while sign up", err)
 
       let normalizedError = "Something went wrong"
       if (axios.isAxiosError(err)) {
-        normalizedError = err.response?.data ?? err.message
-        console.error("Axios error details:", normalizedError)
+        normalizedError = err.response?.data.message ?? err.message
+        // console.error("Axios error details:", normalizedError)
       }
 
       return { success: false, error: normalizedError }
@@ -50,15 +50,12 @@ export const useAuth = () => {
 
       return { success: true, isVerified: true, error: null }
     } catch (err) {
-      console.error("Error while sign up", err)
-
       let normalizedError = "Something went wrong"
       if (axios.isAxiosError(err)) {
-        if (err?.status === 403) {
+        if (err.response?.status === 403) {
           return { success: false, isVerified: false }
         }
-        normalizedError = err.response?.data ?? err.message
-        console.error("Axios error details:", normalizedError)
+        normalizedError = err.response?.data.message ?? err.message
       }
 
       return { success: false, isVerified: false, error: normalizedError }
@@ -72,12 +69,9 @@ export const useAuth = () => {
       await verifyOtpService(otpData)
       return { success: true, error: null }
     } catch (err) {
-      console.error("Error while sign up", err)
-
       let normalizedError = "Something went wrong"
       if (axios.isAxiosError(err)) {
-        normalizedError = err.response?.data ?? err.message
-        console.error("Axios error details:", normalizedError)
+        normalizedError = err.response?.data.message ?? err.message
       }
 
       return { success: false, error: normalizedError }
@@ -91,12 +85,9 @@ export const useAuth = () => {
       await resendOtpService(otpData)
       return { success: true, error: null }
     } catch (err) {
-      console.error("Error while sign up", err)
-
       let normalizedError = "Something went wrong"
       if (axios.isAxiosError(err)) {
-        normalizedError = err.response?.data ?? err.message
-        console.error("Axios error details:", normalizedError)
+        normalizedError = err.response?.data.message ?? err.message
       }
 
       return { success: false, error: normalizedError }
@@ -111,12 +102,9 @@ export const useAuth = () => {
 
       return { success: true, error: null }
     } catch (err) {
-      console.error("Error while sign up", err)
-
       let normalizedError = "Something went wrong"
       if (axios.isAxiosError(err)) {
-        normalizedError = err.response?.data ?? err.message
-        console.error("Axios error details:", normalizedError)
+        normalizedError = err.response?.data.message ?? err.message
       }
 
       return { success: false, error: normalizedError }

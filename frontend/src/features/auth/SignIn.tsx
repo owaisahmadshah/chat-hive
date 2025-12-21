@@ -40,6 +40,7 @@ function SignInForm() {
   const [isVerifying, setIsVerifying] = useState(false)
   const [verifyUserCode, setVerifyUserCode] = useState("")
   const [redirect, setRedirect] = useState(false)
+  const [resendCodeError, setResendCodeError] = useState<string | null>(null)
 
   const { signIn, forgetPassword, resendOtp, verifyOtp } = useAuth()
 
@@ -83,8 +84,7 @@ function SignInForm() {
     } else if (!isVerified && !error) {
       setIsVerifying(true)
     } else {
-      console.error("Error while signing", error)
-      setAuthError("Invalid credentials. Please try again.")
+      setAuthError(error ?? "Something went wrong!!")
     }
     setIsSubmitting(false)
   }
@@ -101,8 +101,8 @@ function SignInForm() {
     if (success) {
       setIsCodeSent(true)
     } else {
-      console.error("Error while sending reset code", error)
-      setAuthError("Failed to send code. Please try again.")
+      // setAuthError("Failed to send code. Please try again.")
+      setAuthError(error)
     }
     setIsSubmitting(false)
   }
@@ -122,8 +122,8 @@ function SignInForm() {
     })
 
     if (!success) {
-      console.error("Error verifying otp", error)
-      setAuthError("Verification failed. Please try again.")
+      // console.error("Error verifying otp", error)
+      setAuthError(error)
     }
     setIsSubmitting(false)
   }
@@ -146,8 +146,8 @@ function SignInForm() {
       setIsVerifying(false)
       setIsForgotPassword(false)
     } else {
-      setAuthError("Invalid verification code. Please try again.")
-      console.error("Otp verification error", error)
+      setAuthError(error)
+      // console.error("Otp verification error", error)
     }
     setIsSubmitting(false)
   }
@@ -155,7 +155,10 @@ function SignInForm() {
   const handleResendCode = async () => {
     if (!watchEmail) return
     const { success, error } = await resendOtp({ identifier: watchEmail })
-    if (!success) console.error("Resend code error:", error)
+    if (!success) {
+      // TODO: SET RESEND CODE ERROR
+      setResendCodeError(error)
+    }
   }
 
   if (redirect) {
@@ -266,6 +269,11 @@ function SignInForm() {
                   >
                     Resend Code
                   </Button>
+                  {resendCodeError && (
+                    <span className="text-xs text-red-500">
+                      {resendCodeError}
+                    </span>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -591,7 +599,10 @@ function SignInForm() {
                   <Button
                     type="button"
                     variant="ghost"
-                    onClick={() => setIsForgotPassword(true)}
+                    onClick={() => {
+                      setAuthError(null)
+                      setIsForgotPassword(true)
+                    }}
                     className="text-xs h-auto p-0 font-medium text-primary hover:text-primary/80 hover:bg-transparent"
                   >
                     Forgot password?
