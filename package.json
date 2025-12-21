@@ -7,6 +7,7 @@
     "dev:backend": "pnpm --filter backend dev",
     "dev:shared": "pnpm --filter shared --watch",
     "dev": "pnpm run -r dev",
+    "start:backend": "pnpm --filter backend start",
     "build": "pnpm run build:backend && pnpm run build:frontend",
     "build:shared": "pnpm --filter shared build",
     "build:backend": "pnpm --filter shared build && pnpm --filter backend build",
