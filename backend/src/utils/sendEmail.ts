@@ -3,9 +3,14 @@ import logger from "./logger.js"
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
+  port: 587,
+  secure: false, // true for 465, false for other ports
   auth: {
     user: process.env.NODE_MAILER_USER,
     pass: process.env.NODE_MAILER_PASSWORD,
+  },
+  tls: {
+    rejectUnauthorized: true,
   },
 })
 
@@ -15,7 +20,7 @@ const sendEmail = async (
   subject: string = "Your Chat-Hive OTP"
 ): Promise<boolean> => {
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"Chat-Hive" <${process.env.NODE_MAILER_USER}>`,
       to: email,
       subject: subject,
@@ -33,9 +38,15 @@ const sendEmail = async (
         </div>
       `,
     })
+    logger.info(`Email sent successfully to ${email}: ${info.messageId}`)
     return true
   } catch (error) {
-    logger.error(`Error in sending mail to -> ${error}`)
+    // Log the full error details
+    logger.error("Error sending email:", {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      recipient: email,
+    })
     return false
   }
 }
