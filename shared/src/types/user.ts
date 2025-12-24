@@ -10,6 +10,7 @@ export type TBaseUser = {
   showProfileImage: TShowType;
   isReadReceipts: boolean;
   password: string;
+  dummy?: boolean;
 };
 
 export type TCreateUser = TBaseUser & {

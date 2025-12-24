@@ -27,3 +27,8 @@ export const uniqueUsername = async (data: { username: string }) => {
   const response = await api.get("/v1/user/unique-username", { params: data })
   return response.data
 }
+
+export const signUpDummyService = async () => {
+  const response = await api.post("/v1/user/create-dummy")
+  return response.data
+}

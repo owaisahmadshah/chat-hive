@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker"
 import { ApiError } from "../../shared/utils/ApiError.js"
 import type { uploadOnCloudinary } from "../../shared/utils/Cloudinary.js"
 import { generateExpiryTime, generateOTP } from "../../shared/utils/otp.js"
@@ -343,5 +344,57 @@ export class UserService {
     }
 
     return responseUser
+  }
+
+  async createDummyUser() {
+    const { userRepository } = this.deps
+
+    let email: string = ""
+    let username: string = ""
+    let isUnique = false
+    const password = faker.internet.password() // simple password for dummy user
+
+    // Keep generating until we find a unique email and username
+    while (!isUnique) {
+      email = faker.internet.email().toLowerCase()
+      username = faker.internet.username().toLowerCase()
+
+      const existingUser = await userRepository.findByEmailOrUser(
+        email,
+        username
+      )
+
+      if (!existingUser) {
+        isUnique = true
+      }
+    }
+
+    // Create the user
+    const user = await userRepository.create({
+      email,
+      username,
+      password,
+      otp: "123456",
+      otpExpiry: new Date(Date.now()),
+      dummy: true,
+    })
+
+    const { accessToken, refreshToken } =
+      await this.generateAccessAndRefreshToken(user._id as string)
+
+    user.refreshToken = refreshToken
+
+    await userRepository.save(user)
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        username,
+        email,
+        password,
+        dummy: true,
+      },
+    }
   }
 }

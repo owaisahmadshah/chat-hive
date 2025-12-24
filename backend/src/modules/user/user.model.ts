@@ -77,6 +77,10 @@ const userSchema = new mongoose.Schema<IUser>(
       type: String,
       required: [true, "Password is required."],
     },
+    dummy: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
