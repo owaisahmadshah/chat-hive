@@ -1,74 +1,94 @@
+import type { Request, Response } from "express"
+
+import type { ConnectionService } from "./connection.service.js"
+import { ApiError } from "../../shared/utils/ApiError.js"
+import { asyncHandler } from "../../shared/utils/AsyncHandler.js"
+import { ApiResponse } from "../../shared/utils/ApiResponse.js"
+
+interface IConnectionControllerDeps {
+  connectionService: ConnectionService
+}
+
+export class ConnectionController {
+  constructor(private deps: IConnectionControllerDeps) {}
+
   /**
-   * @desc    Create new friend
-   * @route   POST /api/v1/user/create-friend
+   * @desc    Create a new connection between two users
+   * @route   POST /api/v1/connection/create
    * @access  Private
    *
-   * @param {Request} req - Express request object containing userId, friendId
-   *
-   * @param {Response} res - Express request object containing friend details
-   *                  (_id, username, imageUrl, lastSeen)
+   * @param {Request} req - Express request object containing receiverId
+   * @param {Response} res - Express response object
    */
-  createFriend = asyncHandler(async (req: Request, res: Response) => {
-    const { userId, friendId } = req.body
-
-    const userData = {
-      user: userId,
-      friend: friendId,
+  createConnection = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(401, "Authenticated user not found in request")
     }
 
-    const existedFriend = await Friend.findOne(userData).populate(
-      "friend",
-      "_id username imageUrl updatedAt"
-    )
+    const { receiverId } = req.body
 
-    if (existedFriend) {
-      return res
-        .status(200)
-        .json(new ApiResponse(200, { existedFriend }, "User exists"))
+    if (!receiverId) {
+      throw new ApiError(400, "ReceiverId is required")
     }
 
-    await Friend.create(userData)
+    const connection = await this.deps.connectionService.createConnection({
+      senderId: req.user._id,
+      receiverId,
+    })
 
-    const friend = await Friend.findOne(userData)
-      .select("_id friend")
-      .populate("friend", "_id username imageUrl updatedAt")
-
-    return res.status(201).json(new ApiResponse(200, { friend }, "Success"))
+    return res
+      .status(201)
+      .json(new ApiResponse(201, connection, "Connection created successfully"))
   })
 
   /**
-   * @desc    Get friends
-   * @route   POST /api/v1/user/get-friends
+   * @desc    Delete an existing connection by connectionId
+   * @route   DELETE /api/v1/connection/delete
    * @access  Private
    *
-   * @param {Request} req - Express request object containing userId
-   *
-   * @param {Response} res - Express request object containing friends list
-   *                  [(_id, username, imageUrl, lastSeen)]
+   * @param {Request} req - Express request object containing connectionId
+   * @param {Response} res - Express response object
    */
-  getFriends = asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.body
+  deleteConnectionById = asyncHandler(async (req: Request, res: Response) => {
+    const { connectionId } = req.params
 
-    const friends = await Friend.find({ user: userId })
-      .select("_id friend")
-      .populate("friend", "_id username imageUrl updatedAt")
+    if (!connectionId) {
+      throw new ApiError(400, "ConnectionId is required")
+    }
 
-    return res.status(201).json(new ApiResponse(200, { friends }, "Success"))
+    await this.deps.connectionService.deleteConnectionById({ connectionId })
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Connection deleted successfully"))
   })
 
   /**
-   * @desc    Detele friend
-   * @route   POST /api/v1/user/delete-friend
+   * @desc    Get all connections created by the authenticated user
+   * @route   GET /api/v1/connection/my-connections
    * @access  Private
    *
-   * @param {Request} req - Express request object containing friend document id
-   *
-   * @param {Response} res - Express request object containing message of sucess/failure
+   * @param {Request} req - Express request object (authenticated user)
+   * @param {Response} res - Express response object containing connections list
    */
-  deleteFriend = asyncHandler(async (req: Request, res: Response) => {
-    const { friendDocumentId } = req.body
+  getMyConnections = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(401, "Authenticated user not found in request")
+    }
 
-    await Friend.findByIdAndDelete(friendDocumentId)
+    const connections =
+      await this.deps.connectionService.findConnectionsBySenderId({
+        senderId: req.user._id,
+      })
 
-    return res.status(200).json(new ApiResponse(200, {}, "Success"))
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { connections },
+          "Connections fetched successfully"
+        )
+      )
   })
+}
