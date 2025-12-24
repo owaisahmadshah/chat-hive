@@ -30,6 +30,7 @@ import {
 import { useAuth } from "./hooks/useAuth"
 import debounce from "lodash.debounce"
 import { cn } from "@/lib/utils"
+import { SnapshotCard } from "./SnapShotCard"
 
 function SignUpForm() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
@@ -46,9 +47,18 @@ function SignUpForm() {
   const [checkingUsername, setCheckingUsername] = useState(false)
   const [resendError, setResendError] = useState<null | string>(null)
 
+  const [isCreatingDummyAccount, setIsCreatingDummyAccount] = useState(false)
+  const [isCreatedDummyAccount, setIsCreatedDummyAccount] = useState(false)
+  const [dummyAccountData, setDummyAccountData] = useState<null | {
+    email: string
+    username: string
+    password: string
+  }>(null)
+
   const navigate = useNavigate()
 
-  const { signUp, verifyOtp, resendOtp, uniqueUserUsername } = useAuth()
+  const { signUp, verifyOtp, resendOtp, uniqueUserUsername, signUpDummy } =
+    useAuth()
 
   const {
     register,
@@ -131,6 +141,29 @@ function SignUpForm() {
     if (!success) {
       setResendError(error)
     }
+  }
+
+  const handleDummySignUp = async () => {
+    setIsCreatingDummyAccount(true)
+    setAuthError(null)
+
+    const { user, error } = await signUpDummy()
+
+    if (user) {
+      setIsCreatedDummyAccount(true)
+      setDummyAccountData(user)
+    } else {
+      setAuthError(error)
+    }
+    setIsCreatingDummyAccount(false)
+  }
+
+  if (isCreatedDummyAccount && dummyAccountData) {
+    const { username, email, password } = dummyAccountData
+
+    return (
+      <SnapshotCard username={username} email={email} password={password} />
+    )
   }
 
   if (isVerifying) {
@@ -442,6 +475,27 @@ function SignUpForm() {
                   ) : (
                     <>
                       Create Account
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </span>
+              </Button>
+
+              <Button
+                type="button"
+                className="w-full h-11 font-medium group relative overflow-hidden shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                disabled={isCreatingDummyAccount}
+                onClick={handleDummySignUp}
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {isCreatingDummyAccount ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    <>
+                      Create Dummy Account
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}

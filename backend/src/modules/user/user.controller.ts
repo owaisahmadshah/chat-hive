@@ -343,4 +343,35 @@ export class UserController {
       .status(200)
       .json(new ApiResponse(200, { user, isUnique: false }, "Got users"))
   })
+
+  createDummyUser = asyncHandler(async (_: Request, res: Response) => {
+    const { accessToken, refreshToken, user } =
+      await this.deps.userService.createDummyUser()
+
+    const accessTokenOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "PRODUCTION",
+      sameSite: (process.env.NODE_ENV === "PRODUCTION" ? "none" : "lax") as
+        | "none"
+        | "lax",
+      maxAge: 50 * 60 * 1000, // 50 minutes
+    }
+
+    const refreshTokenOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "PRODUCTION",
+      sameSite: (process.env.NODE_ENV === "PRODUCTION" ? "none" : "lax") as
+        | "none"
+        | "lax",
+      maxAge: 25 * 24 * 60 * 60 * 1000, // 25 days
+    }
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, accessTokenOptions)
+      .cookie("refreshToken", refreshToken, refreshTokenOptions)
+      .json(
+        new ApiResponse(200, user, "Created and Signed In user successfully.")
+      )
+  })
 }

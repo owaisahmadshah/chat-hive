@@ -14,6 +14,7 @@ export class UserRepository {
     password: string
     otp: string
     otpExpiry: Date
+    dummy?: boolean
   }) {
     return User.create(data)
   }
