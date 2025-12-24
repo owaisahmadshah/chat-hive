@@ -1,21 +1,21 @@
 import mongoose, { Schema, Document } from "mongoose"
 
-interface friendDocument extends Document {
-  user: Schema.Types.ObjectId
-  friend: Schema.Types.ObjectId
+interface connectionDocument extends Document {
+  sender: Schema.Types.ObjectId
+  receiver: Schema.Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }
 
-const friendSchema = new Schema<friendDocument>(
+const connectionSchema = new Schema<connectionDocument>(
   {
-    user: {
+    sender: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
     },
-    friend: {
+    receiver: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -27,4 +27,7 @@ const friendSchema = new Schema<friendDocument>(
   }
 )
 
-export const Friend = mongoose.model<friendDocument>("Friend", friendSchema)
+export const Connection = mongoose.model<connectionDocument>(
+  "Connection",
+  connectionSchema
+)

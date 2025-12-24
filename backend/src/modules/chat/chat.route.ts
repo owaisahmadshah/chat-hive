@@ -1,13 +1,7 @@
 import { Router } from "express"
 
-import {
-  createChat,
-  deleteChat,
-  getAndUpdateChat,
-  getChatsAndMessages,
-  getMoreMessages,
-} from "../controllers/chat.controller.js"
-import { auth } from "../middlewares/auth.middleware.js"
+import { chatController } from "./chat.container.js"
+import { auth } from "../../shared/middlewares/auth.middleware.js"
 
 const router = Router()
 
@@ -17,7 +11,7 @@ const router = Router()
  * @access Private
  * @requires Authentication
  */
-router.route("/create").post(auth, createChat)
+router.post("/create", auth, chatController.createChat)
 
 /**
  * @route POST /api/v1/chat/delete
@@ -25,7 +19,7 @@ router.route("/create").post(auth, createChat)
  * @access Private
  * @requires Authentication
  */
-router.route("/delete").delete(auth, deleteChat)
+router.delete("/delete", auth, chatController.deleteChat)
 
 /**
  * @route POST /api/v1/chat/get
@@ -33,7 +27,7 @@ router.route("/delete").delete(auth, deleteChat)
  * @access Private
  * @requires Authentication
  */
-router.route("/get").post(auth, getChatsAndMessages)
+router.post("/get", auth, chatController.getChatsAndMessages)
 
 /**
  * @route POST /api/v1/chat/getupdatechat
@@ -41,7 +35,7 @@ router.route("/get").post(auth, getChatsAndMessages)
  * @access Private
  * @requires Authentication
  */
-router.route("/getupdatechat").post(auth, getAndUpdateChat)
+router.post("/getupdatechat", auth, chatController.getAndUpdateChat)
 
 /**
  * @route POST /api/v1/chat/messages
@@ -49,6 +43,6 @@ router.route("/getupdatechat").post(auth, getAndUpdateChat)
  * @access Private
  * @requires Authentication
  */
-router.route("/messages").post(auth, getMoreMessages)
+router.post("/messages", auth, chatController.getMoreMessages)
 
-export default router
+export { router as chatRouter }
