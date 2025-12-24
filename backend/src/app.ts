@@ -3,7 +3,7 @@ import morgan from "morgan"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 
-import logger from "./utils/logger.js"
+import logger from "./shared/utils/logger.js"
 
 const app = express()
 
@@ -47,19 +47,19 @@ app.use(
 )
 
 // Import route handlers
-import healthCheckRouter from "./routes/healthCheck.route.js"
-import chatRoute from "./routes/chat.route.js"
-import messageRoute from "./routes/message.route.js"
-import userRouter from "./routes/user.route.js"
+import healthCheckRouter from "./modules/health-check/healthCheck.route.js"
+import { chatRouter } from "./modules/chat/chat.route.js"
+import { messageRouter } from "./modules/message/message.route.js"
+import { userRouter } from "./modules/user/user.route.js"
 
 // Register API routes
 app.use("/api/v1/healthcheck", healthCheckRouter)
-app.use("/api/v1/chat", chatRoute)
-app.use("/api/v1/message", messageRoute)
+app.use("/api/v1/chat", chatRouter)
+app.use("/api/v1/message", messageRouter)
 app.use("/api/v1/user", userRouter)
 
 // Error middleware
-import { errorHandler } from "./middlewares/error.middleware.js"
+import { errorHandler } from "./shared/middlewares/error.middleware.js"
 
 app.use(errorHandler)
 

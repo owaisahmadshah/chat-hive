@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express"
 import { ApiError } from "../utils/ApiError.js"
 import jwt from "jsonwebtoken"
-import { User } from "../models/user.model.js"
+import { User } from "../../modules/user/user.model.js"
 import type { IRequestUser } from "../types/index.js"
 
 interface JwtPayloadWithId extends jwt.JwtPayload {

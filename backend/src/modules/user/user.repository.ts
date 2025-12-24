@@ -1,0 +1,58 @@
+import type { Document } from "mongoose"
+import { User } from "./user.model.js"
+
+export class UserRepository {
+  findByEmailOrUser(email: string, username: string) {
+    return User.findOne({
+      $or: [{ email }, { username }],
+    })
+  }
+
+  create(data: {
+    email: string
+    username: string
+    password: string
+    otp: string
+    otpExpiry: Date
+  }) {
+    return User.create(data)
+  }
+
+  findById(userId: string) {
+    return User.findById(userId)
+  }
+
+  updateRefreshToken(userId: string, refreshToken: string) {
+    return User.updateOne({ _id: userId }, { refreshToken })
+  }
+
+  updateIsVerified(userId: string, isVerified: boolean) {
+    return User.updateOne({ _id: userId }, { isVerified })
+  }
+
+  save(doc: Document) {
+    return doc.save()
+  }
+
+  saveWithoutValidation(doc: Document) {
+    return doc.save({ validateBeforeSave: false })
+  }
+
+  findOneAndDelete(userId: string) {
+    return User.findOneAndDelete({ _id: userId })
+  }
+
+  findByIdAndSelect(userId: string) {
+    return User.findById(userId).select(
+      "_id email username imageUrl lastSignInAt about isReadReceipts showAbout showLastSeen showProfileImage"
+    )
+  }
+
+  findByUsername(username: string) {
+    return User.find({ username })
+  }
+
+  findByIdAndUpdateImageUrl(userId: string, imageUrl: string) {
+    return User.findByIdAndUpdate(userId, { imageUrl }, { new: true })
+  }
+}
