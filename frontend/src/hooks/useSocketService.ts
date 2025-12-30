@@ -30,6 +30,7 @@ import {
   handleSeenAndReceiveMessageType,
   handleSeenAndReceiveMessagesType,
 } from "shared"
+import useMessageGlobalHook from "./useMessageGlobalHook"
 
 let socket: Socket | null = null // Singleton instance
 
@@ -41,6 +42,8 @@ const useSocketService = () => {
   const { selectedChatUser } = useSelector((state: RootState) => state.chats)
   const { userId } = useSelector((state: RootState) => state.user)
   const { chats, selectedChat } = useSelector((state: RootState) => state.chats)
+
+  const { updateMessageStatus } = useMessageGlobalHook()
 
   const chatRef = useRef(chats)
   chatRef.current = chats
@@ -120,6 +123,7 @@ const useSocketService = () => {
           )
           tempUnreadMessages = 0
         }
+        await updateMessageStatus(data.message._id, "receive")
       }
 
       if (
@@ -133,6 +137,8 @@ const useSocketService = () => {
           })
         )
       }
+
+      await updateMessageStatus(data.message._id, "seen")
 
       dispatch(
         updateChat({
