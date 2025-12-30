@@ -26,11 +26,11 @@ const HomePage = () => {
   return (
     <>
       {isLoading ? (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/10">
+        <div className="h-dvh flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/10">
           <Loader />
         </div>
       ) : (
-        <main className="flex max-h-screen overflow-hidden bg-background">
+        <main className="flex h-dvh overflow-hidden bg-background">
           <ChatSection value={isChatSelected} setValue={setIsChatSelected} />
           <MessageSection value={isChatSelected} setValue={setIsChatSelected} />
         </main>
