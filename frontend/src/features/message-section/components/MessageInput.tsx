@@ -107,7 +107,7 @@ function MessageInput() {
   }, [])
 
   return (
-    <div className="bg-background/95 backdrop-blur-sm">
+    <div className="shrink-0 bg-background/95 backdrop-blur-sm">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
