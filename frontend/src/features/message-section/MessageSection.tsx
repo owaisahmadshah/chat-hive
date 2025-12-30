@@ -23,7 +23,7 @@ const MessageSection = ({
   return (
     <section
       className={cn(
-        "h-[100dvh] w-full hidden flex-col bg-background",
+        "h-[100dvh] w-full hidden flex-col bg-background pt-[env(safe-area-inset-top)]",
         value && "flex",
         "sm:flex"
       )}
