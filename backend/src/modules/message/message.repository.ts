@@ -1,3 +1,5 @@
+import mongoose from "mongoose"
+
 import { Message } from "./message.model.js"
 
 export class MessageRepository {
@@ -21,7 +23,7 @@ export class MessageRepository {
     return Message.findByIdAndUpdate(
       messageId,
       {
-        $addToSet: { deletedBy: userId },
+        $addToSet: { deletedBy: new mongoose.Types.ObjectId(userId) },
       },
       { new: true }
     )
@@ -36,23 +38,17 @@ export class MessageRepository {
     chatId: string
     status: string
   }) {
-    return Message.bulkWrite([
+    return Message.updateMany(
       {
-        updateMany: {
-          filter: {
-            chatId: chatId,
-            sender: { $ne: userId }, // Only update messages that are not sent by the user
-            status: status, // Only update messages that are sent or received
-            deletedBy: { $ne: userId }, // Only update messages that are not deleted by the user
-          },
-          update: {
-            $set: {
-              status: status,
-            },
-          },
-        },
+        chatId: new mongoose.Types.ObjectId(chatId),
+        sender: { $ne: new mongoose.Types.ObjectId(userId) },
+        status: { $in: ["sent", "receive"] },
+        deletedBy: { $ne: new mongoose.Types.ObjectId(userId) },
       },
-    ])
+      {
+        $set: { status: status },
+      }
+    )
   }
 
   findByIdAndUpdateMessageStatus({
@@ -62,7 +58,7 @@ export class MessageRepository {
     messageId: string
     status: string
   }) {
-        return Message.findByIdAndUpdate(
+    return Message.findByIdAndUpdate(
       messageId,
       { $set: { status } },
       { new: true }
