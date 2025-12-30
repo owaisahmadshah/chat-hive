@@ -93,7 +93,7 @@ const MessageList = () => {
 
   return (
     <ScrollArea
-      className="flex-1 max-h-[calc(96vh-8rem)] bg-gradient-to-b from-background to-muted/5"
+      className="flex-1 min-h-0 bg-gradient-to-b from-background to-muted/5"
       ref={scrollRef}
     >
       <ul
