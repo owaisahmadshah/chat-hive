@@ -20,10 +20,10 @@ const MessageNavBar = ({
   const { selectedChat, selectedChatUser } = useSelector(
     (state: RootState) => state.chats
   )
-  const { friends } = useSelector((state: RootState) => state.friend)
-  const isFriend = friends.some(
-    (friend) => friend._id === selectedChatUser?._id
-  )
+  // const { friends } = useSelector((state: RootState) => state.friend)
+  // const isFriend = friends.some(
+  //   (friend) => friend._id === selectedChatUser?._id
+  // )
 
   const addToFriends = () => {
     // Add friend logic
@@ -129,11 +129,11 @@ const MessageNavBar = ({
         )}
 
         <div className="flex gap-2 w-full">
-          {!isFriend && (
+          {/* {!isFriend && (
             <Button variant="outline" className="flex-1" onClick={addToFriends}>
               Add to Contacts
             </Button>
-          )}
+          )} */}
           <Button variant="destructive" className="flex-1">
             Delete Chat
           </Button>

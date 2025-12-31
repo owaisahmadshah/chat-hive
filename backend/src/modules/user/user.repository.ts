@@ -1,4 +1,4 @@
-import type { Document } from "mongoose"
+import mongoose, { type Document } from "mongoose"
 import { User } from "./user.model.js"
 
 export class UserRepository {
@@ -55,5 +55,59 @@ export class UserRepository {
 
   findByIdAndUpdateImageUrl(userId: string, imageUrl: string) {
     return User.findByIdAndUpdate(userId, { imageUrl }, { new: true })
+  }
+
+  recommendedUsers(userId: string) {
+    const userObjectId = new mongoose.Schema.Types.ObjectId(userId)
+
+    return User.aggregate([
+      {
+        $match: {
+          _id: {
+            $ne: userObjectId,
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "connections",
+          let: {
+            userId: "$_id",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$sender", userObjectId] },
+                    { $eq: ["$receiver", "$$userId"] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "connection",
+        },
+      },
+      {
+        $match: {
+          connection: { $size: 0 },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          email: 1,
+          username: 1,
+          imageUrl: 1,
+          lastSignInAt: 1,
+          about: 1,
+          isReadReceipts: 1,
+          showAbout: 1,
+          showLastSeen: 1,
+          showProfileImage: 1,
+        },
+      },
+    ])
   }
 }

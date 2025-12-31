@@ -374,4 +374,18 @@ export class UserController {
         new ApiResponse(200, user, "Created and Signed In user successfully.")
       )
   })
+
+  recommendedUsers = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(401, "Unauthorized")
+    }
+
+    const user = await this.deps.userService.recommendedUsers(req.user._id)
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, user, "Fetched recommended users successfully")
+      )
+  })
 }

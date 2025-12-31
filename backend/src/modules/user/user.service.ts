@@ -397,4 +397,12 @@ export class UserService {
       },
     }
   }
+
+  async recommendedUsers(userId: string) {
+    const { userRepository } = this.deps
+
+    const users = await userRepository.recommendedUsers(userId)
+
+    return users
+  }
 }

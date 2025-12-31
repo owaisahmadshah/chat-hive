@@ -1,21 +1,24 @@
-import { useSelector } from "react-redux"
-import { RootState } from "@/store/store"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { ModeToggle } from "@/components/mode-toggle"
 import {
   User,
   Shield,
   Eye,
   Clock,
-  Image as ImageIcon,
+  ImageIcon,
   CheckCheck,
   HelpCircle,
   LogOut,
   Trash2,
   Camera,
 } from "lucide-react"
+
+import { useSelector } from "react-redux"
+import { RootState } from "@/store/store"
+
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { ModeToggle } from "@/components/mode-toggle"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,10 +26,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import useUserDelete from "@/hooks/useUserDelete"
-import { useUser } from "../hooks/useUser"
-import { EditAboutButton } from "./EditAboutButton"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import {
   Card,
   CardContent,
@@ -34,6 +34,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+
+import useUserDelete from "@/hooks/useUserDelete"
+import { useUser } from "../hooks/useUser"
+
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const Profile = () => {
   const user = useSelector((state: RootState) => state.user)
@@ -43,7 +49,6 @@ const Profile = () => {
   const PrivacyDropdown = ({
     field,
     value,
-    // icon: Icon,
   }: {
     field: string
     value: string
@@ -51,8 +56,11 @@ const Profile = () => {
   }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-9 px-3 hover:bg-primary/10">
-          <span className="text-sm capitalize">{value}</span>
+        <Button
+          variant="ghost"
+          className="h-9 px-4 hover:bg-primary/10 rounded-full"
+        >
+          <span className="text-sm capitalize font-medium">{value}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
@@ -84,120 +92,74 @@ const Profile = () => {
   )
 
   return (
-    <main className="border-r h-screen bg-gradient-to-b from-background to-muted/5">
-      <ScrollArea className="h-full">
-        <div className="p-6">
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="profile" className="gap-2">
-                <User className="w-4 h-4" />
-                Profile
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="gap-2">
-                <Shield className="w-4 h-4" />
-                Settings
-              </TabsTrigger>
-            </TabsList>
-
-            {/* PROFILE TAB */}
-            <TabsContent
-              value="profile"
-              className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500"
-            >
+    <Dialog>
+      <DialogTrigger asChild>
+        <Avatar className="w-10 h-10 ring-2 ring-background cursor-pointer">
+          <AvatarImage src={user.imageUrl} />
+          <AvatarFallback className="bg-primary/10 text-primary">
+            {user.username.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl">
+        <main className="h-[85vh] bg-gradient-to-br from-background via-background to-muted/20">
+          <ScrollArea className="h-full">
+            <div className="p-6 space-y-6">
               {/* Profile Header */}
-              <Card className="border-muted/40 overflow-hidden">
-                <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20" />
-                <CardContent className="relative pb-6">
-                  <div className="flex flex-col items-center -mt-16">
+              <Card className="border-muted/40 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="h-32 bg-gradient-to-br from-primary/30 via-primary/15 to-primary/5 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-grid-white/10" />
+                </div>
+                <CardContent className="relative pb-8">
+                  <div className="flex flex-col items-center -mt-20">
                     <div className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-primary/5 rounded-full blur-xl group-hover:blur-2xl transition-all" />
                       <img
                         src={user.imageUrl}
                         alt={user.username}
-                        className="w-28 h-28 rounded-full ring-4 ring-background object-cover"
+                        className="relative w-32 h-32 rounded-full ring-4 ring-background object-cover shadow-xl"
                       />
                       <Button
                         size="icon"
                         variant="secondary"
-                        className="absolute bottom-0 right-0 rounded-full w-9 h-9 shadow-lg opacity-0 group-hover:opacity-100 transition-all"
+                        className="absolute bottom-1 right-1 rounded-full w-10 h-10 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
                       >
                         <Camera className="w-4 h-4" />
                       </Button>
                     </div>
 
-                    <h2 className="mt-4 text-2xl font-bold">{user.username}</h2>
-                    <p className="text-sm text-muted-foreground">
+                    <h2 className="mt-6 text-2xl font-bold tracking-tight">
+                      {user.username}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">
                       @{user.username}
                     </p>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* About Section */}
-              <Card className="border-muted/40">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    About
-                    <EditAboutButton />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {user.about ||
-                      "No bio added yet. Tell others about yourself!"}
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 gap-4">
-                <Card className="border-muted/40">
-                  <CardContent className="pt-6">
-                    <div className="text-center">
-                      <p className="text-3xl font-bold text-primary">0</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Messages
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="border-muted/40">
-                  <CardContent className="pt-6">
-                    <div className="text-center">
-                      <p className="text-3xl font-bold text-primary">0</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Contacts
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* SETTINGS TAB */}
-            <TabsContent
-              value="settings"
-              className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500"
-            >
               {/* Privacy Settings */}
-              <Card className="border-muted/40">
-                <CardHeader>
+              <Card className="border-muted/40 shadow-sm">
+                <CardHeader className="pb-4">
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <Shield className="w-5 h-5" />
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-primary" />
+                    </div>
                     Privacy Settings
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="mt-1">
                     Control who can see your information
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <CardContent className="space-y-1">
+                  <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
                         <Eye className="w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">About</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           Who can see your bio
                         </p>
                       </div>
@@ -208,16 +170,17 @@ const Profile = () => {
                       icon={Eye}
                     />
                   </div>
-                  <Separator />
 
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Separator className="my-1" />
+
+                  <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
                         <Clock className="w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Last Seen</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           Who can see when you're online
                         </p>
                       </div>
@@ -228,16 +191,17 @@ const Profile = () => {
                       icon={Clock}
                     />
                   </div>
-                  <Separator />
 
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Separator className="my-1" />
+
+                  <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
                         <ImageIcon className="w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Profile Picture</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           Who can see your photo
                         </p>
                       </div>
@@ -248,16 +212,17 @@ const Profile = () => {
                       icon={ImageIcon}
                     />
                   </div>
-                  <Separator />
 
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Separator className="my-1" />
+
+                  <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
                         <CheckCheck className="w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Read Receipts</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           Show when you've read messages
                         </p>
                       </div>
@@ -266,9 +231,9 @@ const Profile = () => {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="h-9 px-3 hover:bg-primary/10"
+                          className="h-9 px-4 hover:bg-primary/10 rounded-full"
                         >
-                          <span className="text-sm capitalize">
+                          <span className="text-sm capitalize font-medium">
                             {user.isReadReceipts ? "On" : "Off"}
                           </span>
                         </Button>
@@ -292,18 +257,18 @@ const Profile = () => {
               </Card>
 
               {/* Appearance */}
-              <Card className="border-muted/40">
-                <CardHeader>
+              <Card className="border-muted/40 shadow-sm">
+                <CardHeader className="pb-4">
                   <CardTitle className="text-lg">Appearance</CardTitle>
-                  <CardDescription>
+                  <CardDescription className="mt-1">
                     Customize how Chat Hive looks
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
                     <div>
                       <p className="text-sm font-medium">Theme</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         Choose light or dark mode
                       </p>
                     </div>
@@ -313,49 +278,54 @@ const Profile = () => {
               </Card>
 
               {/* Support */}
-              <Card className="border-muted/40">
-                <CardContent className="pt-6">
+              <Card className="border-muted/40 shadow-sm">
+                <CardContent className="p-3">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start hover:bg-primary/10"
+                    className="w-full justify-start hover:bg-primary/10 h-12 rounded-lg"
                   >
                     <HelpCircle className="w-5 h-5 mr-3" />
-                    Help & Support
+                    <span className="font-medium">Help & Support</span>
                   </Button>
                 </CardContent>
               </Card>
 
               {/* Danger Zone */}
-              <Card className="border-destructive/20">
-                <CardHeader>
-                  <CardTitle className="text-lg text-destructive">
+              <Card className="border-destructive/30 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg text-destructive flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-destructive" />
+                    </div>
                     Danger Zone
                   </CardTitle>
-                  <CardDescription>Irreversible actions</CardDescription>
+                  <CardDescription className="mt-1">
+                    Irreversible actions
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive h-12 rounded-lg"
                   >
                     <LogOut className="w-5 h-5 mr-3" />
-                    Sign Out
+                    <span className="font-medium">Sign Out</span>
                   </Button>
                   <Button
                     variant="ghost"
                     onClick={deleteUser}
-                    className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive h-12 rounded-lg"
                   >
                     <Trash2 className="w-5 h-5 mr-3" />
-                    Delete Account
+                    <span className="font-medium">Delete Account</span>
                   </Button>
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </ScrollArea>
-    </main>
+            </div>
+          </ScrollArea>
+        </main>
+      </DialogContent>
+    </Dialog>
   )
 }
 

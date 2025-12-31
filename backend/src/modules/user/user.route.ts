@@ -27,5 +27,6 @@ router
     upload.fields([{ name: "profileImage", maxCount: 1 }]),
     userController.uploadProfileImage
   )
+router.get("/recommended-users", auth, userController.recommendedUsers)
 
 export { router as userRouter }
