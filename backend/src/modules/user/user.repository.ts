@@ -58,7 +58,7 @@ export class UserRepository {
   }
 
   recommendedUsers(userId: string) {
-    const userObjectId = new mongoose.Schema.Types.ObjectId(userId)
+    const userObjectId = new mongoose.Types.ObjectId(userId)
 
     return User.aggregate([
       {
@@ -100,7 +100,6 @@ export class UserRepository {
           email: 1,
           username: 1,
           imageUrl: 1,
-          lastSignInAt: 1,
           about: 1,
           isReadReceipts: 1,
           showAbout: 1,

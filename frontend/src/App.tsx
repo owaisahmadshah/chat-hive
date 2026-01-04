@@ -6,7 +6,7 @@ import SignUpForm from "@/features/auth/SignUp"
 import SignInForm from "@/features/auth/SignIn"
 import useGetUser from "./hooks/useGetUser"
 import { Connections } from "./routes/Connections"
-import { Users } from "./routes/Users"
+import { Users } from "./routes/Users/Users"
 
 function App() {
   useGetUser()
@@ -25,7 +25,7 @@ function App() {
         path="/users"
         element={
           <PrivateRoute url="/users" redirectTo="/sign-in">
-            <Connections />
+            <Users />
           </PrivateRoute>
         }
       />
@@ -33,7 +33,7 @@ function App() {
         path="/connections"
         element={
           <PrivateRoute url="/connections" redirectTo="/sign-in">
-            <Users />
+            <Connections />
           </PrivateRoute>
         }
       />
