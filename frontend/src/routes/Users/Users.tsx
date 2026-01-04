@@ -1,47 +1,32 @@
-import { Button } from "@/components/ui/button"
+import { Suspense } from "react"
+import { ErrorBoundary } from "react-error-boundary"
+
+import { ConnectionsList } from "./components/ConnectionList"
 import { useFetchInfiniteRecommendedUsers } from "./hooks/useFetchInfiniteRecommendedUsers"
-import { ConnectionCard } from "./components/ConnectionCard"
-import { useCreateConnection } from "./hooks/useCreateConnection"
 
 export const Users = () => {
-  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
-    useFetchInfiniteRecommendedUsers()
-
-  const { mutateAsync: createConnection } = useCreateConnection()
-
-  const connections = data.pages.flatMap((page) => page.users)
-
   return (
-    <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-4 space-y-2 py-4">
-      <h1 className="w-full text-center text-2xl font-bold">
-        Recommended Users
-      </h1>
-      {connections.map((connection) => (
-        <ConnectionCard
-          key={connection._id}
-          user={{
-            _id: connection._id,
-            imageUrl: connection.imageUrl,
-            username: connection.username,
-          }}
-          addConnection={() => createConnection({ receiverId: connection._id })}
-        />
-      ))}
-      <div>
-        {hasNextPage && (
-          <div className="px-4 py-2">
-            <Button
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              variant="link"
-            >
-              {isFetchingNextPage
-                ? "Loading more connections..."
-                : "Load more connections"}
-            </Button>
+    <ErrorBoundary
+      fallback={
+        <div className="h-[100dvh] w-[100dvw] text-center">
+          Error occured while rendering connections
+        </div>
+      }
+    >
+      <Suspense
+        fallback={
+          <div className="h-[100dvh] w-[100dvw] text-center">
+            Loading Users...
           </div>
-        )}
-      </div>
-    </div>
+        }
+      >
+        <ConnectionsList
+          dataKey="users"
+          description="Discover people you may want to connect with"
+          useInfiniteQuery={useFetchInfiniteRecommendedUsers}
+          link={{ text: "Connections", url: "connections" }}
+        />
+      </Suspense>
+    </ErrorBoundary>
   )
 }

@@ -417,7 +417,6 @@ export class UserService {
 
     const hasMore = users.length === limit
     const lastUser = users.at(-1)
-    console.log(lastUser)
     const nextCursor = lastUser?.createdAt
       ? lastUser.createdAt.toISOString()
       : null

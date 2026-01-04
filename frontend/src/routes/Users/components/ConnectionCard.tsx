@@ -11,30 +11,34 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+type ConnectionMode = "user" | "connection"
+
 interface IConnectionCardProps {
   user: {
     _id: string
     username: string
     imageUrl: string
   }
-  isConnection?: boolean
-  addConnection?: () => void
-  removeConnection?: () => void
+  mode: ConnectionMode
+  onAdd?: () => void
+  onRemove?: () => void
   onMessage?: () => void
 }
 
 export const ConnectionCard = ({
   user,
-  isConnection = false,
-  addConnection,
-  removeConnection,
+  mode,
+  onAdd,
+  onRemove,
   onMessage,
 }: IConnectionCardProps) => {
+  const isConnection = mode === "connection"
+
   return (
     <Card
       className={cn(
         "overflow-hidden transition-shadow hover:shadow-md",
-        isConnection && "w-full"
+        isConnection && "w-full py-2"
       )}
     >
       <CardContent
@@ -43,7 +47,12 @@ export const ConnectionCard = ({
           isConnection && "flex-row w-full justify-between"
         )}
       >
-        <div className={cn("text-center", isConnection && "flex items-center")}>
+        <div
+          className={cn(
+            "flex flex-col justify-center items-center",
+            isConnection && "flex-row items-center"
+          )}
+        >
           <Avatar
             className={cn(
               "h-32 w-32 max-sm:h-24 max-sm:w-24",
@@ -53,30 +62,35 @@ export const ConnectionCard = ({
             <AvatarImage src={user.imageUrl} />
             <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
           </Avatar>
-          <h1 className="text-sm p-2 font-bold">{user.username}</h1>
+
+          <h1 className="p-2 text-sm font-bold">{user.username}</h1>
         </div>
+
         <div className="flex items-center gap-2">
-          {addConnection && (
-            <Button onClick={addConnection} variant="default" size="sm">
+          {mode === "user" && onAdd && (
+            <Button onClick={onAdd} size="sm">
               <UserPlus className="mr-1 h-4 w-4" />
               Connect
             </Button>
           )}
-          {removeConnection && (
-            <Button onClick={removeConnection} variant="outline" size="sm">
+
+          {mode === "connection" && onRemove && (
+            <Button onClick={onRemove} variant="outline" size="sm">
               <X className="mr-1 h-4 w-4" />
               Remove
             </Button>
           )}
-          <Button onClick={onMessage} variant="outline" size="sm">
+
+          {onMessage && (
             <Tooltip>
-              <TooltipTrigger>
-                {" "}
-                <MessageCircle />
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" onClick={onMessage}>
+                  <MessageCircle />
+                </Button>
               </TooltipTrigger>
               <TooltipContent>Create chat</TooltipContent>
             </Tooltip>
-          </Button>
+          )}
         </div>
       </CardContent>
     </Card>

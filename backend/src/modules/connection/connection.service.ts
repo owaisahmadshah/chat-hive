@@ -32,7 +32,11 @@ export class ConnectionService {
       receiverId,
     })
 
-    return newConnection
+    const populatedConnection = await connectionRepository.findById(
+      (newConnection as any)._id.toString()
+    )
+
+    return populatedConnection
   }
 
   async deleteConnectionById({ connectionId }: { connectionId: string }) {
