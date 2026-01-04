@@ -397,4 +397,30 @@ export class UserService {
       },
     }
   }
+
+  async recommendedUsers({
+    userId,
+    limit,
+    cursor,
+  }: {
+    userId: string
+    limit: number
+    cursor: string | null
+  }) {
+    const { userRepository } = this.deps
+
+    const users = await userRepository.recommendedUsers({
+      userId,
+      limit,
+      cursor,
+    })
+
+    const hasMore = users.length === limit
+    const lastUser = users.at(-1)
+    const nextCursor = lastUser?.createdAt
+      ? lastUser.createdAt.toISOString()
+      : null
+
+    return { users, hasMore, nextCursor }
+  }
 }

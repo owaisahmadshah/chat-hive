@@ -51,12 +51,14 @@ import healthCheckRouter from "./modules/health-check/healthCheck.route.js"
 import { chatRouter } from "./modules/chat/chat.route.js"
 import { messageRouter } from "./modules/message/message.route.js"
 import { userRouter } from "./modules/user/user.route.js"
+import { connectionRouter } from "./modules/connection/connection.route.js"
 
 // Register API routes
 app.use("/api/v1/healthcheck", healthCheckRouter)
 app.use("/api/v1/chat", chatRouter)
 app.use("/api/v1/message", messageRouter)
 app.use("/api/v1/user", userRouter)
+app.use("/api/v1/connection", connectionRouter)
 
 // Error middleware
 import { errorHandler } from "./shared/middlewares/error.middleware.js"

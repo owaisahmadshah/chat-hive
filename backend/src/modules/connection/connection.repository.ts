@@ -1,6 +1,20 @@
 import { Connection } from "./connection.model.js"
 
 export class ConnectionRepository {
+  findById(id: string) {
+    return Connection.findById(id)
+      .select("sender receiver createdAt updatedAt")
+      .populate({
+        path: "sender",
+        select: "_id username imageUrl lastSeen",
+      })
+      .populate({
+        path: "receiver",
+        select: "_id username imageUrl lastSeen",
+      })
+      .lean()
+  }
+
   createConnection({
     senderId,
     receiverId,

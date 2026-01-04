@@ -9,7 +9,6 @@ import { useSocketService } from "@/hooks/useSocketService"
 import usePresenceStatus from "@/hooks/usePresenceStatus"
 import { RootState } from "@/store/store"
 import useGetUserChatsAndMessages from "@/features/chat-section/hooks/useGetUserChatsAndMessages"
-import useGetFriends from "@/hooks/useGetFriends"
 
 const HomePage = () => {
   const [isChatSelected, setIsChatSelected] = useState(false)
@@ -19,23 +18,22 @@ const HomePage = () => {
   useSocketService()
   usePresenceStatus()
   useGetUserChatsAndMessages()
-  useGetFriends()
 
   const { isLoading } = useSelector((state: RootState) => state.chats)
 
+  if (isLoading) {
+    return (
+      <div className="h-dvh flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/10">
+        <Loader />
+      </div>
+    )
+  }
+
   return (
-    <>
-      {isLoading ? (
-        <div className="h-dvh flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/10">
-          <Loader />
-        </div>
-      ) : (
-        <main className="flex h-dvh overflow-hidden bg-background">
-          <ChatSection value={isChatSelected} setValue={setIsChatSelected} />
-          <MessageSection value={isChatSelected} setValue={setIsChatSelected} />
-        </main>
-      )}
-    </>
+    <main className="flex h-dvh overflow-hidden bg-background">
+      <ChatSection value={isChatSelected} setValue={setIsChatSelected} />
+      <MessageSection value={isChatSelected} setValue={setIsChatSelected} />
+    </main>
   )
 }
 

@@ -7,7 +7,6 @@ import { ChatUser } from "shared"
 import { useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useChat } from "../hooks/useChat"
-import useFriend from "../hooks/useFriend"
 import { MessageSquare, UserPlus, CheckCircle2, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
@@ -17,10 +16,8 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
 
   const uid = useSelector((state: RootState) => state.user.userId)
   const chats = useSelector((state: RootState) => state.chats.chats)
-  const friends = useSelector((state: RootState) => state.friend.friends)
   const dispatch = useDispatch()
   const { createNewChat } = useChat()
-  const { createUser } = useFriend()
 
   const handleCreateChat = async (user: ChatUser) => {
     setIsCreating(true)
@@ -28,9 +25,7 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
     setIsCreating(false)
   }
 
-  const handleAddFriend = async (user: ChatUser) => {
-    await createUser(user._id)
-  }
+  const handleAddConnection = async (user: ChatUser) => {}
 
   const handleOpenChat = (user: ChatUser) => {
     if (existedChat) {
@@ -47,13 +42,13 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
     return chats.some((chat) => chat.users.some((u) => u._id === userId))
   }
 
-  const isFriend = (contactId: string): boolean => {
-    return friends.some((friend) => friend.friend._id === contactId)
-  }
+  // const isFriend = (contactId: string): boolean => {
+  //   return friends.some((friend) => friend.friend._id === contactId)
+  // }
 
   const isYou = user._id === uid
   const chatExists = checkIfChatExists(user._id)
-  const isContact = isFriend(user._id)
+  // const isContact = isFriend(user._id)
 
   return (
     <div
@@ -76,7 +71,9 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
                 You
               </Badge>
             )}
-            {isContact && !isYou && (
+            {/* ---------------------------TODO---------------------------------- */}
+            {/* {isContact && !isYou && ( */}
+            {!isYou && (
               <Badge
                 variant="outline"
                 className="text-xs border-green-500/30 text-green-600 dark:text-green-400"
@@ -96,13 +93,14 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
 
       {!isYou && (
         <div className="flex gap-2">
-          {!isContact && chatExists && (
+          {/* {!isContact && chatExists && ( */}
+          {chatExists && (
             <Button
               size="sm"
               variant="outline"
               onClick={(e) => {
                 e.stopPropagation()
-                handleAddFriend(user)
+                handleAddConnection(user)
               }}
               className="hover:bg-primary/10 hover:border-primary/30"
             >

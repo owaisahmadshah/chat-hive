@@ -56,11 +56,18 @@ export class ConnectionController {
       throw new ApiError(400, "ConnectionId is required")
     }
 
-    await this.deps.connectionService.deleteConnectionById({ connectionId })
+    const deletedConnection =
+      await this.deps.connectionService.deleteConnectionById({ connectionId })
 
     return res
       .status(200)
-      .json(new ApiResponse(200, {}, "Connection deleted successfully"))
+      .json(
+        new ApiResponse(
+          200,
+          deletedConnection,
+          "Connection deleted successfully"
+        )
+      )
   })
 
   /**
