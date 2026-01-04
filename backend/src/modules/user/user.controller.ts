@@ -380,12 +380,19 @@ export class UserController {
       throw new ApiError(401, "Unauthorized")
     }
 
-    const user = await this.deps.userService.recommendedUsers(req.user._id)
+    const { limit, cursor } = req.query
+    const userId = req.user._id
+
+    const response = await this.deps.userService.recommendedUsers({
+      userId,
+      limit: Number(limit),
+      cursor: cursor ? String(cursor) : null,
+    })
 
     return res
       .status(200)
       .json(
-        new ApiResponse(200, user, "Fetched recommended users successfully")
+        new ApiResponse(200, response, "Fetched recommended users successfully")
       )
   })
 }

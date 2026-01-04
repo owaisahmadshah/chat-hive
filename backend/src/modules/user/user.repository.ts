@@ -57,16 +57,38 @@ export class UserRepository {
     return User.findByIdAndUpdate(userId, { imageUrl }, { new: true })
   }
 
-  recommendedUsers(userId: string) {
+  recommendedUsers({
+    userId,
+    limit,
+    cursor,
+  }: {
+    userId: string
+    limit: number
+    cursor: string | null
+  }) {
     const userObjectId = new mongoose.Types.ObjectId(userId)
+
+    let filter: any = {
+      _id: {
+        $ne: userObjectId,
+      },
+    }
+
+    if (cursor) {
+      filter.createdAt = new Date(cursor)
+    }
 
     return User.aggregate([
       {
-        $match: {
-          _id: {
-            $ne: userObjectId,
-          },
+        $match: filter,
+      },
+      {
+        $sort: {
+          createdAt: -1,
         },
+      },
+      {
+        $limit: limit,
       },
       {
         $lookup: {
@@ -105,6 +127,7 @@ export class UserRepository {
           showAbout: 1,
           showLastSeen: 1,
           showProfileImage: 1,
+          createdAt: 1,
         },
       },
     ])

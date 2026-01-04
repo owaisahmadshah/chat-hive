@@ -5,7 +5,7 @@ import PrivateRoute from "@/routes/PrivateRoute"
 import SignUpForm from "@/features/auth/SignUp"
 import SignInForm from "@/features/auth/SignIn"
 import useGetUser from "./hooks/useGetUser"
-import { Connections } from "./routes/Connections"
+import { Connections } from "./routes/Users/Connections"
 import { Users } from "./routes/Users/Users"
 
 function App() {
