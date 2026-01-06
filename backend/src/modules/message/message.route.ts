@@ -20,5 +20,6 @@ router.route("/updatestatus").post(auth, messageController.updateMessagesStatus)
 router
   .route("/updateonestatus")
   .post(auth, messageController.updateMessageStatus)
+router.get("/messages", auth, messageController.getMessages)
 
 export { router as messageRouter }

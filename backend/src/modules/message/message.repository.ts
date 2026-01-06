@@ -64,4 +64,82 @@ export class MessageRepository {
       { new: true }
     )
   }
+
+  findMessagesByChatId({
+    chatId,
+    userId,
+    limit,
+    cursor,
+  }: {
+    chatId: string
+    userId: string
+    limit: number
+    cursor: null | string
+  }) {
+    const chatObjId = new mongoose.Types.ObjectId(chatId)
+    const userObjId = new mongoose.Types.ObjectId(userId)
+
+    const filter: any = {
+      chatId: chatObjId,
+      deletedBy: {
+        $ne: userObjId,
+      },
+    }
+
+    if (cursor) {
+      filter.updatedAt = {
+        $lt: new Date(cursor),
+      }
+    }
+
+    return Message.aggregate([
+      {
+        $match: filter
+      },
+      {
+        $sort: {
+          updatedAt: -1,
+        },
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $lookup: {
+          from: "users",
+          let: {
+            userId: "$sender",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", "$$userId"],
+                },
+              },
+            },
+            {
+              $project: {
+                username: 1,
+                imageUrl: 1,
+              },
+            },
+          ],
+          as: "sender",
+        },
+      },
+      {
+        $addFields: {
+          sender: {
+            $arrayElemAt: ["$sender", 0],
+          },
+        },
+      },
+      {
+        $project: {
+          deletedBy: 0,
+        },
+      },
+    ])
+  }
 }

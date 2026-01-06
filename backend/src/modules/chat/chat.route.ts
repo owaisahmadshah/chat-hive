@@ -22,12 +22,12 @@ router.post("/create", auth, chatController.createChat)
 router.delete("/delete", auth, chatController.deleteChat)
 
 /**
- * @route POST /api/v1/chat/get
- * @desc Get all chats and their messages for the authenticated user
+ * @route POST /api/v1/chat/chats
+ * @desc Get all chats of authenticated user
  * @access Private
  * @requires Authentication
  */
-router.post("/get", auth, chatController.getChatsAndMessages)
+router.get("/chats", auth, chatController.getUserChats)
 
 /**
  * @route POST /api/v1/chat/getupdatechat

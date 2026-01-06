@@ -60,6 +60,29 @@ export class ChatService {
     }
 
     await chatRepository.deleteBulkMessage(chatId, userId)
+
+    return deletedChat
+  }
+
+  async getUserChats({
+    userId,
+    limit,
+    cursor,
+  }: {
+    userId: string
+    limit: number
+    cursor: string | null
+  }) {
+    const { chatRepository } = this.deps
+
+    const chats = await chatRepository.findUserChats({ userId, limit, cursor })
+
+    const hasMore = chats.length === limit
+    const lastChat = chats.at(-1)
+    const nextCursor =
+      hasMore && lastChat?.updatedAt ? lastChat.updatedAt : null
+
+    return { chats, hasMore, nextCursor }
   }
 
   async getChatsAndMessages({ userId }: { userId: string }) {

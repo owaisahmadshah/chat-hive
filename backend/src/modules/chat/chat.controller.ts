@@ -60,24 +60,29 @@ export class ChatContoller {
 
   /**
    * @desc    Get all the chats.
-   * @route   POST /api/v1/chat/get
+   * @route   POST /api/v1/chat/chats
    * @access  Private
    *
    * @param {Request} req - Express request object containing user
-   * @param {Response} res - Express response object contains all the chats and messages of a user
+   * @param {Response} res - Express response object contains all the chats
    */
-  getChatsAndMessages = asyncHandler(async (req: Request, res: Response) => {
+  getUserChats = asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) {
       throw new ApiError(401, "Unauthorized")
     }
 
     const { chatService } = this.deps
+    const { limit, cursor } = req.query
 
     const userId = req.user._id
 
-    const chats = await chatService.getChatsAndMessages({ userId })
+    const response = await chatService.getUserChats({
+      userId,
+      limit: Number(limit),
+      cursor: cursor ? String(cursor) : null,
+    })
 
-    return res.status(200).json(new ApiResponse(200, chats, "Success"))
+    return res.status(200).json(new ApiResponse(200, response, "Success"))
   })
 
   getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {

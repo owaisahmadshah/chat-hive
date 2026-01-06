@@ -106,4 +106,32 @@ export class MessageController {
       .status(201)
       .json(new ApiResponse(201, {}, "Updated message successfully"))
   })
+
+  /**
+   * @desc    Fetch messages by chatId.
+   * @route   POST /api/v1/message/messages
+   * @access  Private
+   *
+   * @param {Request} req - Express request object containing message details (chatId)
+   * @param {Response} res - Express response object contains messages, hasMore, and nextCursor
+   */
+  getMessages = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(401, "Unauthorized")
+    }
+
+    const userId = req.user._id
+    const { cursor, limit, chatId } = req.query
+
+    const response = this.deps.messageService.getMessagesByChatId({
+      chatId: String(chatId),
+      userId,
+      limit: Number(limit),
+      cursor: cursor ? String(cursor) : null,
+    })
+
+    return res
+      .status(201)
+      .json(new ApiResponse(201, response, "Successfully fetched messsages"))
+  })
 }

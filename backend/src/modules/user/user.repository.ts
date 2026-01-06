@@ -75,7 +75,7 @@ export class UserRepository {
     }
 
     if (cursor) {
-      filter.createdAt = new Date(cursor)
+      filter.createdAt = { $lt: new Date(cursor) }
     }
 
     return User.aggregate([

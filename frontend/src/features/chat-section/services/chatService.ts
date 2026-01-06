@@ -22,4 +22,13 @@ const getUserChat = async (chatBody: { chatId: string }) => {
   return data
 }
 
-export { fetchUser, createChat, deleteChatService, getUserChat }
+const fetchUserChats = async (pagination: {
+  limit: number
+  cursor: string | null
+}) => {
+  const { data } = await api.get("/v1/chat/chats", { params: pagination })
+
+  return data.data
+}
+
+export { fetchUser, createChat, deleteChatService, getUserChat, fetchUserChats }

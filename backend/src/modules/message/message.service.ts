@@ -138,7 +138,14 @@ export class MessageService {
       messageId: messages[messages.length - 1]?._id as string,
     })
 
-    return messages
+    return {
+      ...messages,
+      sender: {
+        _id: userSent._id.toString(),
+        username: userSent.username,
+        imageUrl: userSent.imageUrl
+      },
+    }
   }
 
   async deleteMessage({
@@ -199,5 +206,37 @@ export class MessageService {
       })
 
     return message
+  }
+
+  async getMessagesByChatId({
+    chatId,
+    userId,
+    limit,
+    cursor,
+  }: {
+    chatId: string
+    userId: string
+    limit: number
+    cursor: null | string
+  }) {
+    const { messageRepository } = this.deps
+
+    const messages = await messageRepository.findMessagesByChatId({
+      chatId,
+      userId,
+      limit,
+      cursor,
+    })
+
+    const hasMore = messages.length === limit
+    const lastMessage = messages.at(-1)
+    const nextCursor =
+      lastMessage?.updatedAt && hasMore ? lastMessage.updatedAt : null
+
+    return {
+      messages,
+      hasMore,
+      nextCursor,
+    }
   }
 }
