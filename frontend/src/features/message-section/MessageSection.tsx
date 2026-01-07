@@ -1,11 +1,9 @@
-import { useSelector } from "react-redux"
-
-import { RootState } from "@/store/store"
 import NoChatSelected from "./components/NoChatSelected"
 import MessageNavBar from "@/features/message-section/components/MessageNavBar"
-import MessageList from "@/features/message-section/components/MessageList"
 import MessageInput from "@/features/message-section/components/MessageInput"
 import { cn } from "@/lib/utils"
+import { useSearchParams } from "react-router-dom"
+import { MessagesList } from "./components/MessagesList"
 
 const MessageSection = ({
   value,
@@ -14,9 +12,9 @@ const MessageSection = ({
   value: boolean
   setValue: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
-  const { selectedChat } = useSelector((state: RootState) => state.chats)
+  const [params] = useSearchParams()
 
-  if (!selectedChat) {
+  if (!params.get("chatId")) {
     return <NoChatSelected />
   }
 
@@ -29,7 +27,7 @@ const MessageSection = ({
       )}
     >
       <MessageNavBar setValue={setValue} />
-      <MessageList />
+      <MessagesList />
       <MessageInput />
     </section>
   )

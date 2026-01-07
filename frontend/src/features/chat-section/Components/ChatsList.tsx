@@ -26,7 +26,10 @@ export const ChatsList = () => {
         {chats.map((chat, index) => (
           <li
             key={chat._id}
-            onClick={() => setSearchParams(`?chatId=${chat._id}`)}
+            onClick={() => {
+              // setSearchParams(`?chatId=${chat._id}?userId=${chat.user._id}`)
+              setSearchParams({ chatId: chat._id, userId: chat.user._id })
+            }}
             className={cn(
               "cursor-pointer px-4 py-3 transition-all duration-200",
               "hover:bg-muted/50 relative group",

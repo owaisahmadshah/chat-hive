@@ -57,6 +57,11 @@ export class ChatRepository {
         $limit: limit,
       },
       {
+        $sort: {
+          updatedAt: 1,
+        },
+      },
+      {
         $lookup: {
           from: "users",
           let: { userIds: "$users" },

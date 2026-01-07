@@ -28,5 +28,6 @@ router
     userController.uploadProfileImage
   )
 router.get("/recommended-users", auth, userController.recommendedUsers)
+router.get("/chat-user", auth, userController.fetchChatUser)
 
 export { router as userRouter }

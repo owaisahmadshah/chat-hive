@@ -94,7 +94,7 @@ export class MessageRepository {
 
     return Message.aggregate([
       {
-        $match: filter
+        $match: filter,
       },
       {
         $sort: {
@@ -103,6 +103,11 @@ export class MessageRepository {
       },
       {
         $limit: limit,
+      },
+      {
+        $sort: {
+          updatedAt: 1,
+        },
       },
       {
         $lookup: {

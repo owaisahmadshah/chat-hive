@@ -35,7 +35,7 @@ export class MessageController {
 
     return res
       .status(201)
-      .json(new ApiResponse(201, { messages }, "Created messages"))
+      .json(new ApiResponse(201, messages, "Created message"))
   })
 
   /**
@@ -123,7 +123,7 @@ export class MessageController {
     const userId = req.user._id
     const { cursor, limit, chatId } = req.query
 
-    const response = this.deps.messageService.getMessagesByChatId({
+    const response = await this.deps.messageService.getMessagesByChatId({
       chatId: String(chatId),
       userId,
       limit: Number(limit),

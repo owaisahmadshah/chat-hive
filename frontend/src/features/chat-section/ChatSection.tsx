@@ -1,5 +1,4 @@
 import ChatNavbar from "@/features/chat-section/Components/ChatNavBar"
-import ChatList from "@/features/chat-section/Components/ChatList"
 import { cn } from "@/lib/utils"
 import { ChatsList } from "./Components/ChatsList"
 
@@ -20,7 +19,6 @@ const ChatSection = ({
       )}
     >
       <ChatNavbar />
-      {/* <ChatList setValue={setValue} /> */}
       <ChatsList />
     </section>
   )

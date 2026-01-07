@@ -1,15 +1,16 @@
 import { ArrowLeft, MoreVertical, Phone, Video } from "lucide-react"
+
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useSelector } from "react-redux"
-import { RootState } from "@/store/store"
+import { useFetchChatUser } from "../hooks/useFetchChatUser"
 import correctDate from "@/lib/correct-date"
 
 const MessageNavBar = ({
@@ -17,16 +18,14 @@ const MessageNavBar = ({
 }: {
   setValue: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
-  const { selectedChat, selectedChatUser } = useSelector(
-    (state: RootState) => state.chats
-  )
-  // const { friends } = useSelector((state: RootState) => state.friend)
-  // const isFriend = friends.some(
-  //   (friend) => friend._id === selectedChatUser?._id
-  // )
+  const { data: chatUser, isLoading, error } = useFetchChatUser()
 
-  const addToFriends = () => {
-    // Add friend logic
+  if (isLoading) {
+    return <div className="w-full h-16 min-h-16">Loading chat user...</div>
+  }
+
+  if (error) {
+    return <div className="w-full h-16 min-h-16">Something went wrong</div>
   }
 
   return (
@@ -47,30 +46,27 @@ const MessageNavBar = ({
               <Avatar className="w-10 h-10 ring-2 ring-background">
                 <AvatarImage
                   src={
-                    selectedChatUser?.showProfileImage === "public"
-                      ? selectedChatUser?.imageUrl
+                    chatUser.showProfileImage === "public"
+                      ? chatUser.imageUrl
                       : "./default-image.png"
                   }
                 />
                 <AvatarFallback className="bg-primary/10 text-primary">
-                  {selectedChatUser?.username?.charAt(0).toUpperCase()}
+                  {chatUser.username?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
                 <strong className="text-sm font-semibold">
-                  {selectedChatUser?.username}
+                  {chatUser.username}
                 </strong>
                 <p className="text-xs text-muted-foreground">
-                  {!selectedChatUser?.showLastSeen ? (
-                    ""
-                  ) : selectedChat?.typing?.isTyping ? (
-                    <span className="text-primary">typing...</span>
-                  ) : selectedChatUser?.isUserOnline ? (
-                    <span className="text-green-500">online</span>
-                  ) : (
-                    selectedChatUser?.updatedAt &&
-                    correctDate(selectedChatUser?.updatedAt)
-                  )}
+                  {!chatUser.showLastSeen
+                    ? ""
+                    : // ) : selectedChat?.typing?.isTyping ? (
+                      //   <span className="text-primary">typing...</span>
+                      // ) : chatUser.isUserOnline ? (
+                      // <span className="text-green-500">online</span>
+                      chatUser.updatedAt && correctDate(chatUser.updatedAt)}
                 </p>
               </div>
             </div>
@@ -94,37 +90,36 @@ const MessageNavBar = ({
         <Avatar className="w-32 h-32 ring-4 ring-primary/20">
           <AvatarImage
             src={
-              selectedChatUser?.showProfileImage
-                ? selectedChatUser?.imageUrl
+              chatUser.showProfileImage
+                ? chatUser.imageUrl
                 : "./default-image.png"
             }
           />
           <AvatarFallback className="text-4xl bg-primary/10 text-primary">
-            {selectedChatUser?.username?.charAt(0).toUpperCase()}
+            {chatUser.username?.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
 
         <div className="text-center space-y-2">
           <DialogTitle className="text-2xl font-bold">
-            {selectedChatUser?.username}
+            {chatUser.username}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {!selectedChatUser?.showLastSeen ? (
-              ""
-            ) : selectedChat?.typing?.isTyping ? (
-              "Typing..."
-            ) : selectedChatUser?.isUserOnline ? (
-              <span className="text-green-500">Online</span>
-            ) : (
-              "Offline"
-            )}
+            {!chatUser.showLastSeen
+              ? ""
+              : // ) : selectedChat?.typing?.isTyping ? (
+                //   "Typing..."
+                // ) : chatUser.isUserOnline ? (
+                //   <span className="text-green-500">Online</span>
+                "Offline"}
+            Offline
           </p>
         </div>
 
-        {selectedChatUser?.showAbout && (
+        {chatUser.showAbout && (
           <div className="w-full p-4 bg-muted/50 rounded-lg">
             <p className="text-sm text-muted-foreground mb-1">About</p>
-            <p className="text-sm">{selectedChatUser.about}</p>
+            <p className="text-sm">{chatUser.about}</p>
           </div>
         )}
 

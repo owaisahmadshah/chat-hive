@@ -132,4 +132,34 @@ export class UserRepository {
       },
     ])
   }
+
+  fetchChatUserById({
+    // userId,
+    chatUserId,
+  }: {
+    userId: string
+    chatUserId: string
+  }) {
+    // const userObjId = new mongoose.Types.ObjectId(userId)
+    const chatUserObjId = new mongoose.Types.ObjectId(chatUserId)
+
+    return User.aggregate([
+      {
+        $match: {
+          _id: chatUserObjId,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          username: 1,
+          imageUrl: 1,
+          about: 1,
+          showAbout: 1,
+          showLastSeen: 1,
+          showProfileImage: 1,
+        },
+      },
+    ])
+  }
 }

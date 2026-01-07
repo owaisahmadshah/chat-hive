@@ -55,7 +55,11 @@ export class MessageService {
 
       const filteredMessage = {
         _id: newMessage._id,
-        sender: userSent,
+        sender: {
+          _id: userSent._id,
+          username: userSent.username,
+          imageUrl: userSent.username,
+        },
         chatId: newMessage.chatId,
         message: newMessage.message,
         photoUrl: newMessage.photoUrl,
@@ -138,14 +142,7 @@ export class MessageService {
       messageId: messages[messages.length - 1]?._id as string,
     })
 
-    return {
-      ...messages,
-      sender: {
-        _id: userSent._id.toString(),
-        username: userSent.username,
-        imageUrl: userSent.imageUrl
-      },
-    }
+    return messages
   }
 
   async deleteMessage({

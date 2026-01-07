@@ -423,4 +423,23 @@ export class UserService {
 
     return { users, hasMore, nextCursor }
   }
+
+  async fetchChatUser({
+    userId,
+    chatUserId,
+  }: {
+    userId: string
+    chatUserId: string
+  }) {
+    const [user] = await this.deps.userRepository.fetchChatUserById({
+      userId,
+      chatUserId,
+    })
+
+    if (!user) {
+      throw new ApiError(404, "Chat user not found")
+    }
+
+    return user
+  }
 }

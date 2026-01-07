@@ -15,17 +15,22 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { messageSchema } from "../types/message-schema"
-import { useMessage } from "../hooks/useMessage"
 import { Label } from "@/components/ui/label"
 import { useSocketService } from "@/hooks/useSocketService"
 import { cn } from "@/lib/utils"
+import { useSendMessage } from "../hooks/useSendMessage"
+import { useSearchParams } from "react-router-dom"
 
 function MessageInput() {
   const [isPictureSelected, setIsPictureSelected] = useState<boolean>(false)
-  const [isSendingMessage, setIsSendingMessage] = useState<boolean>(false)
   const [imageCount, setImageCount] = useState(0)
 
-  const { sendNewMessage } = useMessage()
+  const { mutateAsync: sendMessage, isPending } = useSendMessage()
+
+  const [params] = useSearchParams()
+  const userId = params.get("userId")
+  const chatId = params.get("chatId")
+
   const { sendSocketTyping } = useSocketService()
 
   const form = useForm<z.infer<typeof messageSchema>>({
@@ -39,7 +44,6 @@ function MessageInput() {
   const userInputMessage = form.watch("userInputMessage")
 
   async function onSubmit(values: z.infer<typeof messageSchema>) {
-    setIsSendingMessage(true)
     const formData = new FormData()
     formData.append("message", values.userInputMessage)
 
@@ -53,12 +57,14 @@ function MessageInput() {
       values.userInputMessage.trim() === "" &&
       values?.uploadedImage === undefined
     ) {
-      setIsSendingMessage(false)
       return
     }
 
-    await sendNewMessage(formData)
-    setIsSendingMessage(false)
+    formData.append("sender", String(userId))
+    formData.append("chatId", String(chatId))
+    formData.append("status", "sent")
+
+    await sendMessage(formData)
     form.reset()
     setIsPictureSelected(false)
     setImageCount(0)
@@ -104,7 +110,7 @@ function MessageInput() {
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  }, [params])
 
   return (
     <div className="shrink-0 bg-background/95 backdrop-blur-sm">
@@ -193,8 +199,7 @@ function MessageInput() {
             <Button
               type="submit"
               disabled={
-                isSendingMessage ||
-                (!userInputMessage?.trim() && !isPictureSelected)
+                isPending || (!userInputMessage?.trim() && !isPictureSelected)
               }
               className={cn(
                 "h-11 px-6 rounded-xl transition-all duration-200 group relative overflow-hidden",
@@ -202,7 +207,7 @@ function MessageInput() {
                 "hover:shadow-lg hover:shadow-primary/25"
               )}
             >
-              {isSendingMessage ? (
+              {isPending ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 </div>
@@ -212,7 +217,6 @@ function MessageInput() {
                   <Send className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </>
               )}
-              
             </Button>
           </div>
         </form>

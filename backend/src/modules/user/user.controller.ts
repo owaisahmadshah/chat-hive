@@ -395,4 +395,22 @@ export class UserController {
         new ApiResponse(200, response, "Fetched recommended users successfully")
       )
   })
+
+  fetchChatUser = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(401, "Unauthorized")
+    }
+
+    const { userId: chatUserId } = req.query
+    const userId = req.user._id
+
+    const response = await this.deps.userService.fetchChatUser({
+      userId,
+      chatUserId: chatUserId ? String(chatUserId) : "",
+    })
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, response, "Fetched user successfully"))
+  })
 }
