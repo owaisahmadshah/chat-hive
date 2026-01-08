@@ -1,5 +1,7 @@
 import { useSearchParams } from "react-router-dom"
 import { Image } from "lucide-react"
+import { useSelector } from "react-redux"
+import { useQueryClient } from "@tanstack/react-query"
 
 import { useFetchInfiniteChats } from "../hooks/useFetchInfiniteChats"
 
@@ -11,14 +13,25 @@ import ChatActions from "./ChatActions"
 import correctDate from "@/lib/correct-date"
 import { cn } from "@/lib/utils"
 
+import { useSocketService } from "@/hooks/useSocketService"
+
+import { RootState } from "@/store/store"
+import { updateChatUnreadMessages } from "../utils/queries-updates"
+
 export const ChatsList = () => {
   const [searchParams, setSearchParams] = useSearchParams()
+
+  const userId = useSelector((state: RootState) => state.user.userId)
+
+  const { updateReceiveAndSeenOfMessages } = useSocketService()
 
   const { data } = useFetchInfiniteChats()
 
   const chats = data.pages.flatMap((page) => page.chats) ?? []
 
   const currentChatId = searchParams.get("chatId")
+
+  const queryClient = useQueryClient()
 
   return (
     <ScrollArea className="h-[calc(100vh-8rem)]">
@@ -27,8 +40,19 @@ export const ChatsList = () => {
           <li
             key={chat._id}
             onClick={() => {
-              // setSearchParams(`?chatId=${chat._id}?userId=${chat.user._id}`)
               setSearchParams({ chatId: chat._id, userId: chat.user._id })
+              if (chat.unreadMessages) {
+                updateReceiveAndSeenOfMessages(
+                  userId,
+                  chat._id,
+                  chat.unreadMessages,
+                  "seen"
+                )
+                queryClient.setQueryData(["chats"], (oldData: any) =>
+                  updateChatUnreadMessages({ oldData, chatId: chat._id })
+                )
+                // TODO: Update in the backend too...
+              }
             }}
             className={cn(
               "cursor-pointer px-4 py-3 transition-all duration-200",

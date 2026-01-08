@@ -18,8 +18,8 @@ const deleteChatService = async (deleteChat: { chatId: string }) => {
 }
 
 const getUserChat = async (chatBody: { chatId: string }) => {
-  const data = await api.post("/v1/chat/getupdatechat", chatBody)
-  return data
+  const { data } = await api.post("/v1/chat/getupdatechat", chatBody)
+  return data.data
 }
 
 const fetchUserChats = async (pagination: {

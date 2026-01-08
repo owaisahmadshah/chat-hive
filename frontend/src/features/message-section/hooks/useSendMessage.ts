@@ -54,7 +54,7 @@ export const useSendMessage = () => {
                 ...chat,
                 lastMessage: message,
                 unreadMessages: chat.unreadMessages + 1,
-                updatedAt: message.createdAt,
+                updatedAt: message.updatedAt,
               }
               return false // remove from list
             }
