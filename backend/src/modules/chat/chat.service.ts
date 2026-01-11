@@ -25,12 +25,7 @@ export class ChatService {
         uid: userId,
       })
 
-      chatDetails[0].lastMessage = {
-        isPhoto: false,
-        message: "",
-      }
-
-      return chatDetails
+      return chatDetails[0]
     }
 
     const deletedBy = users.filter((id) => id != userId)
@@ -42,7 +37,7 @@ export class ChatService {
       uid: userId,
     })
 
-    return chatDetails
+    return chatDetails[0]
   }
 
   async deleteChat({ userId, chatId }: { userId: string; chatId: string }) {
@@ -59,7 +54,7 @@ export class ChatService {
 
     await chatRepository.deleteBulkMessage(chatId, userId)
 
-    return deletedChat
+    return { _id: deletedChat._id, users: deletedChat.users }
   }
 
   async getUserChats({
@@ -83,90 +78,6 @@ export class ChatService {
     return { chats, hasMore, nextCursor }
   }
 
-  async getChatsAndMessages({ userId }: { userId: string }) {
-    const { chatRepository } = this.deps
-
-    const chats = await chatRepository.findChats(userId)
-
-    for (let i = 0; i < chats?.length; i++) {
-      const { messages, unreadMessages, numberOfMessages } =
-        await this.getMessages({
-          chatId: chats[i]._id.toString(),
-          userId: userId,
-          numberOfMessagesUserHave: 0,
-          unreadMessagesFlag: true,
-        })
-
-      chats[i].messages = [...messages]
-      chats[i].unreadMessages = unreadMessages
-      chats[i].numberOfMessages = numberOfMessages
-
-      const lastMessage = {
-        isPhoto: false,
-        message: "",
-      }
-
-      if (messages.length) {
-        lastMessage.isPhoto = messages[messages.length - 1].photoUrl !== ""
-        lastMessage.message = messages[messages.length - 1].message
-      }
-
-      chats[i].lastMessage = lastMessage
-    }
-
-    return chats
-  }
-
-  async getMessages({
-    chatId,
-    userId,
-    numberOfMessagesUserHave,
-    unreadMessagesFlag = false,
-  }: {
-    chatId: string
-    userId: string
-    numberOfMessagesUserHave: number
-    unreadMessagesFlag: boolean
-  }) {
-    const { chatRepository } = this.deps
-    let defaultNumberOfMessagesUserFetch = 30
-
-    let unreadMessages = 0
-    if (unreadMessagesFlag) {
-      unreadMessages = await chatRepository.countUnreadMessages(userId, chatId)
-    }
-
-    if (!unreadMessagesFlag) {
-      defaultNumberOfMessagesUserFetch = 10
-    }
-
-    const messages = await chatRepository.findMessages({
-      chat_id: chatId,
-      user_id: userId,
-      limit:
-        numberOfMessagesUserHave +
-        unreadMessages +
-        defaultNumberOfMessagesUserFetch,
-      skip: numberOfMessagesUserHave,
-    })
-
-    if (messages[0].unreadMessages.length === 0) {
-      messages[0].unreadMessages.push({ totalUnreadMessages: 0 })
-    }
-
-    if (messages[0].sentMessages.length === 0) {
-      messages[0].sentMessages.push({ numberOfMessages: 0 })
-    }
-
-    await chatRepository.updateBulkMessagesForReceived(chatId, userId)
-
-    return {
-      messages: messages[0].messages,
-      unreadMessages: messages[0].unreadMessages[0].totalUnreadMessages,
-      numberOfMessages: messages[0].sentMessages[0].numberOfMessages,
-    }
-  }
-
   async getAndUpdateChat({
     chatId,
     userId,
@@ -188,24 +99,5 @@ export class ChatService {
     })
 
     return chat[0]
-  }
-
-  async getMoreMessages({
-    userId,
-    chatId,
-    userChatMessages,
-  }: {
-    userId: string
-    chatId: string
-    userChatMessages: number
-  }) {
-    const { messages } = await this.getMessages({
-      chatId,
-      userId,
-      numberOfMessagesUserHave: userChatMessages,
-      unreadMessagesFlag: false,
-    })
-
-    return messages
   }
 }

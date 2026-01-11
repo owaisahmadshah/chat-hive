@@ -1,59 +1,59 @@
-import { setSelectedChat, setSelectedChatUser } from "@/store/slices/chats"
+import { useSelector } from "react-redux"
+import { MessageSquare, UserPlus, CheckCircle2, Loader2 } from "lucide-react"
+import { useSearchParams } from "react-router-dom"
+
 import { RootState } from "@/store/store"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Chat } from "@/types/chat-interface"
-import { ChatUser } from "shared"
-import { useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { useChat } from "../hooks/useChat"
-import { MessageSquare, UserPlus, CheckCircle2, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { ChatUser } from "shared"
 
-const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
-  const [existedChat, setExistedChat] = useState<Chat | null>(null)
-  const [isCreating, setIsCreating] = useState(false)
+import { useCreateChat } from "../hooks/useCreateChat"
+import { useChatReadQueries } from "../utils/chat-read-queries"
 
+const CreateChatUserItem = ({
+  user,
+  onClose,
+}: {
+  user: ChatUser
+  onClose: () => void
+}) => {
   const uid = useSelector((state: RootState) => state.user.userId)
-  const chats = useSelector((state: RootState) => state.chats.chats)
-  const dispatch = useDispatch()
-  const { createNewChat } = useChat()
 
-  const handleCreateChat = async (user: ChatUser) => {
-    setIsCreating(true)
-    await createNewChat(user)
-    setIsCreating(false)
+  const { hasChatByUserId } = useChatReadQueries()
+
+  const { mutateAsync, isPending: isCreating } = useCreateChat()
+
+  const [, setSearchParams] = useSearchParams()
+
+  const handleCreateChat = async (userId: string) => {
+    await mutateAsync({ user: userId })
+    onClose()
   }
+  const isYou = user._id === uid
 
-  const handleAddConnection = async (user: ChatUser) => {}
+  const { exists: chatExists, chat } = hasChatByUserId({ userId: user._id })
 
-  const handleOpenChat = (user: ChatUser) => {
-    if (existedChat) {
-      dispatch(setSelectedChat(existedChat))
-      dispatch(setSelectedChatUser(user))
-      setExistedChat(null)
+  const handleAddConnection = async () => {}
+
+  const handleOpenChat = () => {
+    if (chatExists) {
+      setSearchParams({ chatId: chat._id, userId: user._id })
+      onClose()
     }
-  }
-
-  const checkIfChatExists = (userId: string) => {
-    if (userId === uid) {
-      return chats.some((chat) => chat.users.length === 1)
-    }
-    return chats.some((chat) => chat.users.some((u) => u._id === userId))
   }
 
   // const isFriend = (contactId: string): boolean => {
   //   return friends.some((friend) => friend.friend._id === contactId)
   // }
 
-  const isYou = user._id === uid
-  const chatExists = checkIfChatExists(user._id)
   // const isContact = isFriend(user._id)
 
   return (
     <div
       className="flex items-center justify-between gap-4 cursor-pointer"
-      onClick={() => !isYou && chatExists && handleOpenChat(user)}
+      onClick={() => !isYou && chatExists && handleOpenChat()}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <Avatar className="w-12 h-12 ring-2 ring-background shadow-md">
@@ -100,7 +100,7 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
               variant="outline"
               onClick={(e) => {
                 e.stopPropagation()
-                handleAddConnection(user)
+                handleAddConnection()
               }}
               className="hover:bg-primary/10 hover:border-primary/30"
             >
@@ -113,7 +113,7 @@ const CreateChatUserItem = ({ user }: { user: ChatUser }) => {
               size="sm"
               onClick={(e) => {
                 e.stopPropagation()
-                handleCreateChat(user)
+                handleCreateChat(user._id)
               }}
               disabled={isCreating}
               className="shadow-sm"

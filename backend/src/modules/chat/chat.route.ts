@@ -37,12 +37,4 @@ router.get("/chats", auth, chatController.getUserChats)
  */
 router.post("/getupdatechat", auth, chatController.getAndUpdateChat)
 
-/**
- * @route POST /api/v1/chat/messages
- * @desc Get messages of a specific chat
- * @access Private
- * @requires Authentication
- */
-router.post("/messages", auth, chatController.getMoreMessages)
-
 export { router as chatRouter }

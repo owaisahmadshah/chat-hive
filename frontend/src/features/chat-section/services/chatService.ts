@@ -5,16 +5,16 @@ const fetchUser = async (username: { username: string }) => {
   return data
 }
 
-const createChat = async (chatDetails: { admin: string; users: string[] }) => {
-  const data = await api.post("/v1/chat/create", chatDetails)
-  return data
+const createChat = async (chatDetails: { user: string }) => {
+  const { data } = await api.post("/v1/chat/create", chatDetails)
+  return data.data
 }
 
 const deleteChatService = async (deleteChat: { chatId: string }) => {
-  const data = await api.delete("/v1/chat/delete", {
+  const { data } = await api.delete("/v1/chat/delete", {
     data: deleteChat,
   })
-  return data
+  return data.data
 }
 
 const getUserChat = async (chatBody: { chatId: string }) => {

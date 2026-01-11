@@ -66,7 +66,7 @@ export const updateChatTypingWithPersistantOrder = ({
   oldData: any
   chatId: string
   typing: {
-    isTyping: boolean,
+    isTyping: boolean
     typer: any
   }
 }) => {
@@ -84,7 +84,7 @@ export const updateChatTypingWithPersistantOrder = ({
         return {
           ...chat,
           typing: {
-            isTyping: typing
+            isTyping: typing,
           },
         }
       }),
@@ -93,7 +93,14 @@ export const updateChatTypingWithPersistantOrder = ({
 }
 
 export const addChat = ({ oldData, chat }: { oldData: any; chat: any }) => {
-  if (!oldData) return oldData
+  if (!oldData)
+    return {
+      pages: [
+        {
+          chats: [chat],
+        },
+      ],
+    }
 
   return {
     ...oldData,
@@ -106,5 +113,25 @@ export const addChat = ({ oldData, chat }: { oldData: any; chat: any }) => {
       }
       return page
     }),
+  }
+}
+
+export const removeChatById = ({
+  oldData,
+  deletedChat,
+}: {
+  oldData: any
+  deletedChat: any
+}) => {
+  if (!oldData) {
+    return oldData
+  }
+
+  return {
+    ...oldData,
+    pages: oldData.pages.map((page: any) => ({
+      ...page,
+      chats: page.chats.filter((chat: any) => chat._id !== deletedChat._id),
+    })),
   }
 }

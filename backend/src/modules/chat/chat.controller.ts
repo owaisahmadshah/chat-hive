@@ -25,13 +25,16 @@ export class ChatContoller {
     }
 
     const { chatService } = this.deps
-    const { users } = await req.body
+    const { user } = await req.body
 
-    const chat = await chatService.createChat(users, req.user?._id)
+    const chat = await chatService.createChat(
+      [user, req.user._id],
+      req.user?._id
+    )
 
     return res
       .status(200)
-      .json(new ApiResponse(200, { chat }, "Created chat successfully"))
+      .json(new ApiResponse(200, chat, "Created chat successfully"))
   })
 
   /**
@@ -53,9 +56,9 @@ export class ChatContoller {
     const userId = req.user._id
     const { chatId } = req.body
 
-    await chatService.deleteChat({ userId, chatId })
+    const deletedChat = await chatService.deleteChat({ userId, chatId })
 
-    return res.status(201).json(new ApiResponse(201, {}, "Success"))
+    return res.status(201).json(new ApiResponse(201, deletedChat, "Success"))
   })
 
   /**
@@ -96,24 +99,5 @@ export class ChatContoller {
     })
 
     return res.status(200).json(new ApiResponse(200, chat, "Sucessful"))
-  })
-
-  getMoreMessages = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      throw new ApiError(401, "Unauthorized")
-    }
-
-    const { chatService } = this.deps
-
-    const userId = req.user._id
-    const { chatId, userChatMessages } = await req.body
-
-    const { messages } = await chatService.getMoreMessages({
-      chatId,
-      userId,
-      userChatMessages,
-    })
-
-    return res.status(200).json(new ApiResponse(200, messages, "Succeess"))
   })
 }

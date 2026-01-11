@@ -21,6 +21,7 @@ const CreateChat = () => {
   const [users, setUsers] = useState<ChatUser[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isUsername, setIsUsername] = useState<boolean>(false)
+  const [open, setOpen] = useState(false)
 
   const { fetchUsers } = useChat()
 
@@ -47,7 +48,7 @@ const CreateChat = () => {
   }
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button className="flex items-center gap-2 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all group">
           <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
@@ -95,7 +96,10 @@ const CreateChat = () => {
                   key={user._id}
                   className="p-3 rounded-lg hover:bg-muted/50 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300"
                 >
-                  <CreateChatUserItem user={user} />
+                  <CreateChatUserItem
+                    user={user}
+                    onClose={() => setOpen(false)}
+                  />
                 </div>
               ))
             ) : isUsername ? (
