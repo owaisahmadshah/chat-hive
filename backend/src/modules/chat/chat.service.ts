@@ -20,9 +20,11 @@ export class ChatService {
       )
 
       await chatRepository.save(existingChat)
-      const chatDetails = await chatRepository.findCreateChatDetails(
-        existingChat._id as string
-      )
+      const chatDetails = await chatRepository.findChatDetailsById({
+        id: existingChat._id as string,
+        uid: userId,
+      })
+
       chatDetails[0].lastMessage = {
         isPhoto: false,
         message: "",
@@ -35,14 +37,10 @@ export class ChatService {
 
     const newChat = await chatRepository.createChat({ users, deletedBy })
 
-    const chatDetails = await chatRepository.findCreateChatDetails(
-      newChat._id as string
-    )
-
-    chatDetails[0].lastMessage = {
-      isPhoto: false,
-      message: "",
-    }
+    const chatDetails = await chatRepository.findChatDetailsById({
+      id: newChat._id as string,
+      uid: userId,
+    })
 
     return chatDetails
   }
@@ -169,24 +167,27 @@ export class ChatService {
     }
   }
 
-  async getAndUpdateChat({ chatId }: { chatId: string }) {
+  async getAndUpdateChat({
+    chatId,
+    userId,
+  }: {
+    chatId: string
+    userId: string
+  }) {
     const { chatRepository } = this.deps
 
     const existedChat = await chatRepository.findById(chatId)
 
     if (!existedChat) {
-      return existedChat
+      throw new ApiError(404, "Chat not found")
     }
 
-    const chat = await chatRepository.findCreateChatDetails(chatId)
+    const chat = await chatRepository.findChatDetailsById({
+      id: chatId,
+      uid: userId,
+    })
 
-    chat[0].unreadMessages = 0
-    chat[0].lastMessage = {
-      isPhoto: false,
-      message: "",
-    }
-
-    return chat
+    return chat[0]
   }
 
   async getMoreMessages({

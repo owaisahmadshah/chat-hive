@@ -115,7 +115,7 @@ export const MessagesList = () => {
                 className={cn(
                   "rounded-2xl w-fit max-w-[75%] transition-all duration-200",
                   "animate-in fade-in slide-in-from-bottom-2",
-                  message.sender._id === userId
+                  message.sender._id !== userId
                     ? "self-end bg-primary text-primary-foreground ml-auto shadow-lg shadow-primary/20"
                     : "self-start bg-muted/80 backdrop-blur-sm border border-border/40"
                 )}
@@ -131,7 +131,7 @@ export const MessagesList = () => {
                 <div
                   className={cn(
                     "flex items-center direction-reverse gap-2 px-1 animate-in fade-in slide-in-from-bottom-1 duration-200",
-                    message.sender._id === userId
+                    message.sender._id !== userId
                       ? "self-end justify-end"
                       : "self-start justify-start"
                   )}
@@ -139,7 +139,7 @@ export const MessagesList = () => {
                   <p className="text-[10px] text-muted-foreground">
                     {correctDate(message.updatedAt)}
                   </p>
-                  {message.sender._id === userId && (
+                  {message.sender._id !== userId && (
                     <p
                       className={cn(
                         "text-[10px] font-medium",

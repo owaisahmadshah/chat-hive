@@ -88,10 +88,14 @@ export class ChatContoller {
   getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
     const { chatService } = this.deps
     const { chatId } = await req.body
+    const userId = req.user?._id
 
-    const chat = await chatService.getAndUpdateChat({ chatId })
+    const chat = await chatService.getAndUpdateChat({
+      chatId,
+      userId: String(userId),
+    })
 
-    return res.status(200).json(new ApiResponse(200, { chat }, "Sucessful"))
+    return res.status(200).json(new ApiResponse(200, chat, "Sucessful"))
   })
 
   getMoreMessages = asyncHandler(async (req: Request, res: Response) => {

@@ -1,20 +1,10 @@
 import { io, Socket } from "socket.io-client"
-import { useDispatch, useSelector } from "react-redux"
+import { useSelector } from "react-redux"
 import { useEffect, useRef } from "react"
 import { useQueryClient } from "@tanstack/react-query"
+import { useSearchParams } from "react-router-dom"
 
 import { RootState } from "@/store/store"
-import {
-  addMessage,
-  updateMessage,
-  updateMessages,
-} from "@/store/slices/messages"
-import {
-  setSelectedChat,
-  setSelectedChatUser,
-  updateChat,
-  updateChatWithPersistentOrder,
-} from "@/store/slices/chats"
 import {
   NEW_MESSAGE,
   USER_CONNECTED,
@@ -30,16 +20,22 @@ import {
   handleSeenAndReceiveMessageType,
   handleSeenAndReceiveMessagesType,
 } from "shared"
+
 import useMessageGlobalHook from "./useMessageGlobalHook"
 import { useFetchChat } from "@/features/chat-section/hooks/useFetchChat"
 import { useChatReadQueries } from "@/features/chat-section/utils/chat-read-queries"
-import { useSearchParams } from "react-router-dom"
+
 import {
   updateChatTypingWithPersistantOrder,
   updateChatUnreadMessages,
   updateLastMessage,
 } from "@/features/chat-section/utils/queries-updates"
-import { updateQueryMessageStatus } from "@/features/message-section/utils/message-queries"
+
+import {
+  addMessageToQuery,
+  updateQueryMessagesStatus,
+  updateQueryMessageStatus,
+} from "@/features/message-section/utils/message-queries"
 
 let socket: Socket | null = null // Singleton instance
 
@@ -88,12 +84,6 @@ const useSocketService = () => {
       data: { message: Message },
       callback: (response: { status: boolean; message: string }) => void
     ) => {
-      // IsChatExists
-      // const isChatExists = chatRef.current.findIndex(
-      //   (chat) => chat._id === data.message.chatId
-      // )
-
-      // if (isChatExists === -1) {
       if (!hasChat({ chatId: data.message.chatId })) {
         await fetchChat({ chatId: data.message.chatId })
         joinSocketChat(data.message.chatId)
@@ -104,11 +94,10 @@ const useSocketService = () => {
         message: "receiver received message",
       })
 
-      // dispatch(
-      //   addMessage({ chatId: data.message.chatId, message: data.message })
-      // )
-
-      // let tempUnreadMessages = 1
+      queryClient.setQueryData(
+        ["messages", data.message.chatId],
+        (oldData: any) => addMessageToQuery({ oldData, message: data.message })
+      )
 
       if (
         activeChatId !== data.message.chatId ||
@@ -122,14 +111,9 @@ const useSocketService = () => {
           "receive"
         )
 
-        // for (let i = 0; i < chatRef.current.length; i++) {
-        //   if (chatRef.current[i]._id === data.message.chatId) {
-        //     tempUnreadMessages = chatRef.current[i].unreadMessages + 1
-        //     break
-        //   }
-        // }
+        console.log("sent updated message")
 
-        queryClient.setQueryData(["chats"], (oldData) =>
+        queryClient.setQueryData(["chats"], (oldData: any) =>
           updateChatUnreadMessages({
             oldData,
             chatId: data.message.chatId,
@@ -146,7 +130,6 @@ const useSocketService = () => {
             data.message._id,
             "seen"
           )
-          // tempUnreadMessages = 0
         }
         await updateMessageStatus(data.message._id, "receive")
       }
@@ -155,12 +138,6 @@ const useSocketService = () => {
         selectedChatRef.current &&
         data.message.chatId === selectedChatRef.current._id
       ) {
-        // dispatch(
-        //   setSelectedChat({
-        //     ...selectedChatRef.current,
-        //     unreadMessages: tempUnreadMessages,
-        //   })
-        // )
         queryClient.setQueryData(["chats"], (oldData) =>
           updateChatUnreadMessages({ oldData, chatId: data.message._id })
         )
@@ -168,19 +145,6 @@ const useSocketService = () => {
 
       await updateMessageStatus(data.message._id, "seen")
 
-      // dispatch(
-      //   updateChat({
-      //     chatId: data.message.chatId,
-      //     updates: {
-      //       lastMessage: {
-      //         isPhoto: data.message.photoUrl !== "",
-      //         message: data.message.message,
-      //       },
-      //       updatedAt: data.message.updatedAt,
-      //       unreadMessages: tempUnreadMessages,
-      //     },
-      //   })
-      // )
       queryClient.setQueryData(["chats"], (oldData) =>
         updateLastMessage({
           oldData,
@@ -195,13 +159,6 @@ const useSocketService = () => {
         typer: data.userId,
         isTyping: data.isTyping,
       }
-
-      // dispatch(
-      //   updateChatWithPersistentOrder({
-      //     chatId: data.chatId,
-      //     updates: { typing },
-      //   })
-      // )
 
       queryClient.setQueryData(["chats"], (oldData) =>
         updateChatTypingWithPersistantOrder({
@@ -226,13 +183,6 @@ const useSocketService = () => {
       const { chatId, messageId, status } = data // receiver is not used here but maybe useful in the future
 
       //* Just update the message we have sent
-      // dispatch(
-      //   updateMessage({
-      //     chatId,
-      //     messageId,
-      //     updates: { status },
-      //   })
-      // )
       queryClient.setQueryData(["messages", chatId], (oldData) =>
         updateQueryMessageStatus({ oldData, messageId, status })
       )
@@ -241,16 +191,14 @@ const useSocketService = () => {
     const handleSeenAndReceiveMessages = (
       data: handleSeenAndReceiveMessagesType
     ) => {
-      const { chatId, numberOfMessages, status, receiver } = data
+      const { chatId, status } = data
 
       //* Just update the messages we have sent
-      dispatch(
-        updateMessages({
-          chatId,
-          receiver,
-          ourUserId: userId, // This will help to make sure we are updating the message we have sent
-          numberOfMessages,
-          updates: { status },
+      queryClient.setQueryData(["chats", chatId], (oldData) =>
+        updateQueryMessagesStatus({
+          oldData,
+          status,
+          currentUserId: userId,
         })
       )
     }
@@ -321,7 +269,16 @@ const useSocketService = () => {
           tempUser.updatedAt = updateAt
         }
 
-        dispatch(setSelectedChatUser(tempUser))
+        // dispatch(setSelectedChatUser(tempUser))
+        queryClient.setQueryData(["user", userId], (oldData: any) => {
+          if (!oldData) return oldData
+
+          return {
+            ...oldData,
+            isUserOnline: online,
+            updatedAt: updateAt ? updateAt : oldData.updatedAt,
+          }
+        })
       }
     )
   }

@@ -20,6 +20,8 @@ import { useSocketService } from "@/hooks/useSocketService"
 import { cn } from "@/lib/utils"
 import { useSendMessage } from "../hooks/useSendMessage"
 import { useSearchParams } from "react-router-dom"
+import { useSelector } from "react-redux"
+import { RootState } from "@/store/store"
 
 function MessageInput() {
   const [isPictureSelected, setIsPictureSelected] = useState<boolean>(false)
@@ -27,8 +29,9 @@ function MessageInput() {
 
   const { mutateAsync: sendMessage, isPending } = useSendMessage()
 
+  const userId = useSelector((state: RootState) => state.user.userId)
+
   const [params] = useSearchParams()
-  const userId = params.get("userId")
   const chatId = params.get("chatId")
 
   const { sendSocketTyping } = useSocketService()

@@ -27,7 +27,16 @@ export const ChatsList = () => {
 
   const { data } = useFetchInfiniteChats()
 
-  const chats = data.pages.flatMap((page) => page.chats) ?? []
+  const { joinSocketChat } = useSocketService()
+
+  const chats =
+    data.pages.flatMap((page) => {
+      page.chats.forEach((chat: any) => {
+        joinSocketChat(chat._id)
+      })
+
+      return page.chats
+    }) ?? []
 
   const currentChatId = searchParams.get("chatId")
 
