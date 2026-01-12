@@ -1,8 +1,8 @@
 import api from "@/lib/axiosInstance"
 
 const fetchUser = async (username: { username: string }) => {
-  const { data } = await api.post("/v1/user/suggestions", username)
-  return data
+  const { data } = await api.get("/v1/user/suggestions", { params: username })
+  return data.data
 }
 
 const createChat = async (chatDetails: { user: string }) => {

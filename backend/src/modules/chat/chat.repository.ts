@@ -97,7 +97,9 @@ export class ChatRepository {
                       $eq: ["$chatId", "$$chatId"],
                     },
                     {
-                      $ne: ["$deletedBy", userObjectId],
+                      $not: {
+                        $in: [userObjectId, "$deletedBy"],
+                      },
                     },
                   ],
                 },
@@ -139,18 +141,20 @@ export class ChatRepository {
                       $eq: ["$chatId", "$$chatId"],
                     },
                     {
-                      $ne: ["$deletedBy", userObjectId],
+                      $not: {
+                        $in: [userObjectId, "$deletedBy"],
+                      },
                     },
                     {
-                      receiver: userObjectId,
+                      $ne: ["$sender", userObjectId],
                     },
                     {
                       $or: [
                         {
-                          status: "sent",
+                          $eq: ["$status", "sent"],
                         },
                         {
-                          status: "receive",
+                          $eq: ["$status", "receive"],
                         },
                       ],
                     },
@@ -244,7 +248,9 @@ export class ChatRepository {
                       $eq: ["$chatId", "$$chatId"],
                     },
                     {
-                      $ne: ["$deletedBy", userObjectId],
+                      $not: {
+                        $in: [userObjectId, "$deletedBy"],
+                      },
                     },
                   ],
                 },
@@ -286,18 +292,20 @@ export class ChatRepository {
                       $eq: ["$chatId", "$$chatId"],
                     },
                     {
-                      $ne: ["$deletedBy", userObjectId],
+                      $not: {
+                        $in: [userObjectId, "$deletedBy"],
+                      },
                     },
                     {
-                      receiver: userObjectId,
+                      $ne: ["$sender", userObjectId],
                     },
                     {
                       $or: [
                         {
-                          status: "sent",
+                          $eq: ["$status", "sent"],
                         },
                         {
-                          status: "receive",
+                          $eq: ["$status", "receive"],
                         },
                       ],
                     },

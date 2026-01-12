@@ -19,7 +19,7 @@ router.route("/create-dummy").post(userController.createDummyUser)
 router.route("/delete").delete(auth, userController.deleteUser)
 router.route("/change-password").post(auth, userController.changePassword)
 router.route("/user").post(auth, userController.getUser)
-router.route("/suggestions").post(auth, userController.usersSuggestion)
+router.route("/suggestions").get(auth, userController.usersSuggestion)
 router
   .route("/update-profile-image")
   .post(

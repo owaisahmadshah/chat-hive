@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
-import { useChat } from "../hooks/useChat"
 import { ChatUser } from "shared"
 import CreateChatUserItem from "./CreateChatUserItem"
+import { fetchUserByUsername } from "../hooks/useFetchUserByUsername"
 
 const CreateChat = () => {
   const [users, setUsers] = useState<ChatUser[]>([])
@@ -23,15 +23,15 @@ const CreateChat = () => {
   const [isUsername, setIsUsername] = useState<boolean>(false)
   const [open, setOpen] = useState(false)
 
-  const { fetchUsers } = useChat()
-
   const debouncedSearch = useCallback(
     debounce(async (email: string) => {
       if (email.trim() === "") return
 
       setIsLoading(true)
-      const result = await fetchUsers(email)
-      setUsers(result)
+      const result = await fetchUserByUsername(email)
+      if (result.user) {
+        setUsers(result.user)
+      }
       setIsLoading(false)
     }, 500),
     []

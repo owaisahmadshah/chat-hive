@@ -262,11 +262,11 @@ export class UserController {
    *                  (_id, username, imageUrl, lastSeen)
    */
   usersSuggestion = asyncHandler(async (req: Request, res: Response) => {
-    const { username } = req.body
+    const { username } = req.query
 
-    const users = await this.deps.userService.userSuggestion({ username })
+    const users = await this.deps.userService.userSuggestion({ username: String(username) })
 
-    return res.status(200).json(new ApiResponse(200, { users }, "Success"))
+    return res.status(200).json(new ApiResponse(200, users, "Success"))
   })
 
   /**

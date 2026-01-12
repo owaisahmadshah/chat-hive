@@ -1,7 +1,6 @@
 import { useSearchParams } from "react-router-dom"
 import { Image } from "lucide-react"
-import { useSelector } from "react-redux"
-import { useQueryClient } from "@tanstack/react-query"
+import { useEffect, useRef } from "react"
 
 import { useFetchInfiniteChats } from "../hooks/useFetchInfiniteChats"
 
@@ -15,32 +14,45 @@ import { cn } from "@/lib/utils"
 
 import { useSocketService } from "@/hooks/useSocketService"
 
-import { RootState } from "@/store/store"
-import { updateChatUnreadMessages } from "../utils/queries-updates"
+import { useUpdateChatSeenMessages } from "@/hooks/useUpdateChatSeenMessages"
 
-export const ChatsList = () => {
+export const ChatsList = ({
+  setValue,
+}: {
+  setValue: React.Dispatch<React.SetStateAction<boolean>>
+}) => {
   const [searchParams, setSearchParams] = useSearchParams()
-
-  const userId = useSelector((state: RootState) => state.user.userId)
-
-  const { updateReceiveAndSeenOfMessages } = useSocketService()
+  const currentChatId = searchParams.get("chatId")
 
   const { data } = useFetchInfiniteChats()
 
-  const { joinSocketChat } = useSocketService()
+  const { joinSocketChat, updateReceiveAndSeenOfMessages } = useSocketService()
 
-  const chats =
-    data.pages.flatMap((page) => {
-      page.chats.forEach((chat: any) => {
-        joinSocketChat(chat._id)
-      })
+  const { mutateAsync: updateMessagesStatus } = useUpdateChatSeenMessages()
 
-      return page.chats
-    }) ?? []
+  const processedChatsRef = useRef(new Set<string>())
 
-  const currentChatId = searchParams.get("chatId")
+  const chats = data.pages.flatMap((page) => page.chats) ?? []
 
-  const queryClient = useQueryClient()
+  useEffect(() => {
+    chats.forEach((chat: any) => {
+      joinSocketChat(chat._id)
+
+      if (chat.unreadMessages && !processedChatsRef.current.has(chat._id)) {
+        updateReceiveAndSeenOfMessages(chat._id, chat.unreadMessages, "receive")
+        processedChatsRef.current.add(chat._id)
+      }
+    })
+  }, [chats, joinSocketChat, updateReceiveAndSeenOfMessages])
+
+  const handleChatClick = (chat: any) => {
+    if (chat.unreadMessages) {
+      updateReceiveAndSeenOfMessages(chat._id, chat.unreadMessages, "seen")
+      updateMessagesStatus({ chatId: chat._id, status: "seen" })
+    }
+    setSearchParams({ chatId: chat._id, userId: chat.user._id })
+    setValue(true)
+  }
 
   return (
     <ScrollArea className="h-[calc(100vh-8rem)]">
@@ -48,21 +60,7 @@ export const ChatsList = () => {
         {chats.map((chat, index) => (
           <li
             key={chat._id}
-            onClick={() => {
-              setSearchParams({ chatId: chat._id, userId: chat.user._id })
-              if (chat.unreadMessages) {
-                updateReceiveAndSeenOfMessages(
-                  userId,
-                  chat._id,
-                  chat.unreadMessages,
-                  "seen"
-                )
-                queryClient.setQueryData(["chats"], (oldData: any) =>
-                  updateChatUnreadMessages({ oldData, chatId: chat._id })
-                )
-                // TODO: Update in the backend too...
-              }
-            }}
+            onClick={() => handleChatClick(chat)}
             className={cn(
               "cursor-pointer px-4 py-3 transition-all duration-200",
               "hover:bg-muted/50 relative group",

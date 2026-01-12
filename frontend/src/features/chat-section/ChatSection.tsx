@@ -19,7 +19,7 @@ const ChatSection = ({
       )}
     >
       <ChatNavbar />
-      <ChatsList />
+      <ChatsList setValue={setValue} />
     </section>
   )
 }

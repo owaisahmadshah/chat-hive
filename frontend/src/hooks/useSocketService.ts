@@ -21,7 +21,6 @@ import {
   handleSeenAndReceiveMessagesType,
 } from "shared"
 
-import useMessageGlobalHook from "./useMessageGlobalHook"
 import { useFetchChat } from "@/features/chat-section/hooks/useFetchChat"
 import { useChatReadQueries } from "@/features/chat-section/utils/chat-read-queries"
 
@@ -37,6 +36,8 @@ import {
   updateQueryMessageStatus,
 } from "@/features/message-section/utils/message-queries"
 
+import { useUpdateMessageStatus } from "./useUpdateMessageStatus"
+
 let socket: Socket | null = null // Singleton instance
 
 const useSocketService = () => {
@@ -48,7 +49,7 @@ const useSocketService = () => {
   const { selectedChatUser } = useSelector((state: RootState) => state.chats)
   const { chats, selectedChat } = useSelector((state: RootState) => state.chats)
 
-  const { updateMessageStatus } = useMessageGlobalHook()
+  const { mutateAsync: updateMessageStatus } = useUpdateMessageStatus()
 
   const { hasChat } = useChatReadQueries()
 
@@ -105,13 +106,10 @@ const useSocketService = () => {
       ) {
         // If the user is online but not using tab or on another chat he can definitely receive the message
         updateReceiveAndSeenOfMessage(
-          userId,
           data.message.chatId,
           data.message._id,
           "receive"
         )
-
-        console.log("sent updated message")
 
         queryClient.setQueryData(["chats"], (oldData: any) =>
           updateChatUnreadMessages({
@@ -125,13 +123,15 @@ const useSocketService = () => {
         // If the user is another tab but selected the chat he can definitely receive the message but can't see
         if (document.visibilityState === "visible") {
           updateReceiveAndSeenOfMessage(
-            userId,
             data.message.chatId,
             data.message._id,
             "seen"
           )
         }
-        await updateMessageStatus(data.message._id, "receive")
+        await updateMessageStatus({
+          messageId: data.message._id,
+          status: "receive",
+        })
       }
 
       if (
@@ -143,7 +143,7 @@ const useSocketService = () => {
         )
       }
 
-      await updateMessageStatus(data.message._id, "seen")
+      await updateMessageStatus({ messageId: data.message._id, status: "seen" })
 
       queryClient.setQueryData(["chats"], (oldData) =>
         updateLastMessage({
@@ -181,7 +181,9 @@ const useSocketService = () => {
       data: handleSeenAndReceiveMessageType
     ) => {
       const { chatId, messageId, status } = data // receiver is not used here but maybe useful in the future
-
+      console.log('Receive message')
+      console.log(data)
+      
       //* Just update the message we have sent
       queryClient.setQueryData(["messages", chatId], (oldData) =>
         updateQueryMessageStatus({ oldData, messageId, status })
@@ -192,9 +194,11 @@ const useSocketService = () => {
       data: handleSeenAndReceiveMessagesType
     ) => {
       const { chatId, status } = data
-
+      console.log('Receive messages and status is', status)
+      console.log(data)
+      
       //* Just update the messages we have sent
-      queryClient.setQueryData(["chats", chatId], (oldData) =>
+      queryClient.setQueryData(["messages", chatId], (oldData) =>
         updateQueryMessagesStatus({
           oldData,
           status,
@@ -284,13 +288,11 @@ const useSocketService = () => {
   }
 
   const updateReceiveAndSeenOfMessage = (
-    receiver: string,
     chatId: string, // It is not always from the selected chat
     messageId: string,
     status: "seen" | "receive"
   ) => {
     socket?.emit(SEEN_AND_RECEIVE_MESSAGE, {
-      receiver,
       chatId,
       messageId,
       status,
@@ -298,13 +300,11 @@ const useSocketService = () => {
   }
 
   const updateReceiveAndSeenOfMessages = (
-    receiver: string,
     chatId: string, // It is not always from the selected chat
     numberOfMessages: number,
     status: "seen" | "receive"
   ) => {
     socket?.emit(SEEN_AND_RECEIVE_MESSAGES, {
-      receiver,
       chatId,
       numberOfMessages, // This will help to update the last received or unread messages
       status,

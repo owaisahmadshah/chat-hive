@@ -83,28 +83,32 @@ export class MessageController {
     const userId = req.user._id
     const { chatId, status } = await req.body
 
-    await this.deps.messageService.updateMessagesStatus({
-      userId,
-      chatId,
-      status,
-    })
+    const updatedMessages = await this.deps.messageService.updateMessagesStatus(
+      {
+        userId,
+        chatId,
+        status,
+      }
+    )
 
     return res
       .status(201)
-      .json(new ApiResponse(201, {}, "Updated messages successfully"))
+      .json(
+        new ApiResponse(201, updatedMessages, "Updated messages successfully")
+      )
   })
 
   updateMessageStatus = asyncHandler(async (req: Request, res: Response) => {
     const { messageId, status } = await req.body
 
-    await this.deps.messageService.updateMessageStatus({
+    const message = await this.deps.messageService.updateMessageStatus({
       messageId,
       status,
     })
 
     return res
       .status(201)
-      .json(new ApiResponse(201, {}, "Updated message successfully"))
+      .json(new ApiResponse(201, message, "Updated message successfully"))
   })
 
   /**
