@@ -83,9 +83,7 @@ export const updateChatTypingWithPersistantOrder = ({
 
         return {
           ...chat,
-          typing: {
-            isTyping: typing,
-          },
+          typing: typing,
         }
       }),
     })),
@@ -95,11 +93,8 @@ export const updateChatTypingWithPersistantOrder = ({
 export const addChat = ({ oldData, chat }: { oldData: any; chat: any }) => {
   if (!oldData)
     return {
-      pages: [
-        {
-          chats: [chat],
-        },
-      ],
+      ...oldData,
+      isTyping: true,
     }
 
   return {

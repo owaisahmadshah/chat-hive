@@ -158,6 +158,7 @@ export class UserRepository {
           showAbout: 1,
           showLastSeen: 1,
           showProfileImage: 1,
+          updatedAt: 1,
         },
       },
     ])

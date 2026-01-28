@@ -92,7 +92,9 @@ function MessageInput() {
   }
 
   useEffect(() => {
-    if (!userInputMessage) return
+    if (!userInputMessage || userInputMessage.trim() === "") {
+      return
+    }
 
     sendSocketTyping(true)
 

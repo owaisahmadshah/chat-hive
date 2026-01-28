@@ -60,13 +60,15 @@ const MessageNavBar = ({
                   {chatUser.username}
                 </strong>
                 <p className="text-xs text-muted-foreground">
-                  {!chatUser.showLastSeen
-                    ? ""
-                    : // ) : selectedChat?.typing?.isTyping ? (
-                      //   <span className="text-primary">typing...</span>
-                      // ) : chatUser.isUserOnline ? (
-                      // <span className="text-green-500">online</span>
-                      chatUser.updatedAt && correctDate(chatUser.updatedAt)}
+                  {!chatUser.showLastSeen ? (
+                    ""
+                  ) : chatUser?.isTyping ? (
+                    <span className="text-primary">typing...</span>
+                  ) : (
+                    //  ) : chatUser.isUserOnline ? (
+                    // <span className="text-green-500">online</span>
+                    chatUser.updatedAt && correctDate(chatUser.updatedAt)
+                  )}
                 </p>
               </div>
             </div>

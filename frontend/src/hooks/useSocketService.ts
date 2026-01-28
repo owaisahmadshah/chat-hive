@@ -1,10 +1,11 @@
 import { io, Socket } from "socket.io-client"
 import { useSelector } from "react-redux"
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSearchParams } from "react-router-dom"
 
 import { RootState } from "@/store/store"
+
 import {
   NEW_MESSAGE,
   USER_CONNECTED,
@@ -37,6 +38,7 @@ import {
 } from "@/features/message-section/utils/message-queries"
 
 import { useUpdateMessageStatus } from "./useUpdateMessageStatus"
+import { updateActiveChatUserTypingStatus } from "@/lib/user-queries-updates"
 
 let socket: Socket | null = null // Singleton instance
 
@@ -46,21 +48,13 @@ const useSocketService = () => {
   const { fetchChat } = useFetchChat()
   const { userId } = useSelector((state: RootState) => state.user)
 
-  const { selectedChatUser } = useSelector((state: RootState) => state.chats)
-  const { chats, selectedChat } = useSelector((state: RootState) => state.chats)
-
   const { mutateAsync: updateMessageStatus } = useUpdateMessageStatus()
 
   const { hasChat } = useChatReadQueries()
 
   const [params] = useSearchParams()
   const activeChatId = params.get("chatId")
-
-  const chatRef = useRef(chats)
-  chatRef.current = chats
-
-  const selectedChatRef = useRef(selectedChat)
-  selectedChatRef.current = selectedChat
+  const activeChatUserId = params.get("userId")
 
   useEffect(() => {
     if (!socket && userId.trim() !== "") {
@@ -134,10 +128,7 @@ const useSocketService = () => {
         })
       }
 
-      if (
-        selectedChatRef.current &&
-        data.message.chatId === selectedChatRef.current._id
-      ) {
+      if (data.message.chatId === activeChatId) {
         queryClient.setQueryData(["chats"], (oldData) =>
           updateChatUnreadMessages({ oldData, chatId: data.message._id })
         )
@@ -168,22 +159,21 @@ const useSocketService = () => {
         })
       )
 
-      // Fix: What??
-      // if (selectedChatRef.current?._id === data.chatId) {
-      //   const tempChat = { ...selectedChatRef.current }
-      //   tempChat.typing = typing
-
-      //   dispatch(setSelectedChat(tempChat))
-      // }
+      if (activeChatUserId === data.userId && activeChatId === data.chatId) {
+        queryClient.setQueryData(["user", data.userId], (oldData: any) =>
+          updateActiveChatUserTypingStatus({
+            oldData,
+            isTyping: typing.isTyping,
+          })
+        )
+      }
     }
 
     const handleSeenAndReceiveMessage = (
       data: handleSeenAndReceiveMessageType
     ) => {
       const { chatId, messageId, status } = data // receiver is not used here but maybe useful in the future
-      console.log('Receive message')
-      console.log(data)
-      
+
       //* Just update the message we have sent
       queryClient.setQueryData(["messages", chatId], (oldData) =>
         updateQueryMessageStatus({ oldData, messageId, status })
@@ -194,9 +184,7 @@ const useSocketService = () => {
       data: handleSeenAndReceiveMessagesType
     ) => {
       const { chatId, status } = data
-      console.log('Receive messages and status is', status)
-      console.log(data)
-      
+
       //* Just update the messages we have sent
       queryClient.setQueryData(["messages", chatId], (oldData) =>
         updateQueryMessagesStatus({
@@ -220,96 +208,101 @@ const useSocketService = () => {
   }
 
   //* ---Emit Events---
-  const connectSocket = (userId: string) => {
+  const connectSocket = useCallback((userId: string) => {
     socket?.emit(USER_CONNECTED, userId)
-  }
+  }, [])
 
-  const disconnectSocket = () => {
+  const disconnectSocket = useCallback(() => {
     socket?.disconnect()
     socket = null
-  }
+  }, [])
 
-  const joinSocketChat = (chatId: string) => {
+  const joinSocketChat = useCallback((chatId: string) => {
     socket?.emit(JOIN_CHAT, chatId)
-  }
+  }, [])
 
-  const sendSocketMessage = (message: Message, messageUsers: string[]) => {
-    socket
-      ?.timeout(10000)
-      .emit(NEW_MESSAGE, { message, messageUsers }, (err: [], res: []) => {
-        if (err || res?.length) {
-          // TODO
-        } else {
-          // TODO
-        }
-      })
-  }
-
-  const sendSocketTyping = (isTyping: boolean) => {
-    socket?.emit(TYPING, { chatId: selectedChat?._id, userId, isTyping })
-  }
-
-  const sendSocketOnline = () => {
-    socket?.emit(USER_ONLINE, userId)
-  }
-
-  const sendSocketOffline = () => {
-    socket?.emit(USER_OFFLINE, userId)
-  }
-
-  const findUserOnlineStatus = (userId: string) => {
-    socket?.emit(
-      USER_ONLINE_STATUS,
-      userId,
-      (online: boolean, updateAt: Date | null) => {
-        if (selectedChatUser === null) return
-
-        const tempUser = { ...selectedChatUser }
-        tempUser.isUserOnline = online
-
-        // Updating temperorily selected chat user data and we don't have to update the whole chats because
-        // we are already getting this lastSeen by database and we already sending request to the backend and getting lastSeen
-        if (!online && updateAt) {
-          tempUser.updatedAt = updateAt
-        }
-
-        // dispatch(setSelectedChatUser(tempUser))
-        queryClient.setQueryData(["user", userId], (oldData: any) => {
-          if (!oldData) return oldData
-
-          return {
-            ...oldData,
-            isUserOnline: online,
-            updatedAt: updateAt ? updateAt : oldData.updatedAt,
+  const sendSocketMessage = useCallback(
+    (message: Message, messageUsers: string[]) => {
+      socket
+        ?.timeout(10000)
+        .emit(NEW_MESSAGE, { message, messageUsers }, (err: [], res: []) => {
+          if (err || res?.length) {
+            // TODO
+          } else {
+            // TODO
           }
         })
-      }
-    )
-  }
+    },
+    []
+  )
 
-  const updateReceiveAndSeenOfMessage = (
-    chatId: string, // It is not always from the selected chat
-    messageId: string,
-    status: "seen" | "receive"
-  ) => {
-    socket?.emit(SEEN_AND_RECEIVE_MESSAGE, {
-      chatId,
-      messageId,
-      status,
-    })
-  }
+  const sendSocketTyping = useCallback(
+    (isTyping: boolean) => {
+      socket?.emit(TYPING, { chatId: activeChatId, userId, isTyping })
+    },
+    [activeChatId, userId]
+  )
 
-  const updateReceiveAndSeenOfMessages = (
-    chatId: string, // It is not always from the selected chat
-    numberOfMessages: number,
-    status: "seen" | "receive"
-  ) => {
-    socket?.emit(SEEN_AND_RECEIVE_MESSAGES, {
-      chatId,
-      numberOfMessages, // This will help to update the last received or unread messages
-      status,
-    })
-  }
+  const sendSocketOnline = useCallback(() => {
+    socket?.emit(USER_ONLINE, userId)
+  }, [userId])
+
+  const sendSocketOffline = useCallback(() => {
+    socket?.emit(USER_OFFLINE, userId)
+  }, [userId])
+
+  const findUserOnlineStatus = useCallback(
+    (userId: string) => {
+      socket?.emit(
+        USER_ONLINE_STATUS,
+        userId,
+        (online: boolean, updateAt: Date | null) => {
+          if (activeChatUserId === null) return
+
+          queryClient.setQueryData(["user", userId], (oldData: any) => {
+            if (!oldData) return oldData
+
+            return {
+              ...oldData,
+              isUserOnline: online,
+              updatedAt: updateAt ? updateAt : oldData.updatedAt,
+            }
+          })
+        }
+      )
+    },
+    [activeChatUserId, queryClient]
+  )
+
+  const updateReceiveAndSeenOfMessage = useCallback(
+    (
+      chatId: string, // It is not always from the selected chat
+      messageId: string,
+      status: "seen" | "receive"
+    ) => {
+      socket?.emit(SEEN_AND_RECEIVE_MESSAGE, {
+        chatId,
+        messageId,
+        status,
+      })
+    },
+    []
+  )
+
+  const updateReceiveAndSeenOfMessages = useCallback(
+    (
+      chatId: string, // It is not always from the selected chat
+      numberOfMessages: number,
+      status: "seen" | "receive"
+    ) => {
+      socket?.emit(SEEN_AND_RECEIVE_MESSAGES, {
+        chatId,
+        numberOfMessages, // This will help to update the last received or unread messages
+        status,
+      })
+    },
+    []
+  )
 
   return {
     connectSocket,

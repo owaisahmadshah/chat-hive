@@ -43,7 +43,7 @@ export const ChatsList = ({
         processedChatsRef.current.add(chat._id)
       }
     })
-  }, [chats, joinSocketChat, updateReceiveAndSeenOfMessages])
+  }, [chats])
 
   const handleChatClick = (chat: any) => {
     if (chat.unreadMessages) {
