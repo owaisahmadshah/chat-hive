@@ -5,7 +5,7 @@ const updateMessagesStatusService = async (updateBody: {
   status: "receive" | "seen"
 }) => {
   const { data } = await api.post("/v1/message/updatestatus", updateBody)
-  return data
+  return data.data
 }
 
 const updateMessageStatusService = async (updateBody: {
@@ -13,7 +13,7 @@ const updateMessageStatusService = async (updateBody: {
   status: "receive" | "seen"
 }) => {
   const { data } = await api.post("/v1/message/updateonestatus", updateBody)
-  return data
+  return data.data
 }
 
 export { updateMessagesStatusService, updateMessageStatusService }

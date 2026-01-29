@@ -24,8 +24,185 @@ export class ChatRepository {
     })
   }
 
-  findCreateChatDetails(id: string) {
+  findUserChats({
+    userId,
+    limit,
+    cursor,
+  }: {
+    userId: string
+    limit: number
+    cursor: string | null
+  }) {
+    const userObjectId = new mongoose.Types.ObjectId(userId)
+
+    let filter: any = {
+      users: userObjectId,
+      deletedBy: { $ne: userObjectId },
+    }
+
+    if (cursor) {
+      filter.updatedAt = { $lt: new Date(cursor) }
+    }
+
+    return Chat.aggregate([
+      {
+        $match: filter,
+      },
+      {
+        $sort: {
+          updatedAt: -1,
+        },
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $lookup: {
+          from: "users",
+          let: { userIds: "$users" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ["$_id", "$$userIds"] },
+                    { $ne: ["$_id", userObjectId] },
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                username: 1,
+                imageUrl: 1,
+              },
+            },
+          ],
+          as: "user",
+        },
+      },
+      {
+        $lookup: {
+          from: "messages",
+          let: {
+            chatId: "$_id",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$chatId", "$$chatId"],
+                    },
+                    {
+                      $not: {
+                        $in: [userObjectId, "$deletedBy"],
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $sort: {
+                updatedAt: -1,
+              },
+            },
+            {
+              $limit: 1,
+            },
+            {
+              $project: {
+                message: 1,
+                photoUrl: 1,
+                status: 1,
+                chatId: 1,
+                sender: 1,
+              },
+            },
+          ],
+          as: "lastMessage",
+        },
+      },
+      {
+        $lookup: {
+          from: "messages",
+          let: {
+            chatId: "$_id",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$chatId", "$$chatId"],
+                    },
+                    {
+                      $not: {
+                        $in: [userObjectId, "$deletedBy"],
+                      },
+                    },
+                    {
+                      $ne: ["$sender", userObjectId],
+                    },
+                    {
+                      $or: [
+                        {
+                          $eq: ["$status", "sent"],
+                        },
+                        {
+                          $eq: ["$status", "receive"],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $count: "totalUnreadMessages",
+            },
+          ],
+          as: "unreadMessages",
+        },
+      },
+      {
+        $addFields: {
+          lastMessage: {
+            $ifNull: [{ $arrayElemAt: ["$lastMessage", 0] }, {}],
+          },
+          unreadMessages: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$unreadMessages.totalUnreadMessages", 0],
+              },
+              0,
+            ],
+          },
+          user: {
+            $arrayElemAt: ["$user", 0],
+          },
+        },
+      },
+      {
+        $project: {
+          user: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          lastMessage: 1,
+          unreadMessages: 1,
+        },
+      },
+    ])
+  }
+
+  findChatDetailsById({ id, uid }: { id: string; uid: string }) {
     const chatId = new mongoose.Types.ObjectId(id)
+    const userObjectId = new mongoose.Types.ObjectId(uid)
+
     return Chat.aggregate([
       {
         $match: { _id: chatId },
@@ -33,31 +210,141 @@ export class ChatRepository {
       {
         $lookup: {
           from: "users",
-          localField: "users",
-          foreignField: "_id",
-          as: "users",
+          let: { userIds: "$users" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ["$_id", "$$userIds"] },
+                    { $ne: ["$_id", userObjectId] },
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                username: 1,
+                imageUrl: 1,
+              },
+            },
+          ],
+          as: "user",
         },
       },
       {
         $lookup: {
-          from: "users",
-          localField: "admin",
-          foreignField: "_id",
-          as: "admin",
+          from: "messages",
+          let: {
+            chatId: "$_id",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$chatId", "$$chatId"],
+                    },
+                    {
+                      $not: {
+                        $in: [userObjectId, "$deletedBy"],
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $sort: {
+                updatedAt: -1,
+              },
+            },
+            {
+              $limit: 1,
+            },
+            {
+              $project: {
+                message: 1,
+                photoUrl: 1,
+                status: 1,
+                chatId: 1,
+                sender: 1,
+              },
+            },
+          ],
+          as: "lastMessage",
+        },
+      },
+      {
+        $lookup: {
+          from: "messages",
+          let: {
+            chatId: "$_id",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$chatId", "$$chatId"],
+                    },
+                    {
+                      $not: {
+                        $in: [userObjectId, "$deletedBy"],
+                      },
+                    },
+                    {
+                      $ne: ["$sender", userObjectId],
+                    },
+                    {
+                      $or: [
+                        {
+                          $eq: ["$status", "sent"],
+                        },
+                        {
+                          $eq: ["$status", "receive"],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $count: "totalUnreadMessages",
+            },
+          ],
+          as: "unreadMessages",
         },
       },
       {
         $addFields: {
-          admin: {
-            $arrayElemAt: ["$admin", 0],
+          lastMessage: {
+            $ifNull: [{ $arrayElemAt: ["$lastMessage", 0] }, {}],
+          },
+          unreadMessages: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$unreadMessages.totalUnreadMessages", 0],
+              },
+              0,
+            ],
+          },
+          user: {
+            $arrayElemAt: ["$user", 0],
           },
         },
       },
       {
         $project: {
-          admin: 1,
-          users: 1,
+          user: 1,
+          createdAt: 1,
           updatedAt: 1,
+          lastMessage: 1,
+          unreadMessages: 1,
         },
       },
     ])
@@ -101,14 +388,6 @@ export class ChatRepository {
           localField: "users",
           foreignField: "_id",
           as: "users",
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "admin",
-          foreignField: "_id",
-          as: "admin",
         },
       },
       {

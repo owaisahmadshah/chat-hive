@@ -1,6 +1,11 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import {
+  InfiniteData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query"
 
 import { deleteConnection } from "../services/userService"
+import { TConnectionsPage } from "@/types/connection"
 
 export const useDeleteConnection = () => {
   const queryClient = useQueryClient()
@@ -13,21 +18,22 @@ export const useDeleteConnection = () => {
         queryKey: ["users"],
       })
 
-      console.log(data)
+      queryClient.setQueryData<InfiniteData<TConnectionsPage>>(
+        ["connections"],
+        (oldData) => {
+          if (!oldData) return oldData
 
-      queryClient.setQueryData(["connections"], (oldData) => {
-        if (!oldData) return oldData
-
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => ({
-            ...page,
-            connections: page.connections.filter(
-              (connection) => connection._id !== data._id
-            ),
-          })),
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              connections: page.connections.filter(
+                (connection) => connection._id !== data._id
+              ),
+            })),
+          }
         }
-      })
+      )
     },
 
     // TODO: Update in chats too

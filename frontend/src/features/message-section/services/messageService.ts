@@ -6,7 +6,7 @@ const sendMessage = async (formData: FormData) => {
       "Content-Type": "multipart/form-data",
     },
   })
-  return data
+  return data.data
 }
 
 const deleteMessageService = async (messageBody: { messageId: string }) => {
@@ -25,4 +25,21 @@ const getChatMessagesService = async (chatBody: {
   return data
 }
 
-export { sendMessage, deleteMessageService, getChatMessagesService }
+const fetchMessages = async (params: {
+  limit: number
+  cursor: string | null
+  chatId: string
+}) => {
+  const { data } = await api.get("/v1/message/messages", {
+    params: params,
+  })
+
+  return data.data
+}
+
+export {
+  sendMessage,
+  deleteMessageService,
+  getChatMessagesService,
+  fetchMessages,
+}

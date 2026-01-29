@@ -75,7 +75,7 @@ export class UserRepository {
     }
 
     if (cursor) {
-      filter.createdAt = new Date(cursor)
+      filter.createdAt = { $lt: new Date(cursor) }
     }
 
     return User.aggregate([
@@ -128,6 +128,37 @@ export class UserRepository {
           showLastSeen: 1,
           showProfileImage: 1,
           createdAt: 1,
+        },
+      },
+    ])
+  }
+
+  fetchChatUserById({
+    // userId,
+    chatUserId,
+  }: {
+    userId: string
+    chatUserId: string
+  }) {
+    // const userObjId = new mongoose.Types.ObjectId(userId)
+    const chatUserObjId = new mongoose.Types.ObjectId(chatUserId)
+
+    return User.aggregate([
+      {
+        $match: {
+          _id: chatUserObjId,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          username: 1,
+          imageUrl: 1,
+          about: 1,
+          showAbout: 1,
+          showLastSeen: 1,
+          showProfileImage: 1,
+          updatedAt: 1,
         },
       },
     ])

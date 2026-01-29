@@ -7,12 +7,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Reply, Copy, Pin, Trash2, Check } from "lucide-react"
 import { Message } from "shared"
-import { useMessage } from "../hooks/useMessage"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 
 function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
-  const { deleteSelectedMessage } = useMessage()
   const [copied, setCopied] = useState(false)
 
   const handleSelectedMessageReply = () => {
@@ -30,7 +28,7 @@ function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
   }
 
   const handleSelectedMessageDelete = async () => {
-    await deleteSelectedMessage(selectedMessage._id)
+    // TODO: handle delete message
   }
 
   return (

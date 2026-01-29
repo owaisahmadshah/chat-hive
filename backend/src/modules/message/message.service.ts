@@ -35,7 +35,7 @@ export class MessageService {
       chatRepository,
     } = this.deps
 
-    const userSent = await userService.getUser(sender)
+    const userSent: any = await userService.getUser(sender)
 
     if (!userSent) {
       throw new ApiError(404, "User not fouond")
@@ -55,7 +55,11 @@ export class MessageService {
 
       const filteredMessage = {
         _id: newMessage._id,
-        sender: userSent,
+        sender: {
+          _id: userSent._id,
+          username: userSent.username,
+          imageUrl: userSent.username,
+        },
         chatId: newMessage.chatId,
         message: newMessage.message,
         photoUrl: newMessage.photoUrl,
@@ -199,5 +203,37 @@ export class MessageService {
       })
 
     return message
+  }
+
+  async getMessagesByChatId({
+    chatId,
+    userId,
+    limit,
+    cursor,
+  }: {
+    chatId: string
+    userId: string
+    limit: number
+    cursor: null | string
+  }) {
+    const { messageRepository } = this.deps
+
+    const messages = await messageRepository.findMessagesByChatId({
+      chatId,
+      userId,
+      limit,
+      cursor,
+    })
+
+    const hasMore = messages.length === limit
+    const lastMessage = messages.at(-1)
+    const nextCursor =
+      lastMessage?.updatedAt && hasMore ? lastMessage.updatedAt : null
+
+    return {
+      messages,
+      hasMore,
+      nextCursor,
+    }
   }
 }

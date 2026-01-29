@@ -1,20 +1,11 @@
 import { io, Socket } from "socket.io-client"
-import { useDispatch, useSelector } from "react-redux"
-import { useEffect, useRef } from "react"
+import { useSelector } from "react-redux"
+import { useCallback, useEffect } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useSearchParams } from "react-router-dom"
 
 import { RootState } from "@/store/store"
-import useGetChat from "@/features/chat-section/hooks/getChat"
-import {
-  addMessage,
-  updateMessage,
-  updateMessages,
-} from "@/store/slices/messages"
-import {
-  setSelectedChat,
-  setSelectedChatUser,
-  updateChat,
-  updateChatWithPersistentOrder,
-} from "@/store/slices/chats"
+
 import {
   NEW_MESSAGE,
   USER_CONNECTED,
@@ -30,26 +21,40 @@ import {
   handleSeenAndReceiveMessageType,
   handleSeenAndReceiveMessagesType,
 } from "shared"
-import useMessageGlobalHook from "./useMessageGlobalHook"
+
+import { useFetchChat } from "@/features/chat-section/hooks/useFetchChat"
+import { useChatReadQueries } from "@/features/chat-section/utils/chat-read-queries"
+
+import {
+  updateChatTypingWithPersistantOrder,
+  updateChatUnreadMessages,
+  updateLastMessage,
+} from "@/features/chat-section/utils/queries-updates"
+
+import {
+  addMessageToQuery,
+  updateQueryMessagesStatus,
+  updateQueryMessageStatus,
+} from "@/features/message-section/utils/message-queries"
+
+import { useUpdateMessageStatus } from "./useUpdateMessageStatus"
+import { updateActiveChatUserTypingStatus } from "@/lib/user-queries-updates"
 
 let socket: Socket | null = null // Singleton instance
 
 const useSocketService = () => {
-  const dispatch = useDispatch()
+  const queryClient = useQueryClient()
 
-  const { getChat } = useGetChat()
-
-  const { selectedChatUser } = useSelector((state: RootState) => state.chats)
+  const { fetchChat } = useFetchChat()
   const { userId } = useSelector((state: RootState) => state.user)
-  const { chats, selectedChat } = useSelector((state: RootState) => state.chats)
 
-  const { updateMessageStatus } = useMessageGlobalHook()
+  const { mutateAsync: updateMessageStatus } = useUpdateMessageStatus()
 
-  const chatRef = useRef(chats)
-  chatRef.current = chats
+  const { hasChat } = useChatReadQueries()
 
-  const selectedChatRef = useRef(selectedChat)
-  selectedChatRef.current = selectedChat
+  const [params] = useSearchParams()
+  const activeChatId = params.get("chatId")
+  const activeChatUserId = params.get("userId")
 
   useEffect(() => {
     if (!socket && userId.trim() !== "") {
@@ -74,12 +79,8 @@ const useSocketService = () => {
       data: { message: Message },
       callback: (response: { status: boolean; message: string }) => void
     ) => {
-      const isChatExists = chatRef.current.findIndex(
-        (chat) => chat._id === data.message.chatId
-      )
-
-      if (isChatExists === -1) {
-        await getChat(data.message.chatId)
+      if (!hasChat({ chatId: data.message.chatId })) {
+        await fetchChat({ chatId: data.message.chatId })
         joinSocketChat(data.message.chatId)
       }
 
@@ -88,69 +89,58 @@ const useSocketService = () => {
         message: "receiver received message",
       })
 
-      dispatch(
-        addMessage({ chatId: data.message.chatId, message: data.message })
+      queryClient.setQueryData(
+        ["messages", data.message.chatId],
+        (oldData: any) => addMessageToQuery({ oldData, message: data.message })
       )
 
-      let tempUnreadMessages = 1
-
       if (
-        selectedChatRef.current?._id !== data.message.chatId ||
+        activeChatId !== data.message.chatId ||
         document.visibilityState === "hidden"
       ) {
         // If the user is online but not using tab or on another chat he can definitely receive the message
         updateReceiveAndSeenOfMessage(
-          userId,
           data.message.chatId,
           data.message._id,
           "receive"
         )
 
-        for (let i = 0; i < chatRef.current.length; i++) {
-          if (chatRef.current[i]._id === data.message.chatId) {
-            tempUnreadMessages = chatRef.current[i].unreadMessages + 1
-            break
-          }
-        }
+        queryClient.setQueryData(["chats"], (oldData: any) =>
+          updateChatUnreadMessages({
+            oldData,
+            chatId: data.message.chatId,
+            value: 1,
+            increment: true,
+          })
+        )
       } else {
         // If the user is another tab but selected the chat he can definitely receive the message but can't see
         if (document.visibilityState === "visible") {
           updateReceiveAndSeenOfMessage(
-            userId,
             data.message.chatId,
             data.message._id,
             "seen"
           )
-          tempUnreadMessages = 0
         }
-        await updateMessageStatus(data.message._id, "receive")
+        await updateMessageStatus({
+          messageId: data.message._id,
+          status: "receive",
+        })
       }
 
-      if (
-        selectedChatRef.current &&
-        data.message.chatId === selectedChatRef.current._id
-      ) {
-        dispatch(
-          setSelectedChat({
-            ...selectedChatRef.current,
-            unreadMessages: tempUnreadMessages,
-          })
+      if (data.message.chatId === activeChatId) {
+        queryClient.setQueryData(["chats"], (oldData) =>
+          updateChatUnreadMessages({ oldData, chatId: data.message._id })
         )
       }
 
-      await updateMessageStatus(data.message._id, "seen")
+      await updateMessageStatus({ messageId: data.message._id, status: "seen" })
 
-      dispatch(
-        updateChat({
+      queryClient.setQueryData(["chats"], (oldData) =>
+        updateLastMessage({
+          oldData,
           chatId: data.message.chatId,
-          updates: {
-            lastMessage: {
-              isPhoto: data.message.photoUrl !== "",
-              message: data.message.message,
-            },
-            updatedAt: data.message.updatedAt,
-            unreadMessages: tempUnreadMessages,
-          },
+          lastMessage: data.message,
         })
       )
     }
@@ -161,18 +151,21 @@ const useSocketService = () => {
         isTyping: data.isTyping,
       }
 
-      dispatch(
-        updateChatWithPersistentOrder({
+      queryClient.setQueryData(["chats"], (oldData) =>
+        updateChatTypingWithPersistantOrder({
+          oldData,
           chatId: data.chatId,
-          updates: { typing },
+          typing,
         })
       )
 
-      if (selectedChatRef.current?._id === data.chatId) {
-        const tempChat = { ...selectedChatRef.current }
-        tempChat.typing = typing
-
-        dispatch(setSelectedChat(tempChat))
+      if (activeChatUserId === data.userId && activeChatId === data.chatId) {
+        queryClient.setQueryData(["user", data.userId], (oldData: any) =>
+          updateActiveChatUserTypingStatus({
+            oldData,
+            isTyping: typing.isTyping,
+          })
+        )
       }
     }
 
@@ -182,28 +175,22 @@ const useSocketService = () => {
       const { chatId, messageId, status } = data // receiver is not used here but maybe useful in the future
 
       //* Just update the message we have sent
-      dispatch(
-        updateMessage({
-          chatId,
-          messageId,
-          updates: { status },
-        })
+      queryClient.setQueryData(["messages", chatId], (oldData) =>
+        updateQueryMessageStatus({ oldData, messageId, status })
       )
     }
 
     const handleSeenAndReceiveMessages = (
       data: handleSeenAndReceiveMessagesType
     ) => {
-      const { chatId, numberOfMessages, status, receiver } = data
+      const { chatId, status } = data
 
       //* Just update the messages we have sent
-      dispatch(
-        updateMessages({
-          chatId,
-          receiver,
-          ourUserId: userId, // This will help to make sure we are updating the message we have sent
-          numberOfMessages,
-          updates: { status },
+      queryClient.setQueryData(["messages", chatId], (oldData) =>
+        updateQueryMessagesStatus({
+          oldData,
+          status,
+          currentUserId: userId,
         })
       )
     }
@@ -221,91 +208,101 @@ const useSocketService = () => {
   }
 
   //* ---Emit Events---
-  const connectSocket = (userId: string) => {
+  const connectSocket = useCallback((userId: string) => {
     socket?.emit(USER_CONNECTED, userId)
-  }
+  }, [])
 
-  const disconnectSocket = () => {
+  const disconnectSocket = useCallback(() => {
     socket?.disconnect()
     socket = null
-  }
+  }, [])
 
-  const joinSocketChat = (chatId: string) => {
+  const joinSocketChat = useCallback((chatId: string) => {
     socket?.emit(JOIN_CHAT, chatId)
-  }
+  }, [])
 
-  const sendSocketMessage = (message: Message, messageUsers: string[]) => {
-    socket
-      ?.timeout(10000)
-      .emit(NEW_MESSAGE, { message, messageUsers }, (err: [], res: []) => {
-        if (err || res?.length) {
-          // TODO
-        } else {
-          // TODO
-        }
-      })
-  }
+  const sendSocketMessage = useCallback(
+    (message: Message, messageUsers: string[]) => {
+      socket
+        ?.timeout(10000)
+        .emit(NEW_MESSAGE, { message, messageUsers }, (err: [], res: []) => {
+          if (err || res?.length) {
+            // TODO
+          } else {
+            // TODO
+          }
+        })
+    },
+    []
+  )
 
-  const sendSocketTyping = (isTyping: boolean) => {
-    socket?.emit(TYPING, { chatId: selectedChat?._id, userId, isTyping })
-  }
+  const sendSocketTyping = useCallback(
+    (isTyping: boolean) => {
+      socket?.emit(TYPING, { chatId: activeChatId, userId, isTyping })
+    },
+    [activeChatId, userId]
+  )
 
-  const sendSocketOnline = () => {
+  const sendSocketOnline = useCallback(() => {
     socket?.emit(USER_ONLINE, userId)
-  }
+  }, [userId])
 
-  const sendSocketOffline = () => {
+  const sendSocketOffline = useCallback(() => {
     socket?.emit(USER_OFFLINE, userId)
-  }
+  }, [userId])
 
-  const findUserOnlineStatus = (userId: string) => {
-    socket?.emit(
-      USER_ONLINE_STATUS,
-      userId,
-      (online: boolean, updateAt: Date | null) => {
-        if (selectedChatUser === null) return
+  const findUserOnlineStatus = useCallback(
+    (userId: string) => {
+      socket?.emit(
+        USER_ONLINE_STATUS,
+        userId,
+        (online: boolean, updateAt: Date | null) => {
+          if (userId === null) return
 
-        const tempUser = { ...selectedChatUser }
-        tempUser.isUserOnline = online
+          queryClient.setQueryData(["user", userId], (oldData: any) => {
+            if (!oldData) return oldData
 
-        // Updating temperorily selected chat user data and we don't have to update the whole chats because
-        // we are already getting this lastSeen by database and we already sending request to the backend and getting lastSeen
-        if (!online && updateAt) {
-          tempUser.updatedAt = updateAt
+            return {
+              ...oldData,
+              isUserOnline: online,
+              updatedAt: updateAt ? updateAt : oldData.updatedAt,
+            }
+          })
         }
+      )
+    },
+    []
+  )
 
-        dispatch(setSelectedChatUser(tempUser))
-      }
-    )
-  }
+  const updateReceiveAndSeenOfMessage = useCallback(
+    (
+      chatId: string, // It is not always from the selected chat
+      messageId: string,
+      status: "seen" | "receive"
+    ) => {
+      socket?.emit(SEEN_AND_RECEIVE_MESSAGE, {
+        chatId,
+        messageId,
+        status,
+      })
+    },
+    []
+  )
 
-  const updateReceiveAndSeenOfMessage = (
-    receiver: string,
-    chatId: string, // It is not always from the selected chat
-    messageId: string,
-    status: "seen" | "receive"
-  ) => {
-    socket?.emit(SEEN_AND_RECEIVE_MESSAGE, {
-      receiver,
-      chatId,
-      messageId,
-      status,
-    })
-  }
-
-  const updateReceiveAndSeenOfMessages = (
-    receiver: string,
-    chatId: string, // It is not always from the selected chat
-    numberOfMessages: number,
-    status: "seen" | "receive"
-  ) => {
-    socket?.emit(SEEN_AND_RECEIVE_MESSAGES, {
-      receiver,
-      chatId,
-      numberOfMessages, // This will help to update the last received or unread messages
-      status,
-    })
-  }
+  const updateReceiveAndSeenOfMessages = useCallback(
+    (
+      chatId: string, // It is not always from the selected chat
+      numberOfMessages: number,
+      status: "seen" | "receive"
+    ) => {
+      socket?.emit(SEEN_AND_RECEIVE_MESSAGES, {
+        chatId,
+        numberOfMessages, // This will help to update the last received or unread messages
+        status,
+      })
+    },
+    []
+  )
 
   return {
     connectSocket,

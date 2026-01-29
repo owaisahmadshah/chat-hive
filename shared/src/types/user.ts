@@ -23,4 +23,6 @@ export type TCreateUser = TBaseUser & {
 
 export type TUserWithId = Omit<TBaseUser, "password"> & {
   userId: string;
+  isUserOnline?: boolean;
+  isTyping?: boolean;
 };

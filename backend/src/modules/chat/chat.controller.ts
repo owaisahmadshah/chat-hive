@@ -25,13 +25,16 @@ export class ChatContoller {
     }
 
     const { chatService } = this.deps
-    const { users } = await req.body
+    const { user } = await req.body
 
-    const chat = await chatService.createChat(users, req.user?._id)
+    const chat = await chatService.createChat(
+      [user, req.user._id],
+      req.user?._id
+    )
 
     return res
       .status(200)
-      .json(new ApiResponse(200, { chat }, "Created chat successfully"))
+      .json(new ApiResponse(200, chat, "Created chat successfully"))
   })
 
   /**
@@ -53,58 +56,48 @@ export class ChatContoller {
     const userId = req.user._id
     const { chatId } = req.body
 
-    await chatService.deleteChat({ userId, chatId })
+    const deletedChat = await chatService.deleteChat({ userId, chatId })
 
-    return res.status(201).json(new ApiResponse(201, {}, "Success"))
+    return res.status(201).json(new ApiResponse(201, deletedChat, "Success"))
   })
 
   /**
    * @desc    Get all the chats.
-   * @route   POST /api/v1/chat/get
+   * @route   POST /api/v1/chat/chats
    * @access  Private
    *
    * @param {Request} req - Express request object containing user
-   * @param {Response} res - Express response object contains all the chats and messages of a user
+   * @param {Response} res - Express response object contains all the chats
    */
-  getChatsAndMessages = asyncHandler(async (req: Request, res: Response) => {
+  getUserChats = asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) {
       throw new ApiError(401, "Unauthorized")
     }
 
     const { chatService } = this.deps
+    const { limit, cursor } = req.query
 
     const userId = req.user._id
 
-    const chats = await chatService.getChatsAndMessages({ userId })
+    const response = await chatService.getUserChats({
+      userId,
+      limit: Number(limit),
+      cursor: cursor ? String(cursor) : null,
+    })
 
-    return res.status(200).json(new ApiResponse(200, chats, "Success"))
+    return res.status(200).json(new ApiResponse(200, response, "Success"))
   })
 
   getAndUpdateChat = asyncHandler(async (req: Request, res: Response) => {
     const { chatService } = this.deps
     const { chatId } = await req.body
+    const userId = req.user?._id
 
-    const chat = await chatService.getAndUpdateChat({ chatId })
-
-    return res.status(200).json(new ApiResponse(200, { chat }, "Sucessful"))
-  })
-
-  getMoreMessages = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      throw new ApiError(401, "Unauthorized")
-    }
-
-    const { chatService } = this.deps
-
-    const userId = req.user._id
-    const { chatId, userChatMessages } = await req.body
-
-    const { messages } = await chatService.getMoreMessages({
+    const chat = await chatService.getAndUpdateChat({
       chatId,
-      userId,
-      userChatMessages,
+      userId: String(userId),
     })
 
-    return res.status(200).json(new ApiResponse(200, messages, "Succeess"))
+    return res.status(200).json(new ApiResponse(200, chat, "Sucessful"))
   })
 }

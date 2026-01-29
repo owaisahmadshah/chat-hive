@@ -13,24 +13,25 @@ import {
 } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
-import { useChat } from "../hooks/useChat"
 import { ChatUser } from "shared"
 import CreateChatUserItem from "./CreateChatUserItem"
+import { fetchUserByUsername } from "../hooks/useFetchUserByUsername"
 
 const CreateChat = () => {
   const [users, setUsers] = useState<ChatUser[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isUsername, setIsUsername] = useState<boolean>(false)
-
-  const { fetchUsers } = useChat()
+  const [open, setOpen] = useState(false)
 
   const debouncedSearch = useCallback(
     debounce(async (email: string) => {
       if (email.trim() === "") return
 
       setIsLoading(true)
-      const result = await fetchUsers(email)
-      setUsers(result)
+      const result = await fetchUserByUsername(email)
+      if (result.user) {
+        setUsers(result.user)
+      }
       setIsLoading(false)
     }, 500),
     []
@@ -47,7 +48,7 @@ const CreateChat = () => {
   }
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button className="flex items-center gap-2 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all group">
           <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
@@ -95,7 +96,10 @@ const CreateChat = () => {
                   key={user._id}
                   className="p-3 rounded-lg hover:bg-muted/50 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300"
                 >
-                  <CreateChatUserItem user={user} />
+                  <CreateChatUserItem
+                    user={user}
+                    onClose={() => setOpen(false)}
+                  />
                 </div>
               ))
             ) : isUsername ? (

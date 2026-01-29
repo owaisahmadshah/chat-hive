@@ -1,3 +1,5 @@
+import { TConnection } from "shared"
+
 type TShowType = "contacts" | "public" | "private"
 
 export interface User {
@@ -12,4 +14,8 @@ export interface User {
   isReadReceipts: boolean
   showProfileImage: TShowType
   isSignedIn: boolean
+}
+
+export type TUsersPage = {
+  users: TConnection[]
 }
