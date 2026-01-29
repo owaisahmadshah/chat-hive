@@ -64,9 +64,9 @@ const MessageNavBar = ({
                     ""
                   ) : chatUser?.isTyping ? (
                     <span className="text-primary">typing...</span>
+                  ) : chatUser?.isUserOnline ? (
+                    <span className="text-green-500">online</span>
                   ) : (
-                    //  ) : chatUser.isUserOnline ? (
-                    // <span className="text-green-500">online</span>
                     chatUser.updatedAt && correctDate(chatUser.updatedAt)
                   )}
                 </p>

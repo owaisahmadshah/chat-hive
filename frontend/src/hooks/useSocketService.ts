@@ -257,7 +257,7 @@ const useSocketService = () => {
         USER_ONLINE_STATUS,
         userId,
         (online: boolean, updateAt: Date | null) => {
-          if (activeChatUserId === null) return
+          if (userId === null) return
 
           queryClient.setQueryData(["user", userId], (oldData: any) => {
             if (!oldData) return oldData
@@ -271,7 +271,7 @@ const useSocketService = () => {
         }
       )
     },
-    [activeChatUserId, queryClient]
+    []
   )
 
   const updateReceiveAndSeenOfMessage = useCallback(

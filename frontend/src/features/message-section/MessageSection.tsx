@@ -4,6 +4,7 @@ import MessageInput from "@/features/message-section/components/MessageInput"
 import { cn } from "@/lib/utils"
 import { useSearchParams } from "react-router-dom"
 import { MessagesList } from "./components/MessagesList"
+import useUserOnlineStatus from "./hooks/useUserOnlineStatus"
 
 const MessageSection = ({
   value,
@@ -13,6 +14,8 @@ const MessageSection = ({
   setValue: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
   const [params] = useSearchParams()
+
+  useUserOnlineStatus()
 
   if (!params.get("chatId")) {
     return <NoChatSelected />
