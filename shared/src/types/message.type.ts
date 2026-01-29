@@ -3,6 +3,7 @@ export interface ChatUser {
     _id: string;
     username: string;
     imageUrl: string;
+    about?: string;
 }
 
 export interface Message {

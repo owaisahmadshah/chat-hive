@@ -38,7 +38,7 @@ const CreateChatUserItem = ({
   const handleAddConnection = async () => {}
 
   const handleOpenChat = () => {
-    if (chatExists) {
+    if (chatExists && chat) {
       setSearchParams({ chatId: chat._id, userId: user._id })
       onClose()
     }
@@ -83,7 +83,7 @@ const CreateChatUserItem = ({
               </Badge>
             )}
           </div>
-          {user.about && (
+          {user?.about && (
             <p className="text-xs text-muted-foreground truncate">
               {user.about}
             </p>

@@ -35,7 +35,7 @@ export class MessageService {
       chatRepository,
     } = this.deps
 
-    const userSent = await userService.getUser(sender)
+    const userSent: any = await userService.getUser(sender)
 
     if (!userSent) {
       throw new ApiError(404, "User not fouond")

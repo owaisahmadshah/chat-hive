@@ -4,6 +4,7 @@ import { useDeleteConnection } from "../hooks/useDeleteConnection"
 import { useCreateConnection } from "../hooks/useCreateConnection"
 import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
+import { TConnection } from "shared"
 
 type ConnectionMode = "users" | "connections"
 
@@ -36,7 +37,8 @@ export const ConnectionsList = ({
   const { mutateAsync: removeConnection } = useDeleteConnection()
   const { mutateAsync: addConnection } = useCreateConnection()
 
-  const connections = data?.pages?.flatMap((page) => page[dataKey]) ?? []
+  const connections: TConnection[] =
+    data?.pages?.flatMap((page: any) => page[dataKey]) ?? []
 
   const normalizeUser = (item: any) => {
     if (dataKey === "users") {

@@ -4,12 +4,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Chat } from "@/types/chat-interface"
+import { TChat } from "shared"
 import { MouseEvent } from "react"
 import { Star, Pin, Trash2, MoreVertical } from "lucide-react"
 import { useDeleteChat } from "../hooks/useDeleteChat"
 
-export default function ChatActions({ chat }: { chat: Chat }) {
+export default function ChatActions({ chat }: { chat: TChat }) {
   const { mutateAsync: deleteChat } = useDeleteChat()
 
   const handleFavorite = (e: MouseEvent) => {
