@@ -1,16 +1,8 @@
-export type TShowType = "contacts" | "public" | "private";
-
 export type TBaseUser = {
   email: string;
   username: string;
   imageUrl: string;
-  about: string;
-  showAbout: TShowType;
-  showLastSeen: TShowType;
-  showProfileImage: TShowType;
-  isReadReceipts: boolean;
   password: string;
-  dummy?: boolean;
 };
 
 export type TCreateUser = TBaseUser & {

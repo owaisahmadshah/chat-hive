@@ -5,17 +5,17 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Reply, Copy, Pin, Trash2, Check } from "lucide-react"
+import { MoreHorizontal, Copy, Trash2, Check } from "lucide-react"
 import { Message } from "shared"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import { useDeleteMessage } from "../hooks/useDeleteMessage"
 
 function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
   const [copied, setCopied] = useState(false)
 
-  const handleSelectedMessageReply = () => {
-    // TODO: handle selected message reply
-  }
+  // TODO: Implement message deletion error logic and update UI accordingly in useDeleteMessage hook on onSuccess
+  const { mutateAsync: deleteMessage, isPending } = useDeleteMessage()
 
   const handleSelectedMessageCopy = () => {
     navigator.clipboard.writeText(selectedMessage.message)
@@ -23,12 +23,11 @@ function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleSelectedMessagePin = () => {
-    // TODO: handle selected message pin
-  }
-
-  const handleSelectedMessageDelete = async () => {
-    // TODO: handle delete message
+  const handleSelectedMessageDelete = async (
+    e: React.MouseEvent<HTMLDivElement>
+  ) => {
+    e.stopPropagation()
+    await deleteMessage({ messageId: selectedMessage._id })
   }
 
   return (
@@ -43,13 +42,6 @@ function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem
-          onClick={handleSelectedMessageReply}
-          className="cursor-pointer"
-        >
-          <Reply className="w-4 h-4 mr-2" />
-          Reply
-        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={handleSelectedMessageCopy}
           className="cursor-pointer"
@@ -66,20 +58,23 @@ function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
             </>
           )}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleSelectedMessagePin}
-          className="cursor-pointer"
-        >
-          <Pin className="w-4 h-4 mr-2" />
-          Pin
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSelectedMessageDelete}
           className="cursor-pointer text-destructive focus:text-destructive"
+          disabled={isPending}
         >
-          <Trash2 className="w-4 h-4 mr-2" />
-          Delete
+          {isPending ? (
+            <span className="flex items-center">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Deleting...
+            </span>
+          ) : (
+            <>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </>
+          )}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,3 +1,4 @@
+import type { TDeletedMessageResponse } from "shared"
 import { ApiError } from "../../shared/utils/ApiError.js"
 import type { uploadOnCloudinary } from "../../shared/utils/Cloudinary.js"
 
@@ -43,6 +44,11 @@ export class MessageService {
 
     const messages = []
 
+    // If there is no image and message is empty then throw error, because message must contain either text or image
+    if ((!uploadedImages || uploadedImages?.length < 1) && !message) {
+      throw new ApiError(400, "Invalid message data")
+    }
+
     // If just a text message
     if (!uploadedImages || uploadedImages?.length < 1) {
       const newMessage = await messageRepository.createMessage({
@@ -78,6 +84,7 @@ export class MessageService {
 
         uploadImage = uploadImageUrl?.url
       } catch (error) {
+        console.log("Error uploading image to cloudinary", error)
         uploadImage = ""
       }
 
@@ -151,7 +158,7 @@ export class MessageService {
   }: {
     messageId: string
     userId: string
-  }) {
+  }): Promise<TDeletedMessageResponse> {
     const { messageRepository } = this.deps
 
     const deleteMessage = await messageRepository.findByIdAndDeleteMessage({
@@ -162,6 +169,8 @@ export class MessageService {
     if (!deleteMessage) {
       throw new ApiError(404, "Message not found")
     }
+
+    return { messageId: deleteMessage._id, chatId: deleteMessage.chatId }
   }
 
   async updateMessagesStatus({

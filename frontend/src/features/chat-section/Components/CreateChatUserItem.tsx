@@ -44,12 +44,6 @@ const CreateChatUserItem = ({
     }
   }
 
-  // const isFriend = (contactId: string): boolean => {
-  //   return friends.some((friend) => friend.friend._id === contactId)
-  // }
-
-  // const isContact = isFriend(user._id)
-
   return (
     <div
       className="flex items-center justify-between gap-4 cursor-pointer"
@@ -71,8 +65,6 @@ const CreateChatUserItem = ({
                 You
               </Badge>
             )}
-            {/* ---------------------------TODO---------------------------------- */}
-            {/* {isContact && !isYou && ( */}
             {!isYou && (
               <Badge
                 variant="outline"
@@ -93,7 +85,6 @@ const CreateChatUserItem = ({
 
       {!isYou && (
         <div className="flex gap-2">
-          {/* {!isContact && chatExists && ( */}
           {chatExists && (
             <Button
               size="sm"

@@ -79,3 +79,25 @@ export const addMessageToQuery = ({
     }),
   }
 }
+
+export const deleteMessageFromQuery = ({
+  oldData,
+  messageId,
+}: {
+  oldData: any
+  messageId: string
+}) => {
+  if (!oldData) {
+    return oldData
+  }
+
+  return {
+    ...oldData,
+    pages: oldData.pages.map((page: any) => ({
+      ...page,
+      messages: page.messages.filter(
+        (message: any) => message._id !== messageId
+      ),
+    })),
+  }
+}

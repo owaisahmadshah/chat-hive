@@ -8,11 +8,6 @@ const initialState: User = {
   email: "",
   username: "",
   imageUrl: "",
-  about: "",
-  showAbout: "private",
-  showLastSeen: "private",
-  isReadReceipts: true,
-  showProfileImage: "private",
   isLoading: true,
   isSignedIn: false,
 }

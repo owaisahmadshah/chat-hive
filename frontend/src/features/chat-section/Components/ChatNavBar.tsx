@@ -1,5 +1,4 @@
 import CreateChat from "./CreateChat"
-import ThreeDotsMenu from "./ThreeDotActions"
 import Profile from "./Profile"
 
 const ChatNavbar = () => {
@@ -11,7 +10,6 @@ const ChatNavbar = () => {
       </li>
       <li className="flex">
         <CreateChat />
-        <ThreeDotsMenu />
       </li>
     </ul>
   )
