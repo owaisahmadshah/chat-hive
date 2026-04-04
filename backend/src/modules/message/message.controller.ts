@@ -30,7 +30,7 @@ export class MessageController {
       message: message as string,
       status: status as "sent" | "receive" | "seen",
       // @ts-ignore
-      uploadedImages: req.file?.uploadedImage,
+      uploadedImages: req.files?.uploadedImage as File[],
     })
 
     return res
@@ -57,14 +57,14 @@ export class MessageController {
 
     const { messageId } = await req.body
 
-    await this.deps.messageService.deleteMessage({
+    const deletedMessage = await this.deps.messageService.deleteMessage({
       userId: req.user._id as string,
       messageId: messageId as string,
     })
 
     return res
       .status(201)
-      .json(new ApiResponse(201, {}, "Deleted Message successfully"))
+      .json(new ApiResponse(201, deletedMessage, "Deleted Message successfully"))
   })
 
   /**

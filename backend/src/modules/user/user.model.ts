@@ -34,29 +34,6 @@ const userSchema = new mongoose.Schema<IUser>(
       type: Boolean,
       default: false,
     },
-    about: {
-      type: String,
-      default: "Hey there!",
-    },
-    showAbout: {
-      type: String,
-      enum: ["contacts", "public", "private"],
-      default: "public",
-    },
-    showLastSeen: {
-      type: String,
-      enum: ["contacts", "public", "private"],
-      default: "public",
-    },
-    showProfileImage: {
-      type: String,
-      enum: ["contacts", "public", "private"],
-      default: "public",
-    },
-    isReadReceipts: {
-      type: Boolean,
-      default: true,
-    },
     refreshToken: {
       type: String,
       default: null,
@@ -76,10 +53,6 @@ const userSchema = new mongoose.Schema<IUser>(
     password: {
       type: String,
       required: [true, "Password is required."],
-    },
-    dummy: {
-      type: Boolean,
-      default: false,
     },
   },
   {
@@ -105,10 +78,10 @@ userSchema.methods.generateAccessToken = function () {
     {
       _id: this._id,
       email: this.email,
-      role: this.role,
+      username: this.username,
     },
     process.env.ACCESS_TOKEN_SECRET!,
-    { expiresIn: "60s" }
+    { expiresIn: "10m" }
   )
 }
 

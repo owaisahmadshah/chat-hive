@@ -1,31 +1,11 @@
-import {
-  User,
-  Shield,
-  Eye,
-  Clock,
-  ImageIcon,
-  CheckCheck,
-  HelpCircle,
-  LogOut,
-  Trash2,
-  Camera,
-} from "lucide-react"
+import { Shield, HelpCircle, LogOut, Trash2, Camera } from "lucide-react"
 
 import { useSelector } from "react-redux"
 import { RootState } from "@/store/store"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { ModeToggle } from "@/components/mode-toggle"
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu"
 
 import {
   Card,
@@ -36,60 +16,13 @@ import {
 } from "@/components/ui/card"
 
 import useUserDelete from "@/hooks/useUserDelete"
-import { useUser } from "../hooks/useUser"
 
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const Profile = () => {
   const user = useSelector((state: RootState) => state.user)
-  const { updateUserField } = useUser()
   const { deleteUser } = useUserDelete()
-
-  const PrivacyDropdown = ({
-    field,
-    value,
-  }: {
-    field: string
-    value: string
-    icon: React.ElementType
-  }) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="h-9 px-4 hover:bg-primary/10 rounded-full"
-        >
-          <span className="text-sm capitalize font-medium">{value}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={() => updateUserField({ field, fieldValue: "private" })}
-            className="cursor-pointer"
-          >
-            <Shield className="w-4 h-4 mr-2" />
-            Private
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => updateUserField({ field, fieldValue: "public" })}
-            className="cursor-pointer"
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            Public
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => updateUserField({ field, fieldValue: "contacts" })}
-            className="cursor-pointer"
-          >
-            <User className="w-4 h-4 mr-2" />
-            Contacts
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
 
   return (
     <Dialog>
@@ -116,7 +49,7 @@ const Profile = () => {
                       <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-primary/5 rounded-full blur-xl group-hover:blur-2xl transition-all" />
                       <img
                         src={user.imageUrl}
-                        alt={user.username}
+                        alt={user.username[0].toUpperCase()}
                         className="relative w-32 h-32 rounded-full ring-4 ring-background object-cover shadow-xl"
                       />
                       <Button
@@ -129,129 +62,11 @@ const Profile = () => {
                     </div>
 
                     <h2 className="mt-6 text-2xl font-bold tracking-tight">
-                      {user.username}
+                      {user.username.toUpperCase()}
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">
                       @{user.username}
                     </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Privacy Settings */}
-              <Card className="border-muted/40 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Shield className="w-4 h-4 text-primary" />
-                    </div>
-                    Privacy Settings
-                  </CardTitle>
-                  <CardDescription className="mt-1">
-                    Control who can see your information
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-1">
-                  <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                        <Eye className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">About</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Who can see your bio
-                        </p>
-                      </div>
-                    </div>
-                    <PrivacyDropdown
-                      field="showAbout"
-                      value={user.showAbout}
-                      icon={Eye}
-                    />
-                  </div>
-
-                  <Separator className="my-1" />
-
-                  <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                        <Clock className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Last Seen</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Who can see when you're online
-                        </p>
-                      </div>
-                    </div>
-                    <PrivacyDropdown
-                      field="showLastSeen"
-                      value={user.showLastSeen}
-                      icon={Clock}
-                    />
-                  </div>
-
-                  <Separator className="my-1" />
-
-                  <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                        <ImageIcon className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Profile Picture</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Who can see your photo
-                        </p>
-                      </div>
-                    </div>
-                    <PrivacyDropdown
-                      field="showProfileImage"
-                      value={user.showProfileImage}
-                      icon={ImageIcon}
-                    />
-                  </div>
-
-                  <Separator className="my-1" />
-
-                  <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                        <CheckCheck className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Read Receipts</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Show when you've read messages
-                        </p>
-                      </div>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="h-9 px-4 hover:bg-primary/10 rounded-full"
-                        >
-                          <span className="text-sm capitalize font-medium">
-                            {user.isReadReceipts ? "On" : "Off"}
-                          </span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-32">
-                        <DropdownMenuItem
-                          onClick={() =>
-                            updateUserField({
-                              field: "isReadReceipts",
-                              fieldValue: !user.isReadReceipts,
-                            })
-                          }
-                          className="cursor-pointer"
-                        >
-                          {user.isReadReceipts ? "Turn Off" : "Turn On"}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
                 </CardContent>
               </Card>

@@ -6,21 +6,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { TChat } from "shared"
 import { MouseEvent } from "react"
-import { Star, Pin, Trash2, MoreVertical } from "lucide-react"
+import { Trash2, MoreVertical } from "lucide-react"
 import { useDeleteChat } from "../hooks/useDeleteChat"
 
 export default function ChatActions({ chat }: { chat: TChat }) {
   const { mutateAsync: deleteChat } = useDeleteChat()
-
-  const handleFavorite = (e: MouseEvent) => {
-    e.stopPropagation()
-    // TODO
-  }
-
-  const handlePin = (e: MouseEvent) => {
-    e.stopPropagation()
-    // TODO
-  }
 
   const handleDelete = async (e: MouseEvent) => {
     e.stopPropagation()
@@ -43,22 +33,6 @@ export default function ChatActions({ chat }: { chat: TChat }) {
         sideOffset={6}
         className="w-48 rounded-2xl shadow-xl border bg-popover/95 backdrop-blur-md"
       >
-        <DropdownMenuItem
-          onClick={handleFavorite}
-          className="flex items-center cursor-pointer gap-3 py-2.5 text-sm hover:bg-accent rounded-xl transition-all"
-        >
-          <Star className="w-4 h-4 text-yellow-500" />
-          <span>Add to Favorites</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem
-          onClick={handlePin}
-          className="flex items-center gap-3 cursor-pointer py-2.5 text-sm hover:bg-accent rounded-xl transition-all"
-        >
-          <Pin className="w-4 h-4 text-blue-500" />
-          <span>Pin Chat</span>
-        </DropdownMenuItem>
-
         <DropdownMenuItem
           onClick={handleDelete}
           className="flex items-center gap-3 py-2.5 cursor-pointer text-sm text-red-500 hover:bg-red-500/10 rounded-xl transition-all"

@@ -1,43 +1,47 @@
-type TShowType = "contacts" | "public" | "private"
 export interface ChatUser {
-    _id: string;
-    username: string;
-    imageUrl: string;
-    about?: string;
+  _id: string;
+  username: string;
+  imageUrl: string;
+  about?: string;
 }
 
 export interface Message {
-    _id: string;
-    sender: ChatUser;
-    chatId: string;
-    message: string;
-    photoUrl: string;
-    status: "sent" | "receive" | "seen";
-    updatedAt: Date;
+  _id: string;
+  sender: ChatUser;
+  chatId: string;
+  message: string;
+  photoUrl: string;
+  status: "sent" | "receive" | "seen";
+  updatedAt: Date;
 }
 
 export interface newMessageType {
-    chatId: string;
-    message: Message;
-    messageUsers: string[];
+  chatId: string;
+  message: Message;
+  messageUsers: string[];
 }
 
 export interface handleSeenAndReceiveMessageType {
-    receiver: string;
-    chatId: string;
-    messageId: string;
-    status: "seen" | "receive";
+  receiver: string;
+  chatId: string;
+  messageId: string;
+  status: "seen" | "receive";
 }
 
 export interface handleSeenAndReceiveMessagesType {
-    receiver: string;
-    chatId: string; // It is not always from the selected chat
-    numberOfMessages: number;
-    status: "seen" | "receive";
+  receiver: string;
+  chatId: string; // It is not always from the selected chat
+  numberOfMessages: number;
+  status: "seen" | "receive";
 }
 
 export interface typingType {
-    chatId: string;
-    userId: string;
-    isTyping: boolean;
+  chatId: string;
+  userId: string;
+  isTyping: boolean;
 }
+
+export type TDeletedMessageResponse = {
+  messageId: string;
+  chatId: string;
+};

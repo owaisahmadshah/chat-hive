@@ -14,7 +14,6 @@ export class UserRepository {
     password: string
     otp: string
     otpExpiry: Date
-    dummy?: boolean
   }) {
     return User.create(data)
   }
@@ -45,7 +44,7 @@ export class UserRepository {
 
   findByIdAndSelect(userId: string) {
     return User.findById(userId).select(
-      "_id email username imageUrl lastSignInAt about isReadReceipts showAbout showLastSeen showProfileImage"
+      "_id email username imageUrl lastSignInAt"
     )
   }
 
@@ -122,11 +121,6 @@ export class UserRepository {
           email: 1,
           username: 1,
           imageUrl: 1,
-          about: 1,
-          isReadReceipts: 1,
-          showAbout: 1,
-          showLastSeen: 1,
-          showProfileImage: 1,
           createdAt: 1,
         },
       },
@@ -154,10 +148,6 @@ export class UserRepository {
           _id: 1,
           username: 1,
           imageUrl: 1,
-          about: 1,
-          showAbout: 1,
-          showLastSeen: 1,
-          showProfileImage: 1,
           updatedAt: 1,
         },
       },
