@@ -12,7 +12,7 @@ router
   .route("/create")
   .post(
     auth,
-    upload.fields([{ name: "uploadedImage", maxCount: 15 }]),
+  upload.fields([{ name: "uploadedImage", maxCount: 15 }]),
     messageController.createMessage
   )
 router.route("/delete").delete(auth, messageController.deleteMessage)
