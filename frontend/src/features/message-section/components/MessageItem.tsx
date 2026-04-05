@@ -2,11 +2,17 @@ import { useState } from "react"
 import Lightbox from "yet-another-react-lightbox"
 import Zoom from "yet-another-react-lightbox/plugins/zoom"
 import Download from "yet-another-react-lightbox/plugins/download"
-import { Message } from "shared"
-import MessageActions from "./MessageActions"
-import { cn } from "@/lib/utils"
 
-function MessageItem({ message }: { message: Message }) {
+import { Message } from "shared"
+import { cn } from "@/lib/utils"
+import MessageActions from "./MessageActions"
+
+interface IMessageItemProps {
+  message: Message
+  deleteMessage: () => Promise<unknown>
+}
+
+function MessageItem({ message, deleteMessage }: IMessageItemProps) {
   const hasImage = message.photoUrl.trim() !== ""
   const [open, setOpen] = useState(false)
 
@@ -63,7 +69,10 @@ function MessageItem({ message }: { message: Message }) {
           "transition-all duration-200 transform scale-90 group-hover:scale-100"
         )}
       >
-        <MessageActions selectedMessage={message} />
+        <MessageActions
+          messageText={message.message}
+          deleteMessage={deleteMessage}
+        />
       </div>
     </div>
   )

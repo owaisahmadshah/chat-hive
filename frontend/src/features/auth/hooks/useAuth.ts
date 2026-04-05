@@ -11,7 +11,6 @@ import {
 import {
   resendOtpService,
   signInService,
-  signUpDummyService,
   signUpService,
   uniqueUsername,
   verifyOtpService,
@@ -123,31 +122,6 @@ export const useAuth = () => {
     }
   }
 
-  const signUpDummy = async (): Promise<{
-    user: { email: string; username: string; password: string } | null
-    error?: any
-  }> => {
-    try {
-      const data = await signUpDummyService()
-      console.log(data)
-      console.log(data.data)
-      console.log(data.data.user)
-      if (data.status < 200 || data.status >= 300) {
-        throw new Error("Unexpected server response")
-      }
-
-      return { user: data.data }
-    } catch (err) {
-      let normalizedError = "Something went wrong"
-
-      if (axios.isAxiosError(err)) {
-        normalizedError = err.response?.data.message ?? err.message
-      }
-
-      return { user: null, error: normalizedError }
-    }
-  }
-
   return {
     signUp,
     signIn,
@@ -155,6 +129,5 @@ export const useAuth = () => {
     resendOtp,
     forgetPassword,
     uniqueUserUsername,
-    signUpDummy,
   }
 }

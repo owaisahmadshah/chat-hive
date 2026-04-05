@@ -1,14 +1,9 @@
-import { useInfiniteQuery } from "@tanstack/react-query"
-import { useSearchParams } from "react-router-dom"
+import { useSuspenseInfiniteQuery } from "@tanstack/react-query"
 
 import { fetchMessages } from "../services/messageService"
 
-export const useFetchInfiniteMessages = () => {
-  const [searchParams] = useSearchParams()
-
-  const chatId = searchParams.get("chatId")
-
-  return useInfiniteQuery({
+export const useFetchInfiniteMessages = (chatId: string) => {
+  return useSuspenseInfiniteQuery({
     queryKey: ["messages", chatId],
     queryFn: ({ pageParam = null }: { pageParam: string | null }) =>
       fetchMessages({
@@ -19,6 +14,5 @@ export const useFetchInfiniteMessages = () => {
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     staleTime: 20 * 60 * 1000,
-    enabled: Boolean(chatId),
   })
 }

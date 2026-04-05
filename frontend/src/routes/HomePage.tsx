@@ -17,7 +17,10 @@ const HomePage = () => {
   return (
     <main className="flex h-dvh overflow-hidden bg-background">
       <ChatSection value={isChatSelected} setValue={setIsChatSelected} />
-      <MessageSection value={isChatSelected} setValue={setIsChatSelected} />
+      <MessageSection
+        value={isChatSelected}
+        backAction={() => setIsChatSelected(false)}
+      />
     </main>
   )
 }
