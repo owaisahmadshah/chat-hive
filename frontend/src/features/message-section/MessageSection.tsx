@@ -1,6 +1,5 @@
 import { Suspense } from "react"
 import { ErrorBoundary } from "react-error-boundary"
-import { useSearchParams } from "react-router-dom"
 import { useSelector } from "react-redux"
 
 import { cn } from "@/lib/utils"
@@ -16,15 +15,13 @@ import { MessageNavbarSectionSekeleton } from "./components/Skeleton/MessageNavb
 import { MessageNavbarErrorHandler } from "./components/ErrorHandlers/MessageNavbarErrorHandler"
 
 interface IMessageSectionProps {
+  activeChatId: string | null
+  activeChatUserId: string | null
   backAction: () => void
-  value: boolean
 }
 
-const MessageSection = ({ backAction, value }: IMessageSectionProps) => {
-  const [params] = useSearchParams()
-
-  const activeChatId = params.get("chatId")
-  const activeChatUserId = params.get("userId")
+const MessageSection = (props: IMessageSectionProps) => {
+  const { activeChatId, activeChatUserId, backAction } = props
 
   const userId = useSelector((state: RootState) => state.user.userId)
 
@@ -38,14 +35,14 @@ const MessageSection = ({ backAction, value }: IMessageSectionProps) => {
     <section
       className={cn(
         "grid h-[100dvh] w-full grid-rows-[auto_1fr_auto] bg-background pt-[env(safe-area-inset-top)]",
-        value ? "" : "max-sm:hidden"
+        !activeChatId && !activeChatUserId && "max-sm:hidden"
       )}
     >
       <ErrorBoundary FallbackComponent={MessageNavbarErrorHandler}>
         <Suspense fallback={<MessageNavbarSectionSekeleton />}>
           <MessageNavbarSection
-            backAction={backAction}
             activeChatUserId={activeChatUserId}
+            backAction={backAction}
           />
         </Suspense>
       </ErrorBoundary>

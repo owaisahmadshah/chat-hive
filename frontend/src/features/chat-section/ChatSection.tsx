@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react"
-import { useSearchParams } from "react-router-dom"
 
 import { useDeleteChat } from "./hooks/useDeleteChat"
 import { useSocketService } from "@/hooks/useSocketService"
@@ -12,15 +11,20 @@ import { ChatItem } from "./Components/ChatItem"
 import CreateChat from "./Components/CreateChat"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-const ChatSection = ({
-  value,
-  setValue,
-}: {
-  value: boolean
-  setValue: React.Dispatch<React.SetStateAction<boolean>>
-}) => {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const activeChatId = searchParams.get("chatId")
+interface IChatSectionProps {
+  activeChatId: string | null
+  activeChatUserId: string | null
+  action: ({
+    chatId,
+    userId,
+  }: {
+    chatId: string | null
+    userId: string | null
+  }) => void
+}
+
+const ChatSection = (props: IChatSectionProps) => {
+  const { activeChatId, activeChatUserId, action } = props
 
   const { data } = useFetchInfiniteChats()
   const { mutateAsync: updateMessagesStatus } = useUpdateChatSeenMessages()
@@ -47,8 +51,7 @@ const ChatSection = ({
       updateReceiveAndSeenOfMessages(chat._id, chat.unreadMessages, "seen")
       updateMessagesStatus({ chatId: chat._id, status: "seen" })
     }
-    setSearchParams({ chatId: chat._id, userId: chat.user._id })
-    setValue(true)
+    action({ chatId: chat._id, userId: chat.user._id })
   }
 
   return (
@@ -56,7 +59,7 @@ const ChatSection = ({
       className={cn(
         "flex flex-col overflow-hidden bg-background md:min-w-[420px] w-[420px] border-r border-border/40",
         "max-sm:w-full",
-        value && "max-sm:hidden",
+        activeChatId && activeChatUserId && "max-sm:hidden",
         "transition-all duration-300"
       )}
     >

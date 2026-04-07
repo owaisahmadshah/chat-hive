@@ -94,6 +94,8 @@ const useSocketService = () => {
         (oldData: any) => addMessageToQuery({ oldData, message: data.message })
       )
 
+      let status: "seen" | "receive" = "receive"
+
       if (
         activeChatId !== data.message.chatId ||
         document.visibilityState === "hidden"
@@ -105,6 +107,12 @@ const useSocketService = () => {
           "receive"
         )
 
+        // Updating in database
+        await updateMessageStatus({
+          messageId: data.message._id,
+          status: "receive",
+        })
+
         queryClient.setQueryData(["chats"], (oldData: any) =>
           updateChatUnreadMessages({
             oldData,
@@ -115,13 +123,17 @@ const useSocketService = () => {
         )
       } else {
         // If the user is another tab but selected the chat he can definitely receive the message but can't see
+
         if (document.visibilityState === "visible") {
+          status = "seen"
+
           updateReceiveAndSeenOfMessage(
             data.message.chatId,
             data.message._id,
             "seen"
           )
         }
+
         await updateMessageStatus({
           messageId: data.message._id,
           status: "receive",
@@ -129,14 +141,14 @@ const useSocketService = () => {
       }
 
       if (data.message.chatId === activeChatId) {
-        queryClient.setQueryData(["chats"], (oldData) =>
+        queryClient.setQueryData(["chats"], (oldData: any) =>
           updateChatUnreadMessages({ oldData, chatId: data.message._id })
         )
       }
 
-      await updateMessageStatus({ messageId: data.message._id, status: "seen" })
+      await updateMessageStatus({ messageId: data.message._id, status: status })
 
-      queryClient.setQueryData(["chats"], (oldData) =>
+      queryClient.setQueryData(["chats"], (oldData: any) =>
         updateLastMessage({
           oldData,
           chatId: data.message.chatId,
@@ -251,28 +263,25 @@ const useSocketService = () => {
     socket?.emit(USER_OFFLINE, userId)
   }, [userId])
 
-  const findUserOnlineStatus = useCallback(
-    (userId: string) => {
-      socket?.emit(
-        USER_ONLINE_STATUS,
-        userId,
-        (online: boolean, updateAt: Date | null) => {
-          if (userId === null) return
+  const findUserOnlineStatus = useCallback((userId: string) => {
+    socket?.emit(
+      USER_ONLINE_STATUS,
+      userId,
+      (online: boolean, updateAt: Date | null) => {
+        if (userId === null) return
 
-          queryClient.setQueryData(["user", userId], (oldData: any) => {
-            if (!oldData) return oldData
+        queryClient.setQueryData(["user", userId], (oldData: any) => {
+          if (!oldData) return oldData
 
-            return {
-              ...oldData,
-              isUserOnline: online,
-              updatedAt: updateAt ? updateAt : oldData.updatedAt,
-            }
-          })
-        }
-      )
-    },
-    []
-  )
+          return {
+            ...oldData,
+            isUserOnline: online,
+            updatedAt: updateAt ? updateAt : oldData.updatedAt,
+          }
+        })
+      }
+    )
+  }, [])
 
   const updateReceiveAndSeenOfMessage = useCallback(
     (

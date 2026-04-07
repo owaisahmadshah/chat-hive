@@ -64,7 +64,7 @@ export const MessagesList = ({
 
   return (
     <ScrollArea
-      className="min-h-0 h-full bg-gradient-to-b from-background to-muted/5"
+      className="min-h-0 h-full bg-gradient-to-b from-background to-muted/5 md:px-6"
       ref={scrollRef}
     >
       <ul className={"flex flex-col gap-2 p-4"}>
@@ -73,8 +73,8 @@ export const MessagesList = ({
             <React.Fragment key={index}>
               <li
                 className={cn(
-                  "rounded-2xl w-fit max-w-[75%] transition-all duration-200",
-                  "animate-in fade-in slide-in-from-bottom-2",
+                  "rounded-sm w-fit max-w-[75%] transition-all duration-200",
+                  "animate-in fade-in slide-in-from-bottom-2 px-2",
                   message.sender._id !== activeChatUserId
                     ? "self-end bg-primary text-primary-foreground ml-auto shadow-lg shadow-primary/20"
                     : "self-start bg-muted/80 backdrop-blur-sm border border-border/40"
