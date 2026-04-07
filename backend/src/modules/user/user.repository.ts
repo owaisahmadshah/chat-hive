@@ -26,6 +26,10 @@ export class UserRepository {
     return User.updateOne({ _id: userId }, { refreshToken })
   }
 
+  clearRefreshToken(userId: string) {
+    return User.updateOne({ _id: userId }, { refreshToken: null })
+  }
+
   updateIsVerified(userId: string, isVerified: boolean) {
     return User.updateOne({ _id: userId }, { isVerified })
   }

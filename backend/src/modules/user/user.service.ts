@@ -390,4 +390,16 @@ export class UserService {
 
     return user
   }
+
+  signOut = async (userId: string) => {
+    const { userRepository } = this.deps
+
+    const user = await userRepository.clearRefreshToken(userId)
+
+    if (!user) {
+      throw new ApiError(404, "User not found")
+    }
+
+    return user
+  }
 }

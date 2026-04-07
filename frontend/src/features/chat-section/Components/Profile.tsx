@@ -15,10 +15,15 @@ import {
 import useUserDelete from "@/hooks/useUserDelete"
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useSignOutUser } from "@/hooks/useSignOutUser"
 
 const Profile = () => {
   const user = useSelector((state: RootState) => state.user)
   const { deleteUser } = useUserDelete()
+
+  const { mutateAsync: signOut, isPending: isSigningOut } = useSignOutUser()
+
+  const isLoading = isSigningOut
 
   return (
     <Dialog>
@@ -80,7 +85,12 @@ const Profile = () => {
               </CardHeader>
 
               <CardContent className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={async () => await signOut()}
+                  disabled={isLoading}
+                >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </Button>
@@ -89,6 +99,7 @@ const Profile = () => {
                   variant="ghost"
                   onClick={deleteUser}
                   className="w-full justify-start text-destructive"
+                  disabled={isLoading}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete Account

@@ -10,4 +10,9 @@ const deleteUser = async () => {
   return data
 }
 
-export { getUser, deleteUser }
+const signOutUser = async () => {
+  const { data } = await api.post("/v1/user/sign-out")
+  return data
+}
+
+export { getUser, deleteUser, signOutUser }

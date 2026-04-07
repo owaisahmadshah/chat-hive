@@ -28,5 +28,6 @@ router
   )
 router.get("/recommended-users", auth, userController.recommendedUsers)
 router.get("/chat-user", auth, userController.fetchChatUser)
+router.post("/sign-out", auth, userController.signOut)
 
 export { router as userRouter }

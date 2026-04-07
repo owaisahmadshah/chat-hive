@@ -382,4 +382,42 @@ export class UserController {
       .status(200)
       .json(new ApiResponse(200, response, "Fetched user successfully"))
   })
+
+  /**
+   * @desc    Sign out user by clearing access and refresh tokens.
+   * @route   POST /api/v1/user/sign-out
+   * @access  Private
+   *
+   * @param {Request} req - Express request object containing userId
+   * @param {Response} res - Express response
+   */
+  signOut = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(401, "Unauthorized")
+    }
+
+    await this.deps.userService.signOut(req.user._id)
+
+    const accessTokenOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "PRODUCTION",
+      sameSite: (process.env.NODE_ENV === "PRODUCTION" ? "none" : "lax") as
+        | "none"
+        | "lax",
+    }
+
+    const refreshTokenOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "PRODUCTION",
+      sameSite: (process.env.NODE_ENV === "PRODUCTION" ? "none" : "lax") as
+        | "none"
+        | "lax",
+    }
+
+    return res
+      .status(200)
+      .clearCookie("accessToken", accessTokenOptions)
+      .clearCookie("refreshToken", refreshTokenOptions)
+      .json(new ApiResponse(200, {}, "Signed out successfully"))
+  })
 }
