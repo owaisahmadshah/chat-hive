@@ -17,6 +17,8 @@ export const useDeleteChat = () => {
         removeChatById({ oldData, deletedChat: data })
       )
 
+      queryClient.invalidateQueries({ queryKey: ["messages", data._id] })
+
       if (currentChatId === data._id) {
         setSearchParams({})
       }
