@@ -264,7 +264,9 @@ export class UserController {
   usersSuggestion = asyncHandler(async (req: Request, res: Response) => {
     const { username } = req.query
 
-    const users = await this.deps.userService.userSuggestion({ username: String(username) })
+    const users = await this.deps.userService.userSuggestion({
+      username: String(username),
+    })
 
     return res.status(200).json(new ApiResponse(200, users, "Success"))
   })
@@ -335,15 +337,12 @@ export class UserController {
       throw new ApiError(400, "Username is missing")
     }
 
-    const user = await this.deps.userService.uniqueUserName({
+    const response = await this.deps.userService.uniqueUserName({
       username: username as string,
     })
 
-    return res
-      .status(200)
-      .json(new ApiResponse(200, { user, isUnique: false }, "Got users"))
+    return res.status(200).json(new ApiResponse(200, response, "Got users"))
   })
-
 
   recommendedUsers = asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) {

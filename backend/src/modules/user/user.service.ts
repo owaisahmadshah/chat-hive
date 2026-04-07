@@ -53,6 +53,7 @@ export class UserService {
       otpExpiry,
     })
 
+    // TODO: Remove password, opt, etc. from the response
     return user
   }
 
@@ -284,7 +285,7 @@ export class UserService {
 
     const user = await userRepository.findByUsername(username)
 
-    return user
+    return { user, isUnique: user.length ? false : true }
   }
 
   async uploadProfileImage(userId: string, profileImage: any) {

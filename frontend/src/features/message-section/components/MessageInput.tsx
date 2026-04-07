@@ -19,20 +19,17 @@ import { Label } from "@/components/ui/label"
 import { useSocketService } from "@/hooks/useSocketService"
 import { cn } from "@/lib/utils"
 import { useSendMessage } from "../hooks/useSendMessage"
-import { useSearchParams } from "react-router-dom"
-import { useSelector } from "react-redux"
-import { RootState } from "@/store/store"
 
-function MessageInput() {
+interface IMessageInputProps {
+  activeChatId: string
+  userId: string
+}
+
+export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
   const [isPictureSelected, setIsPictureSelected] = useState<boolean>(false)
   const [imageCount, setImageCount] = useState(0)
 
   const { mutateAsync: sendMessage, isPending } = useSendMessage()
-
-  const userId = useSelector((state: RootState) => state.user.userId)
-
-  const [params] = useSearchParams()
-  const chatId = params.get("chatId")
 
   const { sendSocketTyping } = useSocketService()
 
@@ -64,7 +61,7 @@ function MessageInput() {
     }
 
     formData.append("sender", String(userId))
-    formData.append("chatId", String(chatId))
+    formData.append("chatId", String(activeChatId))
     formData.append("status", "sent")
 
     await sendMessage(formData)
@@ -115,10 +112,10 @@ function MessageInput() {
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [params])
+  }, [activeChatId])
 
   return (
-    <div className="shrink-0 bg-background/95 backdrop-blur-sm">
+    <div className="shrink-0 bg-background/95 backdrop-blur-sm border-t border-border/50">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -127,7 +124,6 @@ function MessageInput() {
           encType="multipart/form-data"
         >
           <div className="flex items-center gap-3">
-            {/* Image Upload Button */}
             <FormItem>
               <FormControl>
                 <div className="relative">
@@ -167,7 +163,6 @@ function MessageInput() {
               <FormMessage />
             </FormItem>
 
-            {/* Message Input */}
             <FormField
               control={form.control}
               name="userInputMessage"
@@ -179,7 +174,7 @@ function MessageInput() {
                         {...field}
                         placeholder="Type your message..."
                         minRows={1}
-                        maxRows={2}
+                        maxRows={6}
                         onBlur={() => {
                           field.onBlur()
                           handleTypingBlur()
@@ -200,7 +195,6 @@ function MessageInput() {
               )}
             />
 
-            {/* Send Button */}
             <Button
               type="submit"
               disabled={
@@ -229,5 +223,3 @@ function MessageInput() {
     </div>
   )
 }
-
-export default MessageInput

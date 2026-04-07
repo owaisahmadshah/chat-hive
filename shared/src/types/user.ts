@@ -18,3 +18,14 @@ export type TUserWithId = Omit<TBaseUser, "password"> & {
   isUserOnline?: boolean;
   isTyping?: boolean;
 };
+
+export type TUserReponse = {
+  _id: string;
+  email: string;
+  username: string;
+  imageUrl: string;
+  createdAt?: string;
+  updatedAt?: string;
+  isTyping?: string;
+  isUserOnline?: boolean;
+};

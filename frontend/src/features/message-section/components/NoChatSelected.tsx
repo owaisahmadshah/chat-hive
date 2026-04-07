@@ -1,6 +1,6 @@
 import { MessageSquare, ArrowLeft, Sparkles } from "lucide-react"
 
-const NoChatSelected = () => {
+export const NoChatSelected = () => {
   return (
     <div className="max-sm:hidden w-full h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-background to-muted/5 relative overflow-hidden">
       {/* Animated background */}
@@ -52,5 +52,3 @@ const NoChatSelected = () => {
     </div>
   )
 }
-
-export default NoChatSelected

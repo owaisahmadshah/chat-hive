@@ -1,22 +1,17 @@
+import { Trash2, MoreVertical } from "lucide-react"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { TChat } from "shared"
-import { MouseEvent } from "react"
-import { Trash2, MoreVertical } from "lucide-react"
-import { useDeleteChat } from "../hooks/useDeleteChat"
 
-export default function ChatActions({ chat }: { chat: TChat }) {
-  const { mutateAsync: deleteChat } = useDeleteChat()
+interface IChatActionsProps {
+  deleteAction: () => Promise<unknown>
+}
 
-  const handleDelete = async (e: MouseEvent) => {
-    e.stopPropagation()
-    await deleteChat({ chatId: chat._id })
-  }
-
+export default function ChatActions({ deleteAction }: IChatActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -34,7 +29,7 @@ export default function ChatActions({ chat }: { chat: TChat }) {
         className="w-48 rounded-2xl shadow-xl border bg-popover/95 backdrop-blur-md"
       >
         <DropdownMenuItem
-          onClick={handleDelete}
+          onClick={deleteAction}
           className="flex items-center gap-3 py-2.5 cursor-pointer text-sm text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
         >
           <Trash2 className="w-4 h-4 text-red-500" />

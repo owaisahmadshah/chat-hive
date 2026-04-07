@@ -1,3 +1,6 @@
+import { MoreHorizontal, Copy, Trash2, Check } from "lucide-react"
+import { useState } from "react"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -5,29 +8,21 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Copy, Trash2, Check } from "lucide-react"
-import { Message } from "shared"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { useDeleteMessage } from "../hooks/useDeleteMessage"
 
-function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
+interface IMessageActionsProps {
+  messageText: string
+  deleteMessage: () => Promise<unknown>
+}
+
+function MessageActions({ messageText, deleteMessage }: IMessageActionsProps) {
   const [copied, setCopied] = useState(false)
 
-  // TODO: Implement message deletion error logic and update UI accordingly in useDeleteMessage hook on onSuccess
-  const { mutateAsync: deleteMessage, isPending } = useDeleteMessage()
 
   const handleSelectedMessageCopy = () => {
-    navigator.clipboard.writeText(selectedMessage.message)
+    navigator.clipboard.writeText(messageText)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }
-
-  const handleSelectedMessageDelete = async (
-    e: React.MouseEvent<HTMLDivElement>
-  ) => {
-    e.stopPropagation()
-    await deleteMessage({ messageId: selectedMessage._id })
   }
 
   return (
@@ -60,21 +55,11 @@ function MessageActions({ selectedMessage }: { selectedMessage: Message }) {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={handleSelectedMessageDelete}
+          onClick={deleteMessage}
           className="cursor-pointer text-destructive focus:text-destructive"
-          disabled={isPending}
         >
-          {isPending ? (
-            <span className="flex items-center">
-              <Trash2 className="w-4 h-4 mr-2" />
-              Deleting...
-            </span>
-          ) : (
-            <>
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete
-            </>
-          )}
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

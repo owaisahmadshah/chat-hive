@@ -1,37 +1,71 @@
-import NoChatSelected from "./components/NoChatSelected"
-import MessageNavBar from "@/features/message-section/components/MessageNavBar"
-import MessageInput from "@/features/message-section/components/MessageInput"
+import { Suspense } from "react"
+import { ErrorBoundary } from "react-error-boundary"
+import { useSelector } from "react-redux"
+
 import { cn } from "@/lib/utils"
-import { useSearchParams } from "react-router-dom"
-import { MessagesList } from "./components/MessagesList"
+import { RootState } from "@/store/store"
 import useUserOnlineStatus from "./hooks/useUserOnlineStatus"
 
-const MessageSection = ({
-  value,
-  setValue,
-}: {
-  value: boolean
-  setValue: React.Dispatch<React.SetStateAction<boolean>>
-}) => {
-  const [params] = useSearchParams()
+import { MessagesList } from "./components/MessagesList"
+import { MessageInput } from "./components/MessageInput"
+import { NoChatSelected } from "./components/NoChatSelected"
+import { MessageNavbarSection } from "./components/MessageNavbarSection"
+import { MessagesListSkeleton } from "./components/Skeleton/MessagesListSkeleton"
+import { MessageNavbarSectionSekeleton } from "./components/Skeleton/MessageNavbarSectionSekeleton"
+import { MessageNavbarErrorHandler } from "./components/ErrorHandlers/MessageNavbarErrorHandler"
+import { MessageInputSkeleton } from "./components/Skeleton/MessageInputSkeleton"
+import { MessagesListErrorHandler } from "./components/ErrorHandlers/MessagesListErrorHandler"
+
+interface IMessageSectionProps {
+  activeChatId: string | null
+  activeChatUserId: string | null
+  backAction: () => void
+}
+
+const MessageSection = (props: IMessageSectionProps) => {
+  const { activeChatId, activeChatUserId, backAction } = props
+
+  const userId = useSelector((state: RootState) => state.user.userId)
 
   useUserOnlineStatus()
 
-  if (!params.get("chatId")) {
+  if (activeChatId === null || activeChatUserId === null) {
     return <NoChatSelected />
   }
 
   return (
     <section
       className={cn(
-        "h-[100dvh] w-full hidden flex-col bg-background pt-[env(safe-area-inset-top)]",
-        value && "flex",
-        "sm:flex"
+        "grid h-[100dvh] w-full grid-rows-[auto_1fr_auto] bg-background pt-[env(safe-area-inset-top)]",
+        !activeChatId && !activeChatUserId && "max-sm:hidden"
       )}
     >
-      <MessageNavBar setValue={setValue} />
-      <MessagesList />
-      <MessageInput />
+      <ErrorBoundary FallbackComponent={MessageNavbarErrorHandler}>
+        <Suspense fallback={<MessageNavbarSectionSekeleton />}>
+          <MessageNavbarSection
+            activeChatUserId={activeChatUserId}
+            backAction={backAction}
+          />
+        </Suspense>
+      </ErrorBoundary>
+
+      <ErrorBoundary FallbackComponent={MessagesListErrorHandler}>
+        <Suspense
+          fallback={
+            <>
+              <MessagesListSkeleton />
+              <MessageInputSkeleton />
+            </>
+          }
+        >
+          <MessagesList
+            activeChatId={activeChatId}
+            activeChatUserId={activeChatUserId}
+          />
+
+          <MessageInput activeChatId={activeChatId} userId={userId} />
+        </Suspense>
+      </ErrorBoundary>
     </section>
   )
 }

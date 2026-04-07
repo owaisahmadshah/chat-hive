@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux"
-import { MessageSquare, UserPlus, CheckCircle2, Loader2 } from "lucide-react"
+import { MessageSquare, Loader2 } from "lucide-react"
 import { useSearchParams } from "react-router-dom"
 
 import { RootState } from "@/store/store"
@@ -35,8 +35,6 @@ const CreateChatUserItem = ({
 
   const { exists: chatExists, chat } = hasChatByUserId({ userId: user._id })
 
-  const handleAddConnection = async () => {}
-
   const handleOpenChat = () => {
     if (chatExists && chat) {
       setSearchParams({ chatId: chat._id, userId: user._id })
@@ -65,40 +63,12 @@ const CreateChatUserItem = ({
                 You
               </Badge>
             )}
-            {!isYou && (
-              <Badge
-                variant="outline"
-                className="text-xs border-green-500/30 text-green-600 dark:text-green-400"
-              >
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Contact
-              </Badge>
-            )}
           </div>
-          {user?.about && (
-            <p className="text-xs text-muted-foreground truncate">
-              {user.about}
-            </p>
-          )}
         </div>
       </div>
 
       {!isYou && (
         <div className="flex gap-2">
-          {chatExists && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleAddConnection()
-              }}
-              className="hover:bg-primary/10 hover:border-primary/30"
-            >
-              <UserPlus className="w-4 h-4 mr-1" />
-              Add
-            </Button>
-          )}
           {!chatExists && (
             <Button
               size="sm"
@@ -112,10 +82,10 @@ const CreateChatUserItem = ({
               {isCreating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <>
+                <p className="flex items-center gap-1">
                   <MessageSquare className="w-4 h-4 mr-1" />
                   Chat
-                </>
+                </p>
               )}
             </Button>
           )}
