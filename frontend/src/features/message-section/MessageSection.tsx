@@ -13,6 +13,8 @@ import { MessageNavbarSection } from "./components/MessageNavbarSection"
 import { MessagesListSkeleton } from "./components/Skeleton/MessagesListSkeleton"
 import { MessageNavbarSectionSekeleton } from "./components/Skeleton/MessageNavbarSectionSekeleton"
 import { MessageNavbarErrorHandler } from "./components/ErrorHandlers/MessageNavbarErrorHandler"
+import { MessageInputSkeleton } from "./components/Skeleton/MessageInputSkeleton"
+import { MessagesListErrorHandler } from "./components/ErrorHandlers/MessagesListErrorHandler"
 
 interface IMessageSectionProps {
   activeChatId: string | null
@@ -47,16 +49,23 @@ const MessageSection = (props: IMessageSectionProps) => {
         </Suspense>
       </ErrorBoundary>
 
-      <ErrorBoundary FallbackComponent={MessagesListSkeleton}>
-        <Suspense fallback={<MessagesListSkeleton />}>
+      <ErrorBoundary FallbackComponent={MessagesListErrorHandler}>
+        <Suspense
+          fallback={
+            <>
+              <MessagesListSkeleton />
+              <MessageInputSkeleton />
+            </>
+          }
+        >
           <MessagesList
             activeChatId={activeChatId}
             activeChatUserId={activeChatUserId}
           />
+
+          <MessageInput activeChatId={activeChatId} userId={userId} />
         </Suspense>
       </ErrorBoundary>
-
-      <MessageInput activeChatId={activeChatId} userId={userId} />
     </section>
   )
 }

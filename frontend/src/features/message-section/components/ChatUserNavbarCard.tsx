@@ -1,3 +1,5 @@
+import { ChevronLeft } from "lucide-react"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import correctDate from "@/lib/correct-date"
@@ -46,7 +48,7 @@ export const ChatUserNavbarCard = ({
           backAction?.()
         }}
       >
-        conversations
+        <ChevronLeft className="w-5 h-5" />
       </Button>
     </div>
   )

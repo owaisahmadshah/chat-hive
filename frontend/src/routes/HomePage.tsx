@@ -4,6 +4,8 @@ import MessageSection from "@/features/message-section/MessageSection"
 import { useSocketService } from "@/hooks/useSocketService"
 import usePresenceStatus from "@/hooks/usePresenceStatus"
 import { useSearchParams } from "react-router-dom"
+import { Suspense } from "react"
+import { HomePageSkeleton } from "@/components/HomePageSkeleton"
 
 const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -30,16 +32,25 @@ const HomePage = () => {
 
   return (
     <main className="flex h-dvh overflow-hidden bg-background">
-      <ChatSection
-        activeChatId={activeChatId}
-        activeChatUserId={activeChatUserId}
-        action={setSearchParamsWithChat}
-      />
-      <MessageSection
-        activeChatId={activeChatId}
-        activeChatUserId={activeChatUserId}
-        backAction={() => setSearchParams({})}
-      />
+      <Suspense
+        fallback={
+          <HomePageSkeleton
+            activeChatId={activeChatId}
+            activeChatUserId={activeChatUserId}
+          />
+        }
+      >
+        <ChatSection
+          activeChatId={activeChatId}
+          activeChatUserId={activeChatUserId}
+          action={setSearchParamsWithChat}
+        />
+        <MessageSection
+          activeChatId={activeChatId}
+          activeChatUserId={activeChatUserId}
+          backAction={() => setSearchParams({})}
+        />
+      </Suspense>
     </main>
   )
 }
