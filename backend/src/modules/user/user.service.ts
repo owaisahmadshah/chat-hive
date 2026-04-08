@@ -1,3 +1,5 @@
+import crypto from "crypto"
+
 import { ApiError } from "../../shared/utils/ApiError.js"
 import type { uploadOnCloudinary } from "../../shared/utils/Cloudinary.js"
 import { generateExpiryTime, generateOTP } from "../../shared/utils/otp.js"
@@ -13,6 +15,7 @@ interface IUserServiceDeps {
   sendEmail: typeof sendEmail
   jwt: typeof import("jsonwebtoken")
   uploadOnCloudinary: typeof uploadOnCloudinary
+  crypto: typeof crypto
 }
 
 export class UserService {
@@ -55,6 +58,70 @@ export class UserService {
 
     // TODO: Remove password, opt, etc. from the response
     return user
+  }
+
+  async handleGoogleCallback({
+    googleId,
+    email,
+    imageUrl,
+  }: {
+    googleId: string
+    email: string
+    imageUrl: string
+  }) {
+    const { userRepository } = this.deps
+
+    // Already signed up via Google before
+    let user = await userRepository.findByGoogleId(googleId)
+
+    if (!user) {
+      // Signed up locally with the same email — link accounts
+      user = await userRepository.findByEmailOrUser(email, email)
+
+      if (user) {
+        await userRepository.linkGoogleAccount(user._id as string, googleId)
+      } else {
+        const username = await this.generateUniqueUsername(
+          email.split("@")[0] ?? "user"
+        )
+
+        // Brand new user
+        user = await userRepository.createGoogleUser({
+          googleId,
+          username,
+          email,
+          imageUrl,
+        })
+      }
+    }
+
+    if (!user) {
+      throw new ApiError(500, "Failed to authenticate with Google")
+    }
+
+    const { accessToken, refreshToken } =
+      await this.generateAccessAndRefreshToken(user._id as string)
+
+    return { accessToken, refreshToken }
+  }
+
+  async generateUniqueUsername(name: string): Promise<string> {
+    const { crypto } = this.deps
+
+    const base = name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/[^a-z0-9_]/g, "")
+      .slice(0, 20)
+
+    const { isUnique } = await this.uniqueUserName({ username: base })
+
+    if (isUnique) return base
+
+    const suffix = crypto.randomBytes(3).toString("hex")
+
+    return `${base}_${suffix}`
   }
 
   async generateAccessAndRefreshToken(

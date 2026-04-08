@@ -9,6 +9,7 @@ import "./index.css"
 import App from "./App.tsx"
 import { ThemeProvider } from "@/components/theme-provider"
 import { store } from "@/store/store.ts"
+import { Toaster } from "@/components/ui/sonner"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ createRoot(document.getElementById("root")!).render(
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <BrowserRouter>
           <QueryClientProvider client={queryClient}>
+            <Toaster position="top-right" richColors />
             <App />
           </QueryClientProvider>
         </BrowserRouter>

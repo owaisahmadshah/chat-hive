@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { resetPasswordSchema } from "./types/resetPasswordSchema"
 import { useAuth } from "./hooks/useAuth"
+import { ContinueWithGoogle } from "./components/ContinueWithGoogle"
 
 function SignInForm() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
@@ -645,6 +646,8 @@ function SignInForm() {
                   )}
                 </span>
               </Button>
+
+              <ContinueWithGoogle />
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">

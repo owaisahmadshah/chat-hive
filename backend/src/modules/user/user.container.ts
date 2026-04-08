@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken"
+import crypto from "crypto"
 
 import { UserRepository } from "./user.repository.js"
 import { UserService } from "./user.service.js"
@@ -19,6 +20,7 @@ const userService = new UserService({
   jwt,
   sendEmail,
   uploadOnCloudinary,
+  crypto,
 })
 
 const userController = new UserController({ userService })

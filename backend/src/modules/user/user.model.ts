@@ -30,6 +30,18 @@ const userSchema = new mongoose.Schema<IUser>(
       required: true,
       default: "./default-profile-picture.jpg",
     },
+    googleId: {
+      type: String,
+      default: null,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
     isSignedIn: {
       type: Boolean,
       default: false,
@@ -52,7 +64,7 @@ const userSchema = new mongoose.Schema<IUser>(
     },
     password: {
       type: String,
-      required: [true, "Password is required."],
+      default: null,
     },
   },
   {
@@ -70,6 +82,9 @@ userSchema.pre("save", async function (next) {
 })
 
 userSchema.methods.isPasswordCorrect = async function (password: string) {
+  if (!this.password) {
+    return false
+  }
   return await bcrypt.compare(password, this.password)
 }
 

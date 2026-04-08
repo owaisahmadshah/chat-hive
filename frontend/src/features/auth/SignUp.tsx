@@ -30,6 +30,7 @@ import {
 import { useAuth } from "./hooks/useAuth"
 import debounce from "lodash.debounce"
 import { cn } from "@/lib/utils"
+import { ContinueWithGoogle } from "./components/ContinueWithGoogle"
 
 function SignUpForm() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
@@ -447,6 +448,7 @@ function SignUpForm() {
                   )}
                 </span>
               </Button>
+              <ContinueWithGoogle />
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">

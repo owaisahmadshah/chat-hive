@@ -157,4 +157,37 @@ export class UserRepository {
       },
     ])
   }
+
+  async findByGoogleId(googleId: string) {
+    return User.findOne({ googleId })
+  }
+
+  async createGoogleUser({
+    googleId,
+    email,
+    username,
+    imageUrl,
+  }: {
+    googleId: string
+    username: string
+    email: string
+    imageUrl: string
+  }) {
+    return User.create({
+      googleId,
+      email,
+      username,
+      imageUrl,
+      authProvider: "google",
+      isVerified: true,
+    })
+  }
+
+  async linkGoogleAccount(userId: string, googleId: string) {
+    return User.findByIdAndUpdate(
+      userId,
+      { googleId, authProvider: "google", isVerified: true },
+      { new: true }
+    )
+  }
 }

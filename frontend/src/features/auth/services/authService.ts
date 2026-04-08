@@ -27,3 +27,7 @@ export const uniqueUsername = async (data: { username: string }) => {
   const response = await api.get("/v1/user/unique-username", { params: data })
   return response.data
 }
+
+export const handleGoogleSignIn = async () => {
+  window.location.href = `${import.meta.env.VITE_API_BASE_URL}/v1/user/google`
+}

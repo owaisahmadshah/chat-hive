@@ -11,6 +11,8 @@ export type TCreateUser = TBaseUser & {
   otpExpiry: Date;
   refreshToken: string;
   isVerified: boolean;
+  googleId?: string;
+  authProvider?: "local" | "google";
 };
 
 export type TUserWithId = Omit<TBaseUser, "password"> & {

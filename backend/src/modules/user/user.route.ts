@@ -13,6 +13,8 @@ router.route("/sign-in").post(userController.signIn)
 router.route("/resend-otp").post(userController.resendOtp)
 router.route("/refresh-token").post(userController.generateRefreshAccessToken)
 router.route("/unique-username").get(userController.uniqueUsername)
+router.get("/google", userController.googleSignIn)
+router.get("/google/callback", userController.googleSignInCallback)
 
 // Private routes
 router.route("/delete").delete(auth, userController.deleteUser)
