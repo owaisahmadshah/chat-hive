@@ -25,11 +25,6 @@ function useGetUser() {
           userId: data.data._id,
           imageUrl: data.data.imageUrl,
           isLoading: false,
-          about: data.data.about,
-          showAbout: data.data.showAbout,
-          showLastSeen: data.data.showLastSeen,
-          isReadReceipts: data.data.isReadReceipts,
-          showProfileImage: data.data.showProfileImage,
           isSignedIn: true,
         }
 
