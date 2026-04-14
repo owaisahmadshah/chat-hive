@@ -3,12 +3,15 @@ import mongoose, { Document } from "mongoose"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
-interface IUser extends Document, TCreateUser {
+interface IUser
+  extends Document, Omit<TCreateUser, "authProvider" | "googleId"> {
   isPasswordCorrect(password: string): Promise<boolean>
   generateAccessToken(): string
   generateRefreshToken(): string
   createdAt?: Date
   updatedAt?: Date
+  googleId?: string | null
+  authProvider: "local" | "google"
 }
 
 const userSchema = new mongoose.Schema<IUser>(
@@ -72,8 +75,12 @@ const userSchema = new mongoose.Schema<IUser>(
   }
 )
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
+userSchema.pre("save", async function (this: IUser, next) {
+  if (
+    !this.isModified("password") ||
+    !this.password ||
+    this.authProvider !== "local"
+  ) {
     return next()
   }
 
@@ -81,7 +88,10 @@ userSchema.pre("save", async function (next) {
   next()
 })
 
-userSchema.methods.isPasswordCorrect = async function (password: string) {
+userSchema.methods.isPasswordCorrect = async function (
+  this: IUser,
+  password: string
+) {
   if (!this.password) {
     return false
   }

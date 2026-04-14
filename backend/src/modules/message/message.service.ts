@@ -170,7 +170,7 @@ export class MessageService {
       throw new ApiError(404, "Message not found")
     }
 
-    return { messageId: deleteMessage._id, chatId: deleteMessage.chatId }
+    return { messageId: deleteMessage._id?.toString() ?? '', chatId: deleteMessage.chatId.toString() }
   }
 
   async updateMessagesStatus({

@@ -11,7 +11,7 @@ export type TCreateUser = TBaseUser & {
   otpExpiry: Date;
   refreshToken: string;
   isVerified: boolean;
-  googleId?: string;
+  googleId?: string | null;
   authProvider?: "local" | "google";
 };
 
