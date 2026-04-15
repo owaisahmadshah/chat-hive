@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react"
 
 import { useDeleteChat } from "./hooks/useDeleteChat"
-import { useSocketService } from "@/hooks/useSocketService"
 import { useFetchInfiniteChats } from "./hooks/useFetchInfiniteChats"
 import { useUpdateChatSeenMessages } from "@/hooks/useUpdateChatSeenMessages"
 
@@ -10,6 +9,8 @@ import Profile from "./Components/Profile"
 import { ChatItem } from "./Components/ChatItem"
 import CreateChat from "./Components/CreateChat"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useChatEmitter } from "@/socket/hooks/useChatEmitter"
+import { useMessageEmitter } from "@/socket/hooks/useMessageEmitter"
 
 interface IChatSectionProps {
   activeChatId: string | null
@@ -28,7 +29,8 @@ const ChatSection = (props: IChatSectionProps) => {
 
   const { data } = useFetchInfiniteChats()
   const { mutateAsync: updateMessagesStatus } = useUpdateChatSeenMessages()
-  const { joinSocketChat, updateReceiveAndSeenOfMessages } = useSocketService()
+  const { joinChat } = useChatEmitter()
+  const { updateSeenStatuses } = useMessageEmitter()
   const { mutateAsync: deleteChat } = useDeleteChat()
 
   const processedChatsRef = useRef(new Set<string>())
@@ -37,10 +39,10 @@ const ChatSection = (props: IChatSectionProps) => {
 
   useEffect(() => {
     chats.forEach((chat: any) => {
-      joinSocketChat(chat._id)
+      joinChat(chat._id)
 
       if (chat.unreadMessages && !processedChatsRef.current.has(chat._id)) {
-        updateReceiveAndSeenOfMessages(chat._id, chat.unreadMessages, "receive")
+        updateSeenStatuses(chat._id, chat.unreadMessages, "receive")
         processedChatsRef.current.add(chat._id)
       }
     })
@@ -48,7 +50,7 @@ const ChatSection = (props: IChatSectionProps) => {
 
   const handleChatClick = (chat: any) => {
     if (chat.unreadMessages) {
-      updateReceiveAndSeenOfMessages(chat._id, chat.unreadMessages, "seen")
+      updateSeenStatuses(chat._id, chat.unreadMessages, "seen")
       updateMessagesStatus({ chatId: chat._id, status: "seen" })
     }
     action({ chatId: chat._id, userId: chat.user._id })

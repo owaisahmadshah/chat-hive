@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react"
-import { useSocketService } from "./useSocketService"
 import { useSelector } from "react-redux"
 import { RootState } from "@/store/store"
+import { usePresenceEmitter } from "@/socket/hooks/usePresenceEmitter"
 
 const usePresenceStatus = () => {
   const [lastStatus, setLastStatus] = useState<boolean | null>(null)
   const [isUserLoaded, setIsUserLoaded] = useState<boolean>(false)
 
-  const { sendSocketOnline, sendSocketOffline } = useSocketService()
+  const { sendOnline, sendOffline } = usePresenceEmitter()
 
   const user = useSelector((state: RootState) => state.user)
 
@@ -15,9 +15,9 @@ const usePresenceStatus = () => {
     if (lastStatus !== status && !user.isLoading) {
       setLastStatus(status)
       if (status) {
-        sendSocketOnline()
+        sendOnline()
       } else {
-        sendSocketOffline()
+        sendOffline()
       }
     }
   }
