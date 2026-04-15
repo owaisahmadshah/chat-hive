@@ -75,19 +75,18 @@ const useSocketService = () => {
       return
     }
 
-    const handleNewMessage = async (
-      data: { message: Message },
-      callback: (response: { status: boolean; message: string }) => void
-    ) => {
+    const handleNewMessage = async (data: { message: Message }) => {
       if (!hasChat({ chatId: data.message.chatId })) {
         await fetchChat({ chatId: data.message.chatId })
         joinSocketChat(data.message.chatId)
       }
 
-      callback({
-        status: true,
-        message: "receiver received message",
-      })
+      // TODO: CHECK IT
+      updateReceiveAndSeenOfMessage(
+        data.message.chatId,
+        data.message._id,
+        "receive"
+      )
 
       queryClient.setQueryData(
         ["messages", data.message.chatId],
@@ -235,15 +234,7 @@ const useSocketService = () => {
 
   const sendSocketMessage = useCallback(
     (message: Message, messageUsers: string[]) => {
-      socket
-        ?.timeout(10000)
-        .emit(NEW_MESSAGE, { message, messageUsers }, (err: [], res: []) => {
-          if (err || res?.length) {
-            // TODO
-          } else {
-            // TODO
-          }
-        })
+      socket?.timeout(10000).emit(NEW_MESSAGE, { message, messageUsers })
     },
     []
   )

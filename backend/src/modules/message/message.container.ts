@@ -3,6 +3,7 @@ import { MessageService } from "./message.service.js"
 import { MessageController } from "./message.controller.js"
 import { chatRepository } from "../chat/chat.container.js"
 import { userService } from "../user/user.container.js"
+import { socketService } from "../../socket/socket.container.js"
 
 import { uploadOnCloudinary } from "../../shared/utils/Cloudinary.js"
 
@@ -13,6 +14,7 @@ const messageService = new MessageService({
   chatRepository,
   uploadOnCloudinary,
   userService,
+  socketService
 })
 
 const messageController = new MessageController({
