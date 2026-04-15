@@ -9,6 +9,11 @@ export const createSocket = (): Socket => {
     socket = io(import.meta.env.VITE_REACT_APP_SOCKET_URL, {
       transports: ["websocket"],
       withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
     })
   }
   return socket

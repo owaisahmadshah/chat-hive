@@ -17,7 +17,7 @@ import {
 } from "shared"
 
 import { RootState } from "@/store/store"
-import { createSocket, destroySocket } from "../socket.instance"
+import { createSocket } from "../socket.instance"
 import { useFetchChat } from "@/features/chat-section/hooks/useFetchChat"
 import { useChatReadQueries } from "@/features/chat-section/utils/chat-read-queries"
 import { useUpdateMessageStatus } from "@/hooks/useUpdateMessageStatus"
@@ -145,24 +145,29 @@ const useInitSocket = () => {
       )
     }
 
-    // ── DISCONNECT ─────────────────────────────────────────────────────────
-    const handleDisconnect = () => {
-      destroySocket()
+    // ── RECONNECT ──────────────────────────────────────────────────────────
+    const handleReconnect = async () => {
+      socket.emit(USER_CONNECTED, userId)
+      queryClient.invalidateQueries({ queryKey: ["chats"] })
+      if (activeChatId) {
+        // It will invalidate only active chat
+        // queryClient.invalidateQueries({ queryKey: ["messages", activeChatId] })
+      }
+      // It will invalidate all
+      queryClient.invalidateQueries({ queryKey: ["messages"] })
     }
 
+    socket.on("reconnect", handleReconnect)
     socket.on(NEW_MESSAGE, handleNewMessage)
     socket.on(TYPING, handleTyping)
     socket.on(SEEN_AND_RECEIVE_MESSAGE, handleSeenAndReceiveMessage)
     socket.on(SEEN_AND_RECEIVE_MESSAGES, handleSeenAndReceiveMessages)
-    socket.on("disconnect", handleDisconnect)
 
     return () => {
       socket.off(NEW_MESSAGE, handleNewMessage)
       socket.off(TYPING, handleTyping)
       socket.off(SEEN_AND_RECEIVE_MESSAGE, handleSeenAndReceiveMessage)
       socket.off(SEEN_AND_RECEIVE_MESSAGES, handleSeenAndReceiveMessages)
-      socket.off("disconnect", handleDisconnect)
-      destroySocket()
     }
   }, [userId])
 }
