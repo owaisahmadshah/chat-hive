@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react"
-import { useSocketService } from "./useSocketService"
 import { useSelector } from "react-redux"
 import { RootState } from "@/store/store"
+import { usePresenceEmitter } from "@/socket/hooks/usePresenceEmitter"
+import { useSearchParams } from "react-router-dom"
+import { useMessageEmitter } from "@/socket/hooks/useMessageEmitter"
+import { useChatReadQueries } from "@/features/chat-section/utils/chat-read-queries"
 
 const usePresenceStatus = () => {
   const [lastStatus, setLastStatus] = useState<boolean | null>(null)
   const [isUserLoaded, setIsUserLoaded] = useState<boolean>(false)
 
-  const { sendSocketOnline, sendSocketOffline } = useSocketService()
+  const { sendOnline, sendOffline } = usePresenceEmitter()
+  const [params] = useSearchParams()
+  const { getUnreadMessages } = useChatReadQueries()
+
+  const { updateSeenStatuses } = useMessageEmitter()
 
   const user = useSelector((state: RootState) => state.user)
 
@@ -15,9 +22,9 @@ const usePresenceStatus = () => {
     if (lastStatus !== status && !user.isLoading) {
       setLastStatus(status)
       if (status) {
-        sendSocketOnline()
+        sendOnline()
       } else {
-        sendSocketOffline()
+        sendOffline()
       }
     }
   }
@@ -39,7 +46,15 @@ const usePresenceStatus = () => {
       updateUserStatus(document.visibilityState === "visible" ? true : false)
     }
 
-    const handleFocus = () => updateUserStatus(true)
+    const handleFocus = () => {
+      updateUserStatus(true)
+      const activeChatId = params.get("chatId")
+
+      if (activeChatId) {
+        const unreadMessages = getUnreadMessages(activeChatId)
+        updateSeenStatuses(activeChatId, unreadMessages, "seen")
+      }
+    }
     const handleBlur = () => updateUserStatus(false)
 
     document.addEventListener("visibilitychange", handleVisibilityChange)

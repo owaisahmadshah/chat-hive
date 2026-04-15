@@ -1,11 +1,11 @@
 import useGetUserId from "@/hooks/useGetUser"
 import ChatSection from "@/features/chat-section/ChatSection"
 import MessageSection from "@/features/message-section/MessageSection"
-import { useSocketService } from "@/hooks/useSocketService"
 import usePresenceStatus from "@/hooks/usePresenceStatus"
 import { useSearchParams } from "react-router-dom"
 import { Suspense } from "react"
 import { HomePageSkeleton } from "@/components/HomePageSkeleton"
+import { useInitSocket } from "@/socket/hooks/useInitSocket"
 
 const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -15,7 +15,7 @@ const HomePage = () => {
 
   // Initialize essential hooks
   useGetUserId()
-  useSocketService()
+  useInitSocket()
   usePresenceStatus()
 
   const setSearchParamsWithChat = (args: {

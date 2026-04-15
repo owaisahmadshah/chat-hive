@@ -35,5 +35,21 @@ export const useChatReadQueries = () => {
     return { exists: false, chat: null }
   }
 
-  return { hasChat, hasChatByUserId }
+  const getUnreadMessages = (chatId: string): number => {
+    const data = queryClient.getQueryData<InfiniteData<ChatsPage>>(["chats"])
+
+    if (!data) return 0
+
+    const chats: TChat[] = data.pages.flatMap((page) => page.chats)
+
+    for (let i = 0; i < chats.length; i++) {
+      if (chats[i]._id === chatId) {
+        return chats[i].unreadMessages
+      }
+    }
+
+    return 0
+  }
+
+  return { hasChat, hasChatByUserId, getUnreadMessages }
 }

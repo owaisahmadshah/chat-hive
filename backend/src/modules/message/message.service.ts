@@ -1,16 +1,18 @@
-import type { TDeletedMessageResponse } from "shared"
+import type { newMessageType, TDeletedMessageResponse } from "shared"
 import { ApiError } from "../../shared/utils/ApiError.js"
 import type { uploadOnCloudinary } from "../../shared/utils/Cloudinary.js"
 
 import type { ChatRepository } from "../chat/chat.repository.js"
 import type { UserService } from "../user/user.service.js"
 import { MessageRepository } from "./message.repository.js"
+import type { SocketService } from "../../socket/services/socket.service.js"
 
 interface IMessageServiceDeps {
   messageRepository: MessageRepository
   userService: UserService
   chatRepository: ChatRepository
   uploadOnCloudinary: typeof uploadOnCloudinary
+  socketService: SocketService
 }
 
 export class MessageService {
@@ -149,6 +151,11 @@ export class MessageService {
       messageId: messages[messages.length - 1]?._id as string,
     })
 
+    this.deps.socketService.emit_messages(
+      chatId,
+      messages as unknown as newMessageType[]
+    )
+
     return messages
   }
 
@@ -170,7 +177,10 @@ export class MessageService {
       throw new ApiError(404, "Message not found")
     }
 
-    return { messageId: deleteMessage._id?.toString() ?? '', chatId: deleteMessage.chatId.toString() }
+    return {
+      messageId: deleteMessage._id?.toString() ?? "",
+      chatId: deleteMessage.chatId.toString(),
+    }
   }
 
   async updateMessagesStatus({

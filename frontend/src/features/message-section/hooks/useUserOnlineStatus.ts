@@ -1,17 +1,16 @@
 import { useSearchParams } from "react-router-dom"
 import { useEffect } from "react"
-
-import { useSocketService } from "@/hooks/useSocketService"
+import { usePresenceEmitter } from "@/socket/hooks/usePresenceEmitter"
 
 const useUserOnlineStatus = () => {
   const [params] = useSearchParams()
   const activeChatUserId = params.get("userId")
 
-  const { findUserOnlineStatus } = useSocketService()
+  const { getOnlineStatus } = usePresenceEmitter()
 
   const handleGetUserOnlineStatus = () => {
     if (!activeChatUserId || document.visibilityState !== "visible") return
-    findUserOnlineStatus(activeChatUserId)
+    getOnlineStatus(activeChatUserId)
   }
 
   useEffect(() => {

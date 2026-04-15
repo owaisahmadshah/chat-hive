@@ -190,4 +190,12 @@ export class UserRepository {
       { new: true }
     )
   }
+
+  updateLastSeen(userId: string, dateTime: Date) {
+    return User.findByIdAndUpdate(
+      userId,
+      { updatedAt: dateTime },
+      { new: true }
+    )
+  }
 }

@@ -16,9 +16,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { messageSchema } from "../types/message-schema"
 import { Label } from "@/components/ui/label"
-import { useSocketService } from "@/hooks/useSocketService"
 import { cn } from "@/lib/utils"
 import { useSendMessage } from "../hooks/useSendMessage"
+import { useChatEmitter } from "@/socket/hooks/useChatEmitter"
 
 interface IMessageInputProps {
   activeChatId: string
@@ -31,7 +31,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
 
   const { mutateAsync: sendMessage, isPending } = useSendMessage()
 
-  const { sendSocketTyping } = useSocketService()
+  const { sendTyping } = useChatEmitter()
 
   const form = useForm<z.infer<typeof messageSchema>>({
     resolver: zodResolver(messageSchema),
@@ -85,7 +85,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
   }
 
   const handleTypingBlur = () => {
-    sendSocketTyping(false)
+    sendTyping(false)
   }
 
   useEffect(() => {
@@ -93,10 +93,10 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
       return
     }
 
-    sendSocketTyping(true)
+    sendTyping(true)
 
     const typingTimeout = setTimeout(() => {
-      sendSocketTyping(false)
+      sendTyping(false)
     }, 1500)
 
     return () => clearTimeout(typingTimeout)

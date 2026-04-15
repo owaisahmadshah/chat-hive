@@ -1,15 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { sendMessage } from "../services/messageService"
-import { useSocketService } from "@/hooks/useSocketService"
-import { useSearchParams } from "react-router-dom"
 import { addMessageToQuery } from "../utils/message-queries"
 
 export const useSendMessage = () => {
   const queryClient = useQueryClient()
-
-  const [params] = useSearchParams()
-
-  const { sendSocketMessage } = useSocketService()
 
   return useMutation({
     mutationFn: sendMessage,
@@ -18,12 +12,6 @@ export const useSendMessage = () => {
         ["messages", data[0].chatId.toString()],
         (oldData: any) => addMessageToQuery({ oldData, message: data[0] })
       )
-
-      // Send via socket to receiver
-      // Sending message one by one using socket
-      data.forEach((message: any) => {
-        sendSocketMessage(message, [message.sender._id, params.get("userId")])
-      })
 
       // Add to to lastMessage of the chat
       queryClient.setQueryData(["chats"], (oldData: any) => {
