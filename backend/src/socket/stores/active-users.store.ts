@@ -4,7 +4,6 @@ export class ActiveUsersStore {
   private activeUsers: Map<string, SocketUser> = new Map()
 
   add(user: SocketUser): void {
-    console.log(`${user.userId} has been connected...`)
     this.activeUsers.set(user.userId, user)
   }
 

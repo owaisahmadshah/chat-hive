@@ -81,13 +81,6 @@ const useSocketService = () => {
         joinSocketChat(data.message.chatId)
       }
 
-      // TODO: CHECK IT
-      updateReceiveAndSeenOfMessage(
-        data.message.chatId,
-        data.message._id,
-        "receive"
-      )
-
       queryClient.setQueryData(
         ["messages", data.message.chatId],
         (oldData: any) => addMessageToQuery({ oldData, message: data.message })

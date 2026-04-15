@@ -19,7 +19,7 @@ export class SocketService {
     if (!this.io) return
 
     const senderId = data.sender._id
-    const senderSocketId = this.activeUsers.get(senderId)
+    const senderSocketId = this.activeUsers.get(String(senderId))
 
     const message = {
       message: data,
