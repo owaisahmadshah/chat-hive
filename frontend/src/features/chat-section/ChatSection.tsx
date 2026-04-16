@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChatEmitter } from "@/socket/hooks/useChatEmitter"
 import { useMessageEmitter } from "@/socket/hooks/useMessageEmitter"
 import { ChatListEmpty } from "./Components/ChatListEmpty"
+import { LoadMore } from "@/components/LoadMore"
 
 interface IChatSectionProps {
   activeChatId: string | null
@@ -28,7 +29,8 @@ interface IChatSectionProps {
 const ChatSection = (props: IChatSectionProps) => {
   const { activeChatId, activeChatUserId, action } = props
 
-  const { data } = useFetchInfiniteChats()
+  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
+    useFetchInfiniteChats()
   const { mutateAsync: updateMessagesStatus } = useUpdateChatSeenMessages()
   const { joinChat } = useChatEmitter()
   const { updateSeenStatuses } = useMessageEmitter()
@@ -74,15 +76,24 @@ const ChatSection = (props: IChatSectionProps) => {
         <main className="flex flex-col">
           {chats.length > 0 ? (
             chats.map((chat) => (
-              <ChatItem
-                key={chat._id}
-                chat={chat}
-                activeChatId={activeChatId}
-                handleChatClick={() => handleChatClick(chat)}
-                handleDeleteChat={async () =>
-                  await deleteChat({ chatId: chat._id })
-                }
-              />
+              <>
+                <ChatItem
+                  key={chat._id}
+                  chat={chat}
+                  activeChatId={activeChatId}
+                  handleChatClick={() => handleChatClick(chat)}
+                  handleDeleteChat={async () =>
+                    await deleteChat({ chatId: chat._id })
+                  }
+                />
+                <LoadMore
+                  onLoad={fetchNextPage}
+                  isPending={isFetchingNextPage}
+                  hasNextPage={!!hasNextPage}
+                  label="Load more chats"
+                  direction="down"
+                />
+              </>
             ))
           ) : (
             <ChatListEmpty />

@@ -71,9 +71,7 @@ export class ChatService {
     const chats = await chatRepository.findUserChats({ userId, limit, cursor })
 
     const hasMore = chats.length === limit
-    const lastChat = chats.at(-1)
-    const nextCursor =
-      hasMore && lastChat?.updatedAt ? lastChat.updatedAt : null
+    const nextCursor = hasMore ? chats.at(-1)?.updatedAt ?? null : null
 
     return { chats, hasMore, nextCursor }
   }
