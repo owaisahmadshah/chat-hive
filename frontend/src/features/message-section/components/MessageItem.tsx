@@ -45,7 +45,7 @@ function MessageItem({
     >
       <div
         className={cn(
-          "absolute top-1 z-20 transition-all duration-200",
+          "absolute top-0 z-20 transition-all duration-200",
           "right-1",
           "opacity-100 md:opacity-0 md:group-hover:opacity-100 sm:opacity-0"
         )}

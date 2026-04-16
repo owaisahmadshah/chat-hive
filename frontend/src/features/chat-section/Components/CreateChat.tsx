@@ -1,5 +1,11 @@
 import { ChangeEvent, useCallback, useState } from "react"
-import { Plus, Search, UserPlus, Loader2 } from "lucide-react"
+import {
+  Plus,
+  Search,
+  UserPlus,
+  Loader2,
+  MessageCircleMore,
+} from "lucide-react"
 import debounce from "lodash.debounce"
 
 import { Button } from "@/components/ui/button"
@@ -55,71 +61,75 @@ const CreateChat = () => {
           <span>New Chat</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[400px] sm:w-[500px]">
-        <SheetHeader className="space-y-4">
-          <SheetTitle className="text-2xl flex items-center gap-2">
-            <UserPlus className="w-6 h-6 text-primary" />
-            Start New Chat
-          </SheetTitle>
-          <SheetDescription>
-            Search for a user by username to start chatting
-          </SheetDescription>
+      <SheetContent
+        side="left"
+        className="w-full sm:max-w-[420px] p-0 flex flex-col gap-0 overflow-hidden"
+      >
+        <SheetHeader className="p-6 pb-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <UserPlus className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <SheetTitle className="text-xl">New Conversation</SheetTitle>
+              <SheetDescription className="text-xs">
+                Find someone to start a new chat with
+              </SheetDescription>
+            </div>
+          </div>
         </SheetHeader>
 
-        <div className="mt-6 mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="px-6 py-4">
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
-              type="text"
               placeholder="Search by username..."
-              className="pl-10 h-11 border-muted/40 focus-visible:ring-primary/20"
+              className="pl-10 h-12 bg-muted/30 border-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded-2xl transition-all"
               onChange={handleInputChange}
               autoFocus
             />
           </div>
         </div>
 
-        <ScrollArea className="h-[calc(100vh-250px)] mt-6">
-          <div className="space-y-2">
+        <ScrollArea className="flex-1 px-4">
+          <div className="space-y-1 pb-6">
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-12 space-y-3">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+                <Loader2 className="w-10 h-10 text-primary/40 animate-spin mb-4" />
                 <p className="text-sm text-muted-foreground">
-                  Searching for users...
+                  Searching users...
                 </p>
               </div>
             ) : users.length > 0 ? (
               users.map((user: ChatUser) => (
-                <div
+                <CreateChatUserItem
                   key={user._id}
-                  className="p-3 rounded-lg hover:bg-muted/50 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300"
-                >
-                  <CreateChatUserItem
-                    user={user}
-                    onClose={() => setOpen(false)}
-                  />
-                </div>
+                  user={user}
+                  onClose={() => setOpen(false)}
+                />
               ))
             ) : isUsername ? (
-              <div className="flex flex-col items-center justify-center py-12 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
-                  <Search className="w-8 h-8 text-muted-foreground" />
+              // ... Empty state stays similar but maybe use a softer background
+              <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+                <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mb-4">
+                  <Search className="w-8 h-8 text-muted-foreground/50" />
                 </div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  No users found
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Try searching with a different username
+                <h3 className="font-semibold">No results found</h3>
+                <p className="text-sm text-muted-foreground">
+                  Try a different username
                 </p>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <UserPlus className="w-8 h-8 text-primary" />
+              // ... Initial state
+              <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+                <div className="w-20 h-20 bg-primary/5 rounded-full flex items-center justify-center mb-4">
+                  <MessageCircleMore className="w-8 h-8 text-primary/40" />
                 </div>
-                <p className="text-sm font-medium">Start searching</p>
-                <p className="text-xs text-muted-foreground text-center max-w-[250px]">
-                  Enter a username to find people and start chatting
+                <h3 className="font-semibold text-foreground/80">
+                  Search users
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Type a name to see available users.
                 </p>
               </div>
             )}

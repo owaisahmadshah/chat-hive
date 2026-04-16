@@ -1,12 +1,13 @@
 import { Badge } from "@/components/ui/badge"
 import { Image } from "lucide-react"
 import ChatActions from "./ChatActions"
+import { Typing } from "@/components/Typing"
 
 interface IChatLastMessagePreviewProps {
   unreadMessages: number
   lastMessage: {
     message: string
-    isPhoto: boolean
+    photoUrl?: string
   }
   typing?: {
     isTyping: boolean
@@ -20,26 +21,14 @@ export const ChatLastMessagePreview = ({
   typing,
   deleteAction,
 }: IChatLastMessagePreviewProps) => {
+  const hasPhoto = lastMessage.photoUrl && lastMessage.photoUrl.length > 0
+
   return (
     <div className="flex items-center justify-between gap-2">
       <div className="flex-1 min-w-0 w-6">
         {typing ? (
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-primary font-medium">typing</span>
-            <div className="flex gap-0.5">
-              <span
-                className="w-1 h-1 bg-primary rounded-full animate-bounce"
-                style={{ animationDelay: "0ms" }}
-              />
-              <span
-                className="w-1 h-1 bg-primary rounded-full animate-bounce"
-                style={{ animationDelay: "150ms" }}
-              />
-              <span
-                className="w-1 h-1 bg-primary rounded-full animate-bounce"
-                style={{ animationDelay: "300ms" }}
-              />
-            </div>
+          <div className="flex items-center gap-1 text-xs">
+            <Typing />
           </div>
         ) : unreadMessages > 0 ? (
           <div className="flex items-center gap-2">
@@ -50,10 +39,12 @@ export const ChatLastMessagePreview = ({
               new messages
             </span>
           </div>
-        ) : lastMessage.isPhoto ? (
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Image className="w-3.5 h-3.5" />
-            <span className="text-xs">Photo</span>
+        ) : hasPhoto ? (
+          <div className="flex items-center gap-1.5 font-medium">
+            <Image className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs">
+              {lastMessage.message ? lastMessage.message : "Photo"}
+            </span>
           </div>
         ) : (
           <p className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
@@ -62,7 +53,7 @@ export const ChatLastMessagePreview = ({
         )}
       </div>
 
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="opacity-0 lg:group-hover:opacity-100 max-sm:opacity-100 transition-opacity flex-shrink-0">
         <ChatActions
           deleteAction={async () => deleteAction && (await deleteAction())}
         />
