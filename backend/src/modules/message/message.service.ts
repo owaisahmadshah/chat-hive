@@ -44,6 +44,12 @@ export class MessageService {
       throw new ApiError(404, "User not fouond")
     }
 
+    const chat = await chatRepository.findById(chatId)
+
+    if (!chat) {
+      throw new ApiError(404, "Chat not found.")
+    }
+
     const messages = []
 
     // If there is no image and message is empty then throw error, because message must contain either text or image
@@ -151,9 +157,20 @@ export class MessageService {
       messageId: messages[messages.length - 1]?._id as string,
     })
 
+    let receiver: string = ""
+
+    console.log(chat.users)
+    for (let i = 0; i < chat.users.length; i++) {
+      if (String(chat.users[i]) !== sender) {
+        console.log(String(chat.users[i]), sender)
+        receiver = String(chat.users[i])
+      }
+    }
+
     this.deps.socketService.emit_messages(
       chatId,
-      messages as unknown as newMessageType[]
+      messages as unknown as newMessageType[],
+      receiver
     )
 
     return messages

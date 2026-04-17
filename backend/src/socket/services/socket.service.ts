@@ -15,7 +15,7 @@ export class SocketService {
     this.io = io
   }
 
-  emit_message(chatId: string, data: any) {
+  emit_message(chatId: string, data: any, receiver: string) {
     if (!this.io) return
 
     const senderId = data.sender._id
@@ -29,16 +29,41 @@ export class SocketService {
     if (senderSocketId) {
       this.io
         .to(chatId)
+        .timeout(2000)
         .except(senderSocketId.socketId)
-        .emit(NEW_MESSAGE, message)
+        .emit(
+          NEW_MESSAGE,
+          message,
+          (error: any, res: { success: boolean; message: string }[]) => {
+            if (error?.length || res.length === 0)
+              this.emit_message_to_receiver(receiver, message)
+          }
+        )
     } else {
-      this.io.to(chatId).emit(NEW_MESSAGE, message)
+      this.io
+        .to(chatId)
+        .emit(
+          NEW_MESSAGE,
+          message,
+          (error: any, res: { success: boolean; message: string }[]) => {
+            console.log(error, res)
+            if (error?.length || res.length === 0)
+              this.emit_message_to_receiver(receiver, message)
+          }
+        )
     }
   }
 
-  emit_messages(chatId: string, data: any[]) {
+  emit_message_to_receiver(receiver: string, message: any) {
+    const receiverSocketId = this.activeUsers.get(String(receiver))
+    if (receiverSocketId && this.io) {
+      this.io.to(receiverSocketId.socketId).emit(NEW_MESSAGE, message)
+    }
+  }
+
+  emit_messages(chatId: string, data: any[], receiver: string) {
     if (!this.io) return
 
-    data.forEach((message: any) => this.emit_message(chatId, message))
+    data.forEach((message: any) => this.emit_message(chatId, message, receiver))
   }
 }

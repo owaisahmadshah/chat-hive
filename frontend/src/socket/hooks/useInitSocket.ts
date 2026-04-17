@@ -53,8 +53,13 @@ const useInitSocket = () => {
     socket.emit(USER_CONNECTED, userId)
 
     // ── NEW_MESSAGE ────────────────────────────────────────────────────────
-    const handleNewMessage = async (data: { message: Message }) => {
+    const handleNewMessage = async (
+      data: { message: Message },
+      callback: (response: { success: boolean; message: string }) => void
+    ) => {
       const { message } = data
+
+      callback({ success: true, message: "RECEIVED_MESSAGE" })
 
       if (!hasChat({ chatId: message.chatId })) {
         await fetchChat({ chatId: message.chatId })

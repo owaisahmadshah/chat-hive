@@ -77,28 +77,26 @@ const ChatSection = (props: IChatSectionProps) => {
         <main className="flex flex-col">
           {chats.length > 0 ? (
             chats.map((chat) => (
-              <>
-                <ChatItem
-                  key={chat._id}
-                  chat={chat}
-                  activeChatId={activeChatId}
-                  handleChatClick={() => handleChatClick(chat)}
-                  handleDeleteChat={async () =>
-                    await deleteChat({ chatId: chat._id })
-                  }
-                />
-                <LoadMore
-                  onLoad={fetchNextPage}
-                  isPending={isFetchingNextPage}
-                  hasNextPage={!!hasNextPage}
-                  label="Load more chats"
-                  direction="down"
-                />
-              </>
+              <ChatItem
+                key={chat._id}
+                chat={chat}
+                activeChatId={activeChatId}
+                handleChatClick={() => handleChatClick(chat)}
+                handleDeleteChat={async () =>
+                  await deleteChat({ chatId: chat._id })
+                }
+              />
             ))
           ) : (
             <ChatListEmpty />
           )}
+          <LoadMore
+            onLoad={fetchNextPage}
+            isPending={isFetchingNextPage}
+            hasNextPage={!!hasNextPage}
+            label="Load more chats"
+            direction="down"
+          />
         </main>
       </ScrollArea>
     </section>
