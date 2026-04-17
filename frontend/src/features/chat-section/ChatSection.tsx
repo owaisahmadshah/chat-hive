@@ -11,6 +11,9 @@ import CreateChat from "./Components/CreateChat"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChatEmitter } from "@/socket/hooks/useChatEmitter"
 import { useMessageEmitter } from "@/socket/hooks/useMessageEmitter"
+import { ChatListEmpty } from "./Components/ChatListEmpty"
+import { LoadMore } from "@/components/LoadMore"
+import { TChat } from "shared"
 
 interface IChatSectionProps {
   activeChatId: string | null
@@ -27,7 +30,8 @@ interface IChatSectionProps {
 const ChatSection = (props: IChatSectionProps) => {
   const { activeChatId, activeChatUserId, action } = props
 
-  const { data } = useFetchInfiniteChats()
+  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
+    useFetchInfiniteChats()
   const { mutateAsync: updateMessagesStatus } = useUpdateChatSeenMessages()
   const { joinChat } = useChatEmitter()
   const { updateSeenStatuses } = useMessageEmitter()
@@ -38,7 +42,7 @@ const ChatSection = (props: IChatSectionProps) => {
   const chats = data.pages.flatMap((page) => page.chats) ?? []
 
   useEffect(() => {
-    chats.forEach((chat: any) => {
+    chats.forEach((chat: TChat) => {
       joinChat(chat._id)
 
       if (chat.unreadMessages && !processedChatsRef.current.has(chat._id)) {
@@ -48,7 +52,7 @@ const ChatSection = (props: IChatSectionProps) => {
     })
   }, [chats])
 
-  const handleChatClick = (chat: any) => {
+  const handleChatClick = (chat: TChat) => {
     if (chat.unreadMessages) {
       updateSeenStatuses(chat._id, chat.unreadMessages, "seen")
       updateMessagesStatus({ chatId: chat._id, status: "seen" })
@@ -71,17 +75,30 @@ const ChatSection = (props: IChatSectionProps) => {
       </div>
       <ScrollArea className="h-[calc(100vh-8rem)]">
         <main className="flex flex-col">
-          {chats.map((chat) => (
-            <ChatItem
-              key={chat._id}
-              chat={chat}
-              activeChatId={activeChatId}
-              handleChatClick={() => handleChatClick(chat)}
-              handleDeleteChat={async () =>
-                await deleteChat({ chatId: chat._id })
-              }
-            />
-          ))}
+          {chats.length > 0 ? (
+            chats.map((chat) => (
+              <>
+                <ChatItem
+                  key={chat._id}
+                  chat={chat}
+                  activeChatId={activeChatId}
+                  handleChatClick={() => handleChatClick(chat)}
+                  handleDeleteChat={async () =>
+                    await deleteChat({ chatId: chat._id })
+                  }
+                />
+                <LoadMore
+                  onLoad={fetchNextPage}
+                  isPending={isFetchingNextPage}
+                  hasNextPage={!!hasNextPage}
+                  label="Load more chats"
+                  direction="down"
+                />
+              </>
+            ))
+          ) : (
+            <ChatListEmpty />
+          )}
         </main>
       </ScrollArea>
     </section>

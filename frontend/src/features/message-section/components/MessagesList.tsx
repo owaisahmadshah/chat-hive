@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
@@ -6,7 +6,7 @@ import { useFetchInfiniteMessages } from "../hooks/useFetchInfiniteMessages"
 import MessageItem from "./MessageItem"
 import MessageEmpty from "./MessageEmpty"
 import { useDeleteMessage } from "../hooks/useDeleteMessage"
-import { MessageMetaDataDisplay } from "./MessageMetaDataDisplay"
+import { LoadMore } from "@/components/LoadMore"
 
 interface IMessagesListProps {
   activeChatUserId: string
@@ -17,91 +17,92 @@ export const MessagesList = ({
   activeChatUserId,
   activeChatId,
 }: IMessagesListProps) => {
-  const [isDontScroll, setisDontScroll] = useState<boolean>(false)
-  const [messageMeta, setMessageMeta] = useState<Set<string>>(new Set()) // Used to show/hide message (sent, receive or seen) and date/time
-
-  const { data } = useFetchInfiniteMessages(activeChatId)
-
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useFetchInfiniteMessages(activeChatId)
   const { mutateAsync: deleteMessage } = useDeleteMessage()
-
-  const messages = data?.pages.flatMap((page) => page.messages)
-
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // This will make the scroll back to the bottom of the chat by targeting the viewport of radix scroll area
-  const scrollToBottom = () => {
-    if (isDontScroll) {
-      setisDontScroll(false)
-      return
-    }
+  const messages = data?.pages
+    .slice()
+    .reverse()
+    .flatMap((page) => page.messages)
 
-    const viewport = scrollRef.current?.querySelector(
+  const pageCount = data?.pages.length ?? 0
+  const prevPageCountRef = useRef(pageCount)
+  const scrollSnapRef = useRef<{
+    scrollHeight: number
+    scrollTop: number
+  } | null>(null)
+
+  const getViewport = () =>
+    scrollRef.current?.querySelector(
       "[data-radix-scroll-area-viewport]"
-    )
+    ) as HTMLElement | null
+
+  const handleLoadMore = () => {
+    const viewport = getViewport()
     if (viewport) {
-      viewport.scrollTop = viewport.scrollHeight
+      scrollSnapRef.current = {
+        scrollHeight: viewport.scrollHeight,
+        scrollTop: viewport.scrollTop,
+      }
     }
+    fetchNextPage()
   }
 
   useEffect(() => {
-    // Add a small delay to ensure content is rendered before scrolling
-    const timeoutId = setTimeout(scrollToBottom, 100)
+    const viewport = getViewport()
+    if (!viewport) return
 
-    return () => clearTimeout(timeoutId)
-  }, [data])
+    const isLoadingMore =
+      pageCount > prevPageCountRef.current && scrollSnapRef.current !== null
 
-  const toggleMessageMeta = (id: string) => {
-    setMessageMeta((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(id)) {
-        newSet.delete(id)
-      } else {
-        newSet.add(id)
-      }
-      return newSet
-    })
-  }
+    if (isLoadingMore) {
+      const { scrollHeight: oldScrollHeight, scrollTop: oldScrollTop } =
+        scrollSnapRef.current!
+      const scrollDiff = viewport.scrollHeight - oldScrollHeight
+      viewport.scrollTo({ top: oldScrollTop + scrollDiff })
+      scrollSnapRef.current = null
+    } else {
+      viewport.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" })
+    }
+
+    prevPageCountRef.current = pageCount
+  }, [messages?.length, pageCount])
 
   return (
     <ScrollArea
-      className="min-h-0 h-full bg-gradient-to-b from-background to-muted/5 md:px-6"
+      className="min-h-0 h-full bg-gradient-to-b from-background to-muted/5"
       ref={scrollRef}
     >
-      <ul className={"flex flex-col gap-2 p-4"}>
-        {messages?.length &&
-          messages.map((message, index) => (
-            <React.Fragment key={index}>
-              <li
-                className={cn(
-                  "rounded-sm w-fit max-w-[75%] transition-all duration-200",
-                  "animate-in fade-in slide-in-from-bottom-2 px-2",
-                  message.sender._id !== activeChatUserId
-                    ? "self-end bg-primary text-primary-foreground ml-auto shadow-lg shadow-primary/20"
-                    : "self-start bg-muted/80 backdrop-blur-sm border border-border/40"
-                )}
-                style={{ animationDelay: `${index * 20}ms` }}
-                onClick={() => toggleMessageMeta(message._id)}
-              >
-                <MessageItem
-                  message={message}
-                  deleteMessage={async () =>
-                    await deleteMessage({ messageId: message._id })
-                  }
-                />
-              </li>
+      <div className="flex flex-col gap-3 p-4 md:px-10 lg:px-12">
+        <LoadMore
+          onLoad={handleLoadMore}
+          isPending={isFetchingNextPage}
+          hasNextPage={!!hasNextPage}
+          label="View previous messages"
+        />
 
-              {(messageMeta.has(message._id) ||
-                index === messages.length - 1) && (
-                <MessageMetaDataDisplay
-                  message={message}
-                  activeChatUserId={activeChatUserId}
-                />
+        {messages?.map((message) => {
+          const isMe = message.sender._id !== activeChatUserId
+          return (
+            <div
+              key={message._id}
+              className={cn(
+                "flex w-full",
+                isMe ? "justify-end" : "justify-start"
               )}
-            </React.Fragment>
-          ))}
-
+            >
+              <MessageItem
+                message={message}
+                activeChatUserId={activeChatUserId}
+                deleteMessage={() => deleteMessage({ messageId: message._id })}
+              />
+            </div>
+          )
+        })}
         {messages?.length === 0 && <MessageEmpty />}
-      </ul>
+      </div>
     </ScrollArea>
   )
 }

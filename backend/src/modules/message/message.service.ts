@@ -245,9 +245,7 @@ export class MessageService {
     })
 
     const hasMore = messages.length === limit
-    const lastMessage = messages.at(-1)
-    const nextCursor =
-      lastMessage?.updatedAt && hasMore ? lastMessage.updatedAt : null
+    const nextCursor = hasMore ? messages[0]._id.toString() : null
 
     return {
       messages,

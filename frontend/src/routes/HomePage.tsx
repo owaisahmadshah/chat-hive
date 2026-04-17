@@ -6,12 +6,15 @@ import { useSearchParams } from "react-router-dom"
 import { Suspense } from "react"
 import { HomePageSkeleton } from "@/components/HomePageSkeleton"
 import { useInitSocket } from "@/socket/hooks/useInitSocket"
+import { useMobileHeight } from "@/hooks/useMobileHeight"
 
 const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const activeChatId = searchParams.get("chatId")
   const activeChatUserId = searchParams.get("userId")
+
+  useMobileHeight()
 
   // Initialize essential hooks
   useGetUserId()
@@ -31,7 +34,10 @@ const HomePage = () => {
   }
 
   return (
-    <main className="flex h-dvh overflow-hidden bg-background">
+    <main
+      className="fixed inset-0 flex overflow-hidden bg-background"
+      style={{ height: "var(--visual-height, 100dvh)" }}
+    >
       <Suspense
         fallback={
           <HomePageSkeleton

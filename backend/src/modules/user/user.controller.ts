@@ -309,7 +309,7 @@ export class UserController {
     // @ts-ignore
     const profileImage = req.files?.profileImage?.[0]?.path
 
-    if (profileImage) {
+    if (!profileImage) {
       throw new ApiError(401, "Profile picture not found")
     }
 

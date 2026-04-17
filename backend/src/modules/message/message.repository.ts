@@ -87,9 +87,7 @@ export class MessageRepository {
     }
 
     if (cursor) {
-      filter.updatedAt = {
-        $lt: new Date(cursor),
-      }
+      filter._id = { $lt: new mongoose.Types.ObjectId(cursor) }
     }
 
     return Message.aggregate([
@@ -98,7 +96,7 @@ export class MessageRepository {
       },
       {
         $sort: {
-          updatedAt: -1,
+          _id: -1,
         },
       },
       {
@@ -106,7 +104,7 @@ export class MessageRepository {
       },
       {
         $sort: {
-          updatedAt: 1,
+          _id: 1,
         },
       },
       {

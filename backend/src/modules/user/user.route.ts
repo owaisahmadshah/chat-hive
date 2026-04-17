@@ -18,12 +18,12 @@ router.get("/google/callback", userController.googleSignInCallback)
 
 // Private routes
 router.route("/delete").delete(auth, userController.deleteUser)
-router.route("/change-password").post(auth, userController.changePassword)
+router.route("/change-password").patch(auth, userController.changePassword)
 router.route("/user").post(auth, userController.getUser)
 router.route("/suggestions").get(auth, userController.usersSuggestion)
 router
   .route("/update-profile-image")
-  .post(
+  .patch(
     auth,
     upload.fields([{ name: "profileImage", maxCount: 1 }]),
     userController.uploadProfileImage

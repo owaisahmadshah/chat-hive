@@ -34,6 +34,10 @@ export class UserRepository {
     return User.updateOne({ _id: userId }, { isVerified })
   }
 
+  updateOtp(userId: string, otp: string, otpExpiry: Date) {
+    return User.findByIdAndUpdate(userId, { otp, otpExpiry })
+  }
+
   save(doc: Document) {
     return doc.save()
   }

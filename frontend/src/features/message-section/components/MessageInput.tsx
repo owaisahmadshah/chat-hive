@@ -1,17 +1,16 @@
+import Lightbox from "yet-another-react-lightbox"
+import Zoom from "yet-another-react-lightbox/plugins/zoom"
+import Download from "yet-another-react-lightbox/plugins/download"
+import "yet-another-react-lightbox/styles.css"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useEffect, useState } from "react"
-import { ImagePlus, Send, Paperclip } from "lucide-react"
+import { useEffect, useState, useMemo } from "react"
+import { ImagePlus, Send, X, Plus, Trash2 } from "lucide-react"
 import TextareaAutosize from "react-textarea-autosize"
 
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { messageSchema } from "../types/message-schema"
@@ -26,11 +25,11 @@ interface IMessageInputProps {
 }
 
 export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
-  const [isPictureSelected, setIsPictureSelected] = useState<boolean>(false)
-  const [imageCount, setImageCount] = useState(0)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
 
   const { mutateAsync: sendMessage, isPending } = useSendMessage()
-
   const { sendTyping } = useChatEmitter()
 
   const form = useForm<z.infer<typeof messageSchema>>({
@@ -43,46 +42,57 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
 
   const userInputMessage = form.watch("userInputMessage")
 
+  const previewUrls = useMemo(() => {
+    return selectedFiles.map((file) => URL.createObjectURL(file))
+  }, [selectedFiles])
+
+  useEffect(() => {
+    return () => previewUrls.forEach((url) => URL.revokeObjectURL(url))
+  }, [previewUrls])
+
   async function onSubmit(values: z.infer<typeof messageSchema>) {
-    const formData = new FormData()
-    formData.append("message", values.userInputMessage)
+    // Check if there's actually something to send
+    if (!values.userInputMessage?.trim() && selectedFiles.length === 0) return
 
-    if (values.uploadedImage && values.uploadedImage.length > 0) {
-      for (let i = 0; i < values.uploadedImage.length; i++) {
-        formData.append("uploadedImage", values.uploadedImage[i])
-      }
+    try {
+      const formData = new FormData()
+      formData.append("message", values.userInputMessage || "")
+      formData.append("sender", String(userId))
+      formData.append("chatId", String(activeChatId))
+      formData.append("status", "sent")
+
+      selectedFiles.forEach((file) => {
+        formData.append("uploadedImage", file)
+      })
+
+      console.log(formData)
+
+      await sendMessage(formData)
+
+      // Cleanup
+      form.reset({ userInputMessage: "", uploadedImage: undefined })
+      setSelectedFiles([])
+    } catch (error) {
+      console.error("Failed to send message:", error)
     }
+  }
 
-    if (
-      values.userInputMessage.trim() === "" &&
-      values?.uploadedImage === undefined
-    ) {
-      return
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files)
+      setSelectedFiles((prev) => [...prev, ...newFiles])
     }
-
-    formData.append("sender", String(userId))
-    formData.append("chatId", String(activeChatId))
-    formData.append("status", "sent")
-
-    await sendMessage(formData)
-    form.reset()
-    setIsPictureSelected(false)
-    setImageCount(0)
+    e.target.value = ""
   }
 
-  const setOnChangePicture = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    form.setValue("uploadedImage", files || undefined)
-    setIsPictureSelected(files !== null && files.length > 0)
-    setImageCount(files?.length || 0)
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
+    if (activeImageIndex >= selectedFiles.length - 1) {
+      setActiveImageIndex(Math.max(0, selectedFiles.length - 2))
+    }
   }
 
-  const removePicture = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation()
-    form.setValue("uploadedImage", undefined)
-    setIsPictureSelected(false)
-    setImageCount(0)
-  }
+  const clearAllImages = () => setSelectedFiles([])
 
   const handleTypingBlur = () => {
     sendTyping(false)
@@ -102,124 +112,175 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
     return () => clearTimeout(typingTimeout)
   }, [userInputMessage])
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault()
-        form.handleSubmit(onSubmit)()
-      }
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      form.handleSubmit(onSubmit)()
     }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [activeChatId])
+  }
 
   return (
-    <div className="shrink-0 bg-background/95 backdrop-blur-sm border-t border-border/50">
+    <div className="shrink-0 bg-background/95 backdrop-blur-sm border-t border-border/50 rounded-t-2xl shadow-2xl">
+      {/* Image Preview Area */}
+      {selectedFiles.length > 0 && (
+        <div className="px-2 pt-3 pb-1 md:px-4">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {selectedFiles.length}{" "}
+              {selectedFiles.length === 1 ? "Image" : "Images"} Selected
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllImages}
+              className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="w-3.5 h-3.5 mr-1" /> Clear All
+            </Button>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+            {previewUrls.map((url, index) => (
+              <div key={url} className="relative group flex-shrink-0">
+                <img
+                  src={url}
+                  alt="preview"
+                  className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-xl border-2 border-muted hover:border-primary/50 transition-all cursor-pointer"
+                  onClick={() => {
+                    setActiveImageIndex(index)
+                    setIsLightboxOpen(true)
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeFile(index)}
+                  className="absolute -top-1.5 -right-1.5 bg-background border border-border text-foreground rounded-full p-1 shadow-md hover:bg-destructive hover:text-white transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+
+            <div className="flex gap-2 items-center pl-1">
+              <Label
+                htmlFor="addMoreImages"
+                className="cursor-pointer bg-muted/50 hover:bg-primary/10 text-primary w-16 h-16 md:w-20 md:h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center transition-all"
+              >
+                <Plus className="w-6 h-6" />
+                <Input
+                  id="addMoreImages"
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  multiple
+                />
+              </Label>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          autoComplete="off"
-          className="p-4"
-          encType="multipart/form-data"
+          className="p-2 md:p-4 flex items-center gap-1.5 md:gap-3"
         >
-          <div className="flex items-center gap-3">
-            <FormItem>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    id="uploadedImage"
-                    type="file"
-                    className="hidden"
-                    onChange={setOnChangePicture}
-                    accept="image/*"
-                    multiple
-                  />
-                  {!isPictureSelected ? (
-                    <Label
-                      htmlFor="uploadedImage"
-                      className="cursor-pointer hover:bg-primary/10 transition-all duration-200 p-2.5 rounded-lg flex items-center justify-center group border border-transparent hover:border-primary/20"
-                    >
-                      <ImagePlus className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </Label>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={removePicture}
-                      className="hover:bg-destructive/10 hover:text-destructive transition-all relative"
-                    >
-                      <Paperclip className="w-5 h-5" />
-                      {imageCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
-                          {imageCount}
-                        </span>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-
-            <FormField
-              control={form.control}
-              name="userInputMessage"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormControl>
-                    <div className="relative">
-                      <TextareaAutosize
-                        {...field}
-                        placeholder="Type your message..."
-                        minRows={1}
-                        maxRows={6}
-                        onBlur={() => {
-                          field.onBlur()
-                          handleTypingBlur()
-                        }}
-                        className={cn(
-                          "w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm",
-                          "transition-all duration-200",
-                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary",
-                          "placeholder:text-muted-foreground",
-                          "resize-none"
-                        )}
-                        autoFocus
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          {/* Smaller Select Button */}
+          <div className="flex-shrink-0 flex items-center self-center">
+            <Input
+              id="uploadedImage"
+              type="file"
+              className="hidden"
+              onChange={handleFileChange}
+              accept="image/*"
+              multiple
             />
-
-            <Button
-              type="submit"
-              disabled={
-                isPending || (!userInputMessage?.trim() && !isPictureSelected)
-              }
-              className={cn(
-                "h-11 px-6 rounded-xl transition-all duration-200 group relative overflow-hidden",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                "hover:shadow-lg hover:shadow-primary/25"
-              )}
+            <Label
+              htmlFor="uploadedImage"
+              className="cursor-pointer hover:bg-muted text-muted-foreground hover:text-primary transition-all p-2 rounded-full"
             >
-              {isPending ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                </div>
-              ) : (
-                <>
-                  <span className="mr-2">Send</span>
-                  <Send className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                </>
-              )}
-            </Button>
+              <ImagePlus className="w-5 h-5 md:w-6 md:h-6" />
+            </Label>
           </div>
+
+          <FormField
+            control={form.control}
+            name="userInputMessage"
+            render={({ field }) => (
+              <FormItem className="flex-1">
+                <FormControl>
+                  <TextareaAutosize
+                    {...field}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type your message..."
+                    minRows={1}
+                    maxRows={5}
+                    onBlur={() => {
+                      field.onBlur()
+                      handleTypingBlur()
+                    }}
+                    className={cn(
+                      "w-full rounded-2xl border border-input bg-muted/30 px-4 py-2.5 text-sm transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:bg-background resize-none leading-relaxed"
+                    )}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          {/* Styled Send Button */}
+          <Button
+            type="submit"
+            disabled={
+              isPending ||
+              (!userInputMessage?.trim() && selectedFiles.length === 0)
+            }
+            className={cn(
+              "h-10 w-10 md:h-11 md:w-11 rounded-full p-0 flex-shrink-0 transition-all",
+              "bg-primary text-primary-foreground shadow-sm hover:shadow-primary/20",
+              "disabled:bg-muted disabled:text-muted-foreground"
+            )}
+          >
+            {isPending ? (
+              <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin" />
+            ) : (
+              <Send className="w-4 h-4 md:w-5 md:h-5" />
+            )}
+          </Button>
         </form>
       </Form>
+
+      {/* Lightbox with Custom Delete Button */}
+      <Lightbox
+        index={activeImageIndex}
+        open={isLightboxOpen}
+        close={() => setIsLightboxOpen(false)}
+        slides={previewUrls.map((url) => ({ src: url }))}
+        plugins={[Zoom, Download]}
+        toolbar={{
+          buttons: [
+            <button
+              key="delete-current"
+              type="button"
+              className="yarl__button"
+              style={{ color: "#ff4444" }}
+              onClick={() => {
+                removeFile(activeImageIndex)
+                if (selectedFiles.length <= 1) setIsLightboxOpen(false)
+              }}
+            >
+              <Trash2 className="w-6 h-6" />
+            </button>,
+            "zoom",
+            "download",
+            "close",
+          ],
+        }}
+        styles={{
+          container: { backgroundColor: "rgba(0, 0, 0, 0.95)" },
+          button: { filter: "none", opacity: 1 }, // Accessibility: close button visible
+        }}
+      />
     </div>
   )
 }

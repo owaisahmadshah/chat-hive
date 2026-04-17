@@ -15,6 +15,7 @@ import { MessageNavbarSectionSekeleton } from "./components/Skeleton/MessageNavb
 import { MessageNavbarErrorHandler } from "./components/ErrorHandlers/MessageNavbarErrorHandler"
 import { MessageInputSkeleton } from "./components/Skeleton/MessageInputSkeleton"
 import { MessagesListErrorHandler } from "./components/ErrorHandlers/MessagesListErrorHandler"
+import { useDeleteChat } from "../chat-section/hooks/useDeleteChat"
 
 interface IMessageSectionProps {
   activeChatId: string | null
@@ -27,6 +28,8 @@ const MessageSection = (props: IMessageSectionProps) => {
 
   const userId = useSelector((state: RootState) => state.user.userId)
 
+  const { mutateAsync: deleteChat } = useDeleteChat()
+
   useUserOnlineStatus()
 
   if (activeChatId === null || activeChatUserId === null) {
@@ -36,7 +39,9 @@ const MessageSection = (props: IMessageSectionProps) => {
   return (
     <section
       className={cn(
-        "grid h-[100dvh] w-full grid-rows-[auto_1fr_auto] bg-background pt-[env(safe-area-inset-top)]",
+        // "grid h-[100dvh] w-full grid-rows-[auto_1fr_auto] bg-background pt-[env(safe-area-inset-top)]",
+        "grid w-full grid-rows-[auto_1fr_auto] bg-background pt-[env(safe-area-inset-top)]",
+        "h-full overflow-hidden",
         !activeChatId && !activeChatUserId && "max-sm:hidden"
       )}
     >
@@ -45,6 +50,7 @@ const MessageSection = (props: IMessageSectionProps) => {
           <MessageNavbarSection
             activeChatUserId={activeChatUserId}
             backAction={backAction}
+            deleteChat={async () => await deleteChat({ chatId: activeChatId })}
           />
         </Suspense>
       </ErrorBoundary>

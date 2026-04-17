@@ -31,3 +31,8 @@ export type TUserReponse = {
   isTyping?: string;
   isUserOnline?: boolean;
 };
+
+export type TChangePassword = {
+  oldPassword: string;
+  newPassword: string;
+};
