@@ -15,4 +15,14 @@ const signOutUser = async () => {
   return data
 }
 
-export { getUser, deleteUser, signOutUser }
+const updateProfilePicture = async (data: FormData) => {
+  const response = await api.patch("/v1/user/update-profile-image", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  })
+
+  return response.data
+}
+
+export { getUser, deleteUser, signOutUser, updateProfilePicture }

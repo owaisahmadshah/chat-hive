@@ -373,7 +373,9 @@ export class UserService {
       throw new ApiError(404, "User not found")
     }
 
-    return user
+    const responseUser = await this.getUser(userId)
+
+    return responseUser
   }
 
   async updateUserShowStatus({

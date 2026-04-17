@@ -23,7 +23,7 @@ router.route("/user").post(auth, userController.getUser)
 router.route("/suggestions").get(auth, userController.usersSuggestion)
 router
   .route("/update-profile-image")
-  .post(
+  .patch(
     auth,
     upload.fields([{ name: "profileImage", maxCount: 1 }]),
     userController.uploadProfileImage

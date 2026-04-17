@@ -14,11 +14,13 @@ import { Button } from "@/components/ui/button"
 interface IMessageNavbarSectionProps {
   backAction: () => void
   activeChatUserId: string
+  deleteChat: () => Promise<void>
 }
 
 export const MessageNavbarSection = ({
   backAction,
   activeChatUserId,
+  deleteChat,
 }: IMessageNavbarSectionProps) => {
   const { data: activeChatUser } = useFetchChatUser(activeChatUserId)
 
@@ -33,21 +35,28 @@ export const MessageNavbarSection = ({
         </DialogTrigger>
 
         <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden rounded-2xl">
-          <UserProfileCard user={activeChatUser} removeAction={async () => {}} />
+          <UserProfileCard user={activeChatUser} removeAction={deleteChat} />
         </DialogContent>
       </Dialog>
 
       <div className="flex items-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-muted"
+            >
               <MoreVertical className="w-5 h-5 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg border-border/50">
-            <DropdownMenuItem 
+          <DropdownMenuContent
+            align="end"
+            className="w-48 rounded-xl shadow-lg border-border/50"
+          >
+            <DropdownMenuItem
               className="text-destructive focus:text-destructive focus:bg-destructive/10 gap-2 cursor-pointer py-2.5"
-              onClick={() => { /* Handle delete chat */ }}
+              onClick={deleteChat}
             >
               <Trash2 className="w-4 h-4" />
               <span className="font-medium">Delete Chat</span>

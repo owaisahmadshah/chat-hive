@@ -13,6 +13,7 @@ import { useChatEmitter } from "@/socket/hooks/useChatEmitter"
 import { useMessageEmitter } from "@/socket/hooks/useMessageEmitter"
 import { ChatListEmpty } from "./Components/ChatListEmpty"
 import { LoadMore } from "@/components/LoadMore"
+import { TChat } from "shared"
 
 interface IChatSectionProps {
   activeChatId: string | null
@@ -41,7 +42,7 @@ const ChatSection = (props: IChatSectionProps) => {
   const chats = data.pages.flatMap((page) => page.chats) ?? []
 
   useEffect(() => {
-    chats.forEach((chat: any) => {
+    chats.forEach((chat: TChat) => {
       joinChat(chat._id)
 
       if (chat.unreadMessages && !processedChatsRef.current.has(chat._id)) {
@@ -51,7 +52,7 @@ const ChatSection = (props: IChatSectionProps) => {
     })
   }, [chats])
 
-  const handleChatClick = (chat: any) => {
+  const handleChatClick = (chat: TChat) => {
     if (chat.unreadMessages) {
       updateSeenStatuses(chat._id, chat.unreadMessages, "seen")
       updateMessagesStatus({ chatId: chat._id, status: "seen" })

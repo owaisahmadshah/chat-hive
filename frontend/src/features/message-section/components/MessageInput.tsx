@@ -1,3 +1,8 @@
+import Lightbox from "yet-another-react-lightbox"
+import Zoom from "yet-another-react-lightbox/plugins/zoom"
+import Download from "yet-another-react-lightbox/plugins/download"
+import "yet-another-react-lightbox/styles.css"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -13,12 +18,6 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { useSendMessage } from "../hooks/useSendMessage"
 import { useChatEmitter } from "@/socket/hooks/useChatEmitter"
-
-// Lightbox imports
-import Lightbox from "yet-another-react-lightbox"
-import Zoom from "yet-another-react-lightbox/plugins/zoom"
-import Download from "yet-another-react-lightbox/plugins/download"
-import "yet-another-react-lightbox/styles.css"
 
 interface IMessageInputProps {
   activeChatId: string
@@ -65,6 +64,8 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
       selectedFiles.forEach((file) => {
         formData.append("uploadedImage", file)
       })
+
+      console.log(formData)
 
       await sendMessage(formData)
 

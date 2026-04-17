@@ -15,6 +15,7 @@ import { MessageNavbarSectionSekeleton } from "./components/Skeleton/MessageNavb
 import { MessageNavbarErrorHandler } from "./components/ErrorHandlers/MessageNavbarErrorHandler"
 import { MessageInputSkeleton } from "./components/Skeleton/MessageInputSkeleton"
 import { MessagesListErrorHandler } from "./components/ErrorHandlers/MessagesListErrorHandler"
+import { useDeleteChat } from "../chat-section/hooks/useDeleteChat"
 
 interface IMessageSectionProps {
   activeChatId: string | null
@@ -26,6 +27,8 @@ const MessageSection = (props: IMessageSectionProps) => {
   const { activeChatId, activeChatUserId, backAction } = props
 
   const userId = useSelector((state: RootState) => state.user.userId)
+
+  const { mutateAsync: deleteChat } = useDeleteChat()
 
   useUserOnlineStatus()
 
@@ -46,6 +49,7 @@ const MessageSection = (props: IMessageSectionProps) => {
           <MessageNavbarSection
             activeChatUserId={activeChatUserId}
             backAction={backAction}
+            deleteChat={async () => await deleteChat({ chatId: activeChatId })}
           />
         </Suspense>
       </ErrorBoundary>
