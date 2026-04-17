@@ -18,6 +18,13 @@ export const verifyOtpService = async (data: TVerifyOtp) => {
   return response.data
 }
 
+export const verifyOtpAndResetPassword = async (
+  data: TVerifyOtp & { newPassword: string }
+) => {
+  const response = await api.post("/v1/user/verify-otp", data)
+  return response.data
+}
+
 export const signInService = async (data: TSignInSchema) => {
   const response = await api.post("/v1/user/sign-in", data)
   return response.data

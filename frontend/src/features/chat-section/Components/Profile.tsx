@@ -18,6 +18,7 @@ import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useSignOutUser } from "@/hooks/useSignOutUser"
 import { useProfileImageUpdate } from "../hooks/useProfileImageUpdate"
+import { ChangePasswordSection } from "./ChangePasswordSection"
 
 const Profile = () => {
   const user = useSelector((state: RootState) => state.user)
@@ -148,6 +149,8 @@ const Profile = () => {
                 <ModeToggle />
               </CardContent>
             </Card>
+
+            <ChangePasswordSection email={user.email} />
 
             <Card>
               <CardHeader>

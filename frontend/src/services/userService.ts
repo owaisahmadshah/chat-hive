@@ -1,4 +1,5 @@
 import api from "@/lib/axiosInstance"
+import { TChangePassword } from "shared"
 
 const getUser = async () => {
   const { data } = await api.post("/v1/user/user")
@@ -25,4 +26,16 @@ const updateProfilePicture = async (data: FormData) => {
   return response.data
 }
 
-export { getUser, deleteUser, signOutUser, updateProfilePicture }
+const changePassword = async (data: TChangePassword) => {
+  const response = await api.patch("/v1/user/change-password", data)
+
+  return response.data
+}
+
+export {
+  getUser,
+  deleteUser,
+  signOutUser,
+  updateProfilePicture,
+  changePassword,
+}

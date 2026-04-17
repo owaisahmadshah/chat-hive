@@ -178,6 +178,9 @@ export class UserService {
 
     if (password) {
       dbUser.password = password
+      if (dbUser.authProvider === "google") {
+        dbUser.authProvider = "local"
+      }
       await userRepository.save(dbUser)
     }
   }
@@ -309,8 +312,28 @@ export class UserService {
       throw new ApiError(404, "User not found")
     }
 
-    if (!user.isPasswordCorrect(oldPassword)) {
-      throw new ApiError(400, "Original password isn't correct")
+    if (user.authProvider === "google") {
+      const otpCode = generateOTP()
+      const otpExpiry = generateExpiryTime()
+
+      const isOtpSent = await this.deps.sendEmail(user.email as string, otpCode)
+
+      if (!isOtpSent) {
+        throw new ApiError(500, "Internal server error, unable to send otp.")
+      }
+
+      await userRepository.updateOtp(userId, otpCode, otpExpiry)
+
+      throw new ApiError(400, "LINKED_WITH_GOOGLE")
+    }
+
+    console.log(oldPassword)
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+    console.log(isPasswordCorrect)
+
+    if (!isPasswordCorrect) {
+      throw new ApiError(400, "INCORRECT_PASSWORD")
     }
 
     user.password = newPassword
