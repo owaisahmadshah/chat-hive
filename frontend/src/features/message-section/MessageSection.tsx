@@ -41,6 +41,7 @@ const MessageSection = (props: IMessageSectionProps) => {
       className={cn(
         // "grid h-[100dvh] w-full grid-rows-[auto_1fr_auto] bg-background pt-[env(safe-area-inset-top)]",
         "grid w-full grid-rows-[auto_1fr_auto] bg-background pt-[env(safe-area-inset-top)]",
+        "h-full overflow-hidden",
         !activeChatId && !activeChatUserId && "max-sm:hidden"
       )}
     >

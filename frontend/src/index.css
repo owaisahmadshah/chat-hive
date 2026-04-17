@@ -57,6 +57,7 @@
   --chart-3: 30 80% 55%;
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
+  --visual-height: 100dvh;
 }
 
 @theme inline {
@@ -170,16 +171,12 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  /* Prevents the 'pull-to-refresh' or 'bounce' behavior */
-  position: fixed;
 }
 
-/* Optional: Prevent rubber-banding on iOS Safari */
 body {
   overscroll-behavior-y: none;
 }

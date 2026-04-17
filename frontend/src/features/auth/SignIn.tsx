@@ -124,7 +124,12 @@ function SignInForm() {
 
     if (!success) {
       // console.error("Error verifying otp", error)
-      setAuthError(error)
+      setVerificationError(error)
+    } else {
+      setAuthError(null)
+      setIsCodeSent(false)
+      setIsVerifying(false)
+      setIsForgotPassword(false)
     }
     setIsSubmitting(false)
   }
@@ -148,7 +153,6 @@ function SignInForm() {
       setIsForgotPassword(false)
     } else {
       setAuthError(error)
-      // console.error("Otp verification error", error)
     }
     setIsSubmitting(false)
   }
@@ -158,6 +162,7 @@ function SignInForm() {
     const { success, error } = await resendOtp({ identifier: watchEmail })
     if (!success) {
       // TODO: SET RESEND CODE ERROR
+      setVerificationError("Unable to resend verification code.")
       setResendCodeError(error)
     }
   }
@@ -285,6 +290,7 @@ function SignInForm() {
   }
 
   if (isCodeSent) {
+    // TODO: Handle error here
     return (
       <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
