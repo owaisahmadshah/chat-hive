@@ -159,10 +159,8 @@ export class MessageService {
 
     let receiver: string = ""
 
-    console.log(chat.users)
     for (let i = 0; i < chat.users.length; i++) {
       if (String(chat.users[i]) !== sender) {
-        console.log(String(chat.users[i]), sender)
         receiver = String(chat.users[i])
       }
     }
@@ -209,7 +207,7 @@ export class MessageService {
     chatId: string
     status: string
   }) {
-    const { messageRepository } = this.deps
+    const { messageRepository, socketService } = this.deps
 
     let statusQuery = ["sent"]
     if (status === "seen") {
@@ -222,21 +220,41 @@ export class MessageService {
       chatId,
     })
 
+    socketService.emit_messages_status(chatId, {
+      chatId,
+      receiver: userId,
+      status: status as "receive" | "seen",
+      numberOfMessages: messages.modifiedCount,
+    })
+
     return messages
   }
 
   async updateMessageStatus({
     messageId,
     status,
+    userId,
   }: {
     messageId: string
     status: string
+    userId: string
   }) {
     const message =
       await this.deps.messageRepository.findByIdAndUpdateMessageStatus({
         messageId,
         status,
       })
+
+    if (!message) {
+      throw new ApiError(404, "Message not found.")
+    }
+
+    this.deps.socketService.emit_message_status(String(message?.chatId), {
+      chatId: String(message.chatId),
+      messageId,
+      receiver: userId,
+      status: status as "seen" | "receive",
+    })
 
     return message
   }
@@ -252,7 +270,7 @@ export class MessageService {
     limit: number
     cursor: null | string
   }) {
-    const { messageRepository } = this.deps
+    const { messageRepository, socketService } = this.deps
 
     const messages = await messageRepository.findMessagesByChatId({
       chatId,
@@ -263,6 +281,18 @@ export class MessageService {
 
     const hasMore = messages.length === limit
     const nextCursor = hasMore ? messages[0]._id.toString() : null
+
+    const unreadMessages = await messageRepository.countUnreadMessages(
+      chatId,
+      userId
+    )
+
+    socketService.emit_messages_status(chatId, {
+      chatId,
+      numberOfMessages: unreadMessages,
+      receiver: userId,
+      status: "seen",
+    })
 
     return {
       messages,

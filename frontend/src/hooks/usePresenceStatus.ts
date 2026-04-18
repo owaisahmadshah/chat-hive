@@ -3,8 +3,7 @@ import { useSelector } from "react-redux"
 import { RootState } from "@/store/store"
 import { usePresenceEmitter } from "@/socket/hooks/usePresenceEmitter"
 import { useSearchParams } from "react-router-dom"
-import { useMessageEmitter } from "@/socket/hooks/useMessageEmitter"
-import { useChatReadQueries } from "@/features/chat-section/utils/chat-read-queries"
+import { useUpdateChatSeenMessages } from "./useUpdateChatSeenMessages"
 
 const usePresenceStatus = () => {
   const [lastStatus, setLastStatus] = useState<boolean | null>(null)
@@ -12,9 +11,7 @@ const usePresenceStatus = () => {
 
   const { sendOnline, sendOffline } = usePresenceEmitter()
   const [params] = useSearchParams()
-  const { getUnreadMessages } = useChatReadQueries()
-
-  const { updateSeenStatuses } = useMessageEmitter()
+  const { mutate: updateMessagesStatus } = useUpdateChatSeenMessages()
 
   const user = useSelector((state: RootState) => state.user)
 
@@ -51,8 +48,7 @@ const usePresenceStatus = () => {
       const activeChatId = params.get("chatId")
 
       if (activeChatId) {
-        const unreadMessages = getUnreadMessages(activeChatId)
-        updateSeenStatuses(activeChatId, unreadMessages, "seen")
+        updateMessagesStatus({ chatId: activeChatId, status: "seen" })
       }
     }
     const handleBlur = () => updateUserStatus(false)

@@ -1,14 +1,16 @@
+import type { handleSeenAndReceiveMessagesType } from "shared"
 import { ApiError } from "../../shared/utils/ApiError.js"
+import type { SocketService } from "../../socket/services/socket.service.js"
 import type { ChatRepository } from "./chat.repository.js"
 
 interface IChatServiceDeps {
   chatRepository: ChatRepository
+  socketService: SocketService
 }
 
 export class ChatService {
   constructor(private deps: IChatServiceDeps) {}
 
-  // Users are unique and doesn't include admin
   async createChat(users: string[], userId: string) {
     const { chatRepository } = this.deps
 
@@ -66,12 +68,27 @@ export class ChatService {
     limit: number
     cursor: string | null
   }) {
-    const { chatRepository } = this.deps
+    const { chatRepository, socketService } = this.deps
 
     const chats = await chatRepository.findUserChats({ userId, limit, cursor })
 
     const hasMore = chats.length === limit
     const nextCursor = hasMore ? (chats.at(-1)?.updatedAt ?? null) : null
+
+    let unreadMessagesChats: handleSeenAndReceiveMessagesType[] = []
+
+    for (let i = 0; i < chats.length; i++) {
+      if (chats[i].unreadMessages) {
+        unreadMessagesChats.push({
+          chatId: String(chats[i]._id),
+          numberOfMessages: chats[i].unreadMessages,
+          receiver: userId,
+          status: "receive",
+        })
+      }
+    }
+
+    socketService.emit_messages_array_status(unreadMessagesChats)
 
     return { chats, hasMore, nextCursor }
   }

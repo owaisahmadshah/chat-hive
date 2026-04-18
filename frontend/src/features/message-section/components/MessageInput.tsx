@@ -65,8 +65,6 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
         formData.append("uploadedImage", file)
       })
 
-      console.log(formData)
-
       await sendMessage(formData)
 
       // Cleanup
