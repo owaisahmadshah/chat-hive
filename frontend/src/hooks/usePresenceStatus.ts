@@ -3,8 +3,7 @@ import { useSelector } from "react-redux"
 import { RootState } from "@/store/store"
 import { usePresenceEmitter } from "@/socket/hooks/usePresenceEmitter"
 import { useSearchParams } from "react-router-dom"
-import { useMessageEmitter } from "@/socket/hooks/useMessageEmitter"
-import { useChatReadQueries } from "@/features/chat-section/utils/chat-read-queries"
+import { useUpdateChatSeenMessages } from "./useUpdateChatSeenMessages"
 
 const usePresenceStatus = () => {
   const [lastStatus, setLastStatus] = useState<boolean | null>(null)
@@ -12,9 +11,9 @@ const usePresenceStatus = () => {
 
   const { sendOnline, sendOffline } = usePresenceEmitter()
   const [params] = useSearchParams()
-  const { getUnreadMessages } = useChatReadQueries()
+  const activeChatId = params.get("chatId")
 
-  const { updateSeenStatuses } = useMessageEmitter()
+  const { mutate: updateMessagesStatus } = useUpdateChatSeenMessages()
 
   const user = useSelector((state: RootState) => state.user)
 
@@ -43,16 +42,21 @@ const usePresenceStatus = () => {
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      updateUserStatus(document.visibilityState === "visible" ? true : false)
+      const isVisible = document.visibilityState === "visible"
+
+      updateUserStatus(isVisible)
+
+      // This covers mobile app switching, tab switching on mobile
+      if (isVisible && activeChatId) {
+        updateMessagesStatus({ chatId: activeChatId, status: "seen" })
+      }
     }
 
     const handleFocus = () => {
       updateUserStatus(true)
-      const activeChatId = params.get("chatId")
 
       if (activeChatId) {
-        const unreadMessages = getUnreadMessages(activeChatId)
-        updateSeenStatuses(activeChatId, unreadMessages, "seen")
+        updateMessagesStatus({ chatId: activeChatId, status: "seen" })
       }
     }
     const handleBlur = () => updateUserStatus(false)
@@ -66,7 +70,7 @@ const usePresenceStatus = () => {
       window.removeEventListener("focus", handleFocus)
       window.removeEventListener("blur", handleBlur)
     }
-  }, [lastStatus, user])
+  }, [lastStatus, user, activeChatId])
 
   return
 }

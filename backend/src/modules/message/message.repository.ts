@@ -145,4 +145,19 @@ export class MessageRepository {
       },
     ])
   }
+
+  countUnreadMessages(chatId: string, currentUserId: string) {
+    return Message.countDocuments({
+      chatId,
+      sender: {
+        $ne: currentUserId,
+      },
+      status: {
+        $ne: "seen",
+      },
+      deletedBy: {
+        $ne: currentUserId,
+      },
+    })
+  }
 }

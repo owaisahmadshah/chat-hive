@@ -4,20 +4,13 @@ import { MessageNavbarSectionSekeleton } from "@/features/message-section/compon
 import { MessagesListSkeleton } from "@/features/message-section/components/Skeleton/MessagesListSkeleton"
 import { cn } from "@/lib/utils"
 
-export const HomePageSkeleton = ({
-  activeChatId,
-  activeChatUserId,
-}: {
-  activeChatId: string | null
-  activeChatUserId: string | null
-}) => {
+export const HomePageSkeleton = () => {
   return (
     <div className="flex h-dvh overflow-hidden bg-background w-full">
       <ChatSectionSkeleton />
       <div
         className={cn(
-          "grid h-[100dvh] w-full grid-rows-[auto_1fr_auto] bg-background pt-[env(safe-area-inset-top)]",
-          !activeChatId && !activeChatUserId && "max-sm:hidden"
+          "grid h-[100dvh] w-full grid-rows-[auto_1fr_auto] bg-background pt-[env(safe-area-inset-top)] max-sm:hidden"
         )}
       >
         <MessageNavbarSectionSekeleton />

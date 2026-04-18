@@ -65,8 +65,6 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
         formData.append("uploadedImage", file)
       })
 
-      console.log(formData)
-
       await sendMessage(formData)
 
       // Cleanup
@@ -100,6 +98,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
 
   useEffect(() => {
     if (!userInputMessage || userInputMessage.trim() === "") {
+      sendTyping(false)
       return
     }
 

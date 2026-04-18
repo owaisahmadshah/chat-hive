@@ -64,7 +64,9 @@ export class MessageController {
 
     return res
       .status(201)
-      .json(new ApiResponse(201, deletedMessage, "Deleted Message successfully"))
+      .json(
+        new ApiResponse(201, deletedMessage, "Deleted Message successfully")
+      )
   })
 
   /**
@@ -104,6 +106,7 @@ export class MessageController {
     const message = await this.deps.messageService.updateMessageStatus({
       messageId,
       status,
+      userId: String(req.user?._id),
     })
 
     return res

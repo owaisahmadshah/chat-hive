@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSearchParams } from "react-router-dom"
 import { useSelector } from "react-redux"
@@ -46,6 +46,14 @@ const useInitSocket = () => {
   const activeChatId = params.get("chatId")
   const activeChatUserId = params.get("userId")
 
+  const activeChatIdRef = useRef(activeChatId)
+  const activeChatUserIdRef = useRef(activeChatUserId)
+
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId
+    activeChatUserIdRef.current = activeChatUserId
+  }, [activeChatId, activeChatUserId])
+
   useEffect(() => {
     if (!userId || userId.trim() === "") return
 
@@ -53,8 +61,13 @@ const useInitSocket = () => {
     socket.emit(USER_CONNECTED, userId)
 
     // ── NEW_MESSAGE ────────────────────────────────────────────────────────
-    const handleNewMessage = async (data: { message: Message }) => {
+    const handleNewMessage = async (
+      data: { message: Message },
+      callback: (response: { success: boolean; message: string }) => void
+    ) => {
       const { message } = data
+
+      callback({ success: true, message: "RECEIVED_MESSAGE" })
 
       if (!hasChat({ chatId: message.chatId })) {
         await fetchChat({ chatId: message.chatId })
@@ -73,8 +86,9 @@ const useInitSocket = () => {
         })
       )
 
+      // Use activeChatIdRef, it will always give the lastest updated value
       const isActiveChat =
-        activeChatId === message.chatId &&
+        activeChatIdRef.current === message.chatId &&
         document.visibilityState === "visible"
 
       const status: "seen" | "receive" = isActiveChat ? "seen" : "receive"
@@ -115,7 +129,10 @@ const useInitSocket = () => {
         })
       )
 
-      if (activeChatUserId === data.userId && activeChatId === data.chatId) {
+      if (
+        activeChatUserIdRef.current === data.userId &&
+        activeChatIdRef.current === data.chatId
+      ) {
         queryClient.setQueryData(["user", data.userId], (oldData: any) =>
           updateActiveChatUserTypingStatus({
             oldData,
@@ -149,15 +166,10 @@ const useInitSocket = () => {
     const handleReconnect = async () => {
       socket.emit(USER_CONNECTED, userId)
       queryClient.invalidateQueries({ queryKey: ["chats"] })
-      if (activeChatId) {
-        // It will invalidate only active chat
-        // queryClient.invalidateQueries({ queryKey: ["messages", activeChatId] })
-      }
-      // It will invalidate all
       queryClient.invalidateQueries({ queryKey: ["messages"] })
     }
 
-    socket.on("reconnect", handleReconnect)
+    socket.io.on("reconnect", handleReconnect)
     socket.on(NEW_MESSAGE, handleNewMessage)
     socket.on(TYPING, handleTyping)
     socket.on(SEEN_AND_RECEIVE_MESSAGE, handleSeenAndReceiveMessage)
@@ -168,6 +180,7 @@ const useInitSocket = () => {
       socket.off(TYPING, handleTyping)
       socket.off(SEEN_AND_RECEIVE_MESSAGE, handleSeenAndReceiveMessage)
       socket.off(SEEN_AND_RECEIVE_MESSAGES, handleSeenAndReceiveMessages)
+      socket.io.off("reconnect", handleReconnect)
     }
   }, [userId])
 }
