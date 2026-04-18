@@ -11,6 +11,8 @@ const usePresenceStatus = () => {
 
   const { sendOnline, sendOffline } = usePresenceEmitter()
   const [params] = useSearchParams()
+  const activeChatId = params.get("chatId")
+
   const { mutate: updateMessagesStatus } = useUpdateChatSeenMessages()
 
   const user = useSelector((state: RootState) => state.user)
@@ -40,12 +42,18 @@ const usePresenceStatus = () => {
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      updateUserStatus(document.visibilityState === "visible" ? true : false)
+      const isVisible = document.visibilityState === "visible"
+
+      updateUserStatus(isVisible)
+
+      // This covers mobile app switching, tab switching on mobile
+      if (isVisible && activeChatId) {
+        updateMessagesStatus({ chatId: activeChatId, status: "seen" })
+      }
     }
 
     const handleFocus = () => {
       updateUserStatus(true)
-      const activeChatId = params.get("chatId")
 
       if (activeChatId) {
         updateMessagesStatus({ chatId: activeChatId, status: "seen" })
@@ -62,7 +70,7 @@ const usePresenceStatus = () => {
       window.removeEventListener("focus", handleFocus)
       window.removeEventListener("blur", handleBlur)
     }
-  }, [lastStatus, user])
+  }, [lastStatus, user, activeChatId])
 
   return
 }
