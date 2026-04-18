@@ -98,6 +98,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
 
   useEffect(() => {
     if (!userInputMessage || userInputMessage.trim() === "") {
+      sendTyping(false)
       return
     }
 
