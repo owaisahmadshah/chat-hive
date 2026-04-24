@@ -1,0 +1,91 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  build:
+    name: Test and Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Install all dependencies
+        run: pnpm install
+
+      - name: Build shared
+        run: pnpm --filter shared build
+
+      - name: Build backend
+        run: pnpm --filter backend build
+
+      - name: Build frontend
+        run: pnpm --filter frontend build
+
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Install all dependencies
+        run: pnpm install
+
+      - name: Build shared
+        run: pnpm --filter shared build
+
+      - name: Build backend
+        run: pnpm --filter backend build
+
+      - name: Build frontend
+        run: pnpm --filter frontend build
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "backend/dist/,frontend/dist/,shared/dist/,package.json,pnpm-lock.yaml,pnpm-workspace.yaml,backend/package.json,frontend/package.json,shared/package.json"
+          target: "/home/ubuntu/app"
+
+      - name: SSH and restart app
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/app
+            which pnpm || npm install -g pnpm@10.4.1
+            pnpm install --prod
+            pm2 restart chat-hive-backend || pm2 start backend/dist/src/index.js --name chat-hive-server
+            pm2 save
