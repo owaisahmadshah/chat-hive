@@ -6,7 +6,6 @@ on:
       - main
 
 jobs:
-
   build:
     name: Test and Build
     runs-on: ubuntu-latest
@@ -36,6 +35,9 @@ jobs:
 
       - name: Build frontend
         run: pnpm --filter frontend build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_REACT_APP_SOCKET_URL: ${{ secrets.VITE_REACT_APP_SOCKET_URL }}
 
   deploy:
     name: Deploy to EC2
@@ -67,6 +69,9 @@ jobs:
 
       - name: Build frontend
         run: pnpm --filter frontend build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_REACT_APP_SOCKET_URL: ${{ secrets.VITE_REACT_APP_SOCKET_URL }}
 
       - name: Copy files to EC2
         uses: appleboy/scp-action@v0.1.7
