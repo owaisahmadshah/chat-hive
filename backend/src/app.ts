@@ -13,6 +13,8 @@ const app = express()
  */
 const morganFormat = ":method :url :status :response-time ms"
 
+app.set('trust proxy', 1)
+
 // Configure middleware
 app.use(
   cors({

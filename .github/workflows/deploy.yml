@@ -87,5 +87,5 @@ jobs:
             cd /home/ubuntu/app
             which pnpm || npm install -g pnpm@10.4.1
             pnpm install --prod
-            pm2 restart chat-hive-backend || pm2 start backend/dist/src/index.js --name chat-hive-server
+            pm2 restart chat-hive-server || pm2 start dist/index.js --name "chat-hive-server" --node-args="--env-file=.env"
             pm2 save
