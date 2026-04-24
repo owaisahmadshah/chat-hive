@@ -1,58 +1,52 @@
-# 💬 Chat Hive
+# Chat Hive
 
-🚀 A real-time chat application where users can send messages, share images, and communicate instantly.
+A real-time chat application where users can send messages, share images, and communicate instantly.
 
-## 📌 Features
+## Features
 
--   🔥 **Real-time Messaging** – Instant communication using WebSockets.
--   🖼 **Image Sharing** – Send and receive pictures seamlessly.
--   🔒 **Secure Authentication** – User authentication with Clerk.
--   📡 **Fast & Scalable** – Built with modern web technologies for smooth performance.
+- **Real-time Messaging** – Instant communication using WebSockets.
+- **Image Sharing** – Send and receive pictures seamlessly.
+- **Authentication** – Email/password with verification, and Google OAuth 2.0.
+- **Fast & Scalable** – Built with modern web technologies for smooth performance.
 
-## 🛠 Tech Stack
+## Tech Stack
 
--   ⚡ **Frontend:** React.js, Shadcn, Tailwind CSS, Zod
--   ⚡ **Backend:** Node.js, Express.js, TypeScript
--   ⚡ **Database:** MongoDB
--   ⚡ **Real-time:** Socket.io
--   ⚡ **Storage:** Cloudinary
+- **Frontend:** React.js, Shadcn, Tailwind CSS, Zod
+- **Backend:** Node.js, Express.js, TypeScript
+- **Database:** MongoDB
+- **Real-time:** Socket.io
+- **Storage:** Cloudinary
 
-## 📂 Project Structure
+## Project Structure
 
 This project is organized as a monorepo using pnpm workspaces:
 
--   `frontend/` - React application with Shadcn UI components
--   `backend/` - Express.js server with Socket.io integration
+- `frontend/` - React application with Shadcn UI components
+- `backend/` - Express.js server with Socket.io integration
+- `shared/` - Shared TypeScript types and utilities
 
-## 📚 Documentation
-
-For full documentation, please visit the [docs](./docs/README.md) folder.
-
-- [Getting Started](./docs/getting-started.md)
-- [Architecture](./docs/architecture.md)
-- [API Reference](./docs/api-reference.md)
-
-## 📦 Installation
+## Installation
 
 1. **Clone the repository:**
 
-    ```bash
+```bash
     git clone https://github.com/owaisahmadshah/chat-hive.git
     cd chat-hive
-    ```
+```
 
 2. **Install pnpm (if not installed):**
 
-    ```bash
+```bash
     npm install -g pnpm
-    ```
+```
 
 3. **Install dependencies:**
-    ```bash
-    pnpm install
-    ```
 
-## 🚀 Development
+```bash
+    pnpm install
+```
+
+## Development
 
 Run both frontend and backend in development mode:
 
@@ -70,18 +64,12 @@ pnpm dev:frontend
 pnpm dev:backend
 ```
 
-## 🏗️ Building for Production
-
-Build both packages:
+## Building for Production
 
 ```bash
 pnpm build
 ```
 
-## 🧹 Linting
+## License
 
-Lint both packages:
-
-```bash
-pnpm lint
-```
+This project is licensed under the [MIT License](LICENSE).
