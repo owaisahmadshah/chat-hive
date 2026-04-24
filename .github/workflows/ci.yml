@@ -1,0 +1,43 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Test and Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Install all dependencies
+        run: pnpm install
+
+      - name: Build shared
+        run: pnpm --filter shared build
+
+      - name: Build backend
+        run: pnpm --filter backend build
+      - name: Build frontend
+
+        run: pnpm --filter frontend build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_REACT_APP_SOCKET_URL: ${{ secrets.VITE_REACT_APP_SOCKET_URL }}

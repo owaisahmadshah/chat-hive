@@ -1,6 +1,9 @@
 {
   "name": "shared",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types and utilities for Chat Hive",
+  "author": "Owais Ahmad Shah",
+  "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
