@@ -38,14 +38,7 @@ const HomePage = () => {
       className="fixed inset-0 flex overflow-hidden bg-background"
       style={{ height: "var(--visual-height, 100dvh)" }}
     >
-      <Suspense
-        fallback={
-          <HomePageSkeleton
-            activeChatId={activeChatId}
-            activeChatUserId={activeChatUserId}
-          />
-        }
-      >
+      <Suspense fallback={<HomePageSkeleton />}>
         <ChatSection
           activeChatId={activeChatId}
           activeChatUserId={activeChatUserId}
