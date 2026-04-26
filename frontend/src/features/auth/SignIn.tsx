@@ -16,13 +16,13 @@ import {
 import {
   AlertCircle,
   MessageSquare,
-  Sparkles,
   Lock,
   Mail,
   User,
   ArrowRight,
   Shield,
   CheckCircle2,
+  Zap,
 } from "lucide-react"
 import { resetPasswordSchema } from "./types/resetPasswordSchema"
 import { useAuth } from "./hooks/useAuth"
@@ -52,10 +52,7 @@ function SignInForm() {
     formState: { errors },
   } = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
-    defaultValues: {
-      identifier: "",
-      password: "",
-    },
+    defaultValues: { identifier: "", password: "" },
   })
 
   const watchEmail = watch("identifier")
@@ -71,40 +68,26 @@ function SignInForm() {
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     const { identifier, password } = data
     if (password.trim() === "") return
-
     setIsSubmitting(true)
     setAuthError(null)
-
     const { success, isVerified, error } = await signIn({
       identifier,
       password,
     })
-
-    if (success) {
-      setRedirect(true)
-    } else if (!isVerified && !error) {
-      setIsVerifying(true)
-    } else {
-      setAuthError(error ?? "Something went wrong!!")
-    }
+    if (success) setRedirect(true)
+    else if (!isVerified && !error) setIsVerifying(true)
+    else setAuthError(error ?? "Something went wrong!!")
     setIsSubmitting(false)
   }
 
   const sendCode = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
-
     setIsSubmitting(true)
     setAuthError(null)
-
     const { success, error } = await resendOtp({ identifier: email })
-
-    if (success) {
-      setIsCodeSent(true)
-    } else {
-      // setAuthError("Failed to send code. Please try again.")
-      setAuthError(error)
-    }
+    if (success) setIsCodeSent(true)
+    else setAuthError(error)
     setIsSubmitting(false)
   }
 
@@ -112,20 +95,15 @@ function SignInForm() {
     data: z.infer<typeof resetPasswordSchema>
   ) => {
     if (verificationCode.trim().length !== 6 || !email) return
-
     setIsSubmitting(true)
     setVerificationError(null)
-
     const { success, error } = await forgetPassword({
       identifier: email,
       otpCode: verificationCode,
       password: data.password,
     })
-
-    if (!success) {
-      // console.error("Error verifying otp", error)
-      setVerificationError(error)
-    } else {
+    if (!success) setVerificationError(error)
+    else {
       setAuthError(null)
       setIsCodeSent(false)
       setIsVerifying(false)
@@ -137,15 +115,12 @@ function SignInForm() {
   const handleVerify = async () => {
     if (!verifyUserCode.trim() || verifyUserCode.length !== 6 || !watchEmail)
       return
-
     setVerificationError(null)
     setIsSubmitting(true)
-
     const { success, error } = await verifyOtp({
       identifier: watchEmail,
       otpCode: verifyUserCode,
     })
-
     if (success) {
       setAuthError(null)
       setIsCodeSent(false)
@@ -161,23 +136,20 @@ function SignInForm() {
     if (!watchEmail) return
     const { success, error } = await resendOtp({ identifier: watchEmail })
     if (!success) {
-      // TODO: SET RESEND CODE ERROR
       setVerificationError("Unable to resend verification code.")
       setResendCodeError(error)
     }
   }
 
-  if (redirect) {
-    window.location.reload()
-  }
+  if (redirect) window.location.reload()
 
+  // ── Verify Email ──────────────────────────────────────────────────────────
   if (isVerifying) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
-        {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-700"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-700" />
         </div>
 
         <div className="w-full max-w-md relative z-10">
@@ -195,14 +167,7 @@ function SignInForm() {
 
           <Card className="border-muted/40 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
             <CardContent className="pt-6">
-              {verificationError && (
-                <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg mb-6 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
-                  <p className="text-sm text-destructive">
-                    {verificationError}
-                  </p>
-                </div>
-              )}
+              {verificationError && <ErrorAlert message={verificationError} />}
 
               <div className="space-y-6">
                 <div className="space-y-3">
@@ -212,34 +177,17 @@ function SignInForm() {
                   <InputOTP
                     maxLength={6}
                     value={verifyUserCode}
-                    onChange={(code) => setVerifyUserCode(code)}
+                    onChange={setVerifyUserCode}
                     className="justify-center"
                   >
                     <InputOTPGroup className="gap-2">
-                      <InputOTPSlot
-                        index={0}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={1}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={2}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={3}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={4}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={5}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
+                      {[...Array(6)].map((_, i) => (
+                        <InputOTPSlot
+                          key={i}
+                          index={i}
+                          className="w-12 h-12 text-lg border-muted/40"
+                        />
+                      ))}
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
@@ -289,13 +237,13 @@ function SignInForm() {
     )
   }
 
+  // ── Reset Password (code sent) ─────────────────────────────────────────────
   if (isCodeSent) {
-    // TODO: Handle error here
     return (
       <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-700"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-700" />
         </div>
 
         <div className="w-full max-w-md relative z-10">
@@ -313,14 +261,7 @@ function SignInForm() {
 
           <Card className="border-muted/40 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
             <CardContent className="pt-6">
-              {verificationError && (
-                <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg mb-6 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
-                  <p className="text-sm text-destructive">
-                    {verificationError}
-                  </p>
-                </div>
-              )}
+              {verificationError && <ErrorAlert message={verificationError} />}
 
               <form
                 onSubmit={handleSubmitReset(handleResetVerification)}
@@ -380,34 +321,17 @@ function SignInForm() {
                   <InputOTP
                     maxLength={6}
                     value={verificationCode}
-                    onChange={(code) => setVerificationCode(code)}
+                    onChange={setVerificationCode}
                     className="justify-center"
                   >
                     <InputOTPGroup className="gap-2">
-                      <InputOTPSlot
-                        index={0}
-                        className="w-11 h-11 border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={1}
-                        className="w-11 h-11 border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={2}
-                        className="w-11 h-11 border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={3}
-                        className="w-11 h-11 border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={4}
-                        className="w-11 h-11 border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={5}
-                        className="w-11 h-11 border-muted/40"
-                      />
+                      {[...Array(6)].map((_, i) => (
+                        <InputOTPSlot
+                          key={i}
+                          index={i}
+                          className="w-11 h-11 border-muted/40"
+                        />
+                      ))}
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
@@ -453,12 +377,13 @@ function SignInForm() {
     )
   }
 
+  // ── Forgot Password ───────────────────────────────────────────────────────
   if (isForgotPassword) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-700"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-700" />
         </div>
 
         <div className="w-full max-w-md relative z-10">
@@ -476,12 +401,7 @@ function SignInForm() {
 
           <Card className="border-muted/40 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
             <CardContent className="pt-6">
-              {authError && (
-                <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg mb-6 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
-                  <p className="text-sm text-destructive">{authError}</p>
-                </div>
-              )}
+              {authError && <ErrorAlert message={authError} />}
 
               <form onSubmit={sendCode} className="space-y-5">
                 <div className="space-y-2">
@@ -540,94 +460,118 @@ function SignInForm() {
     )
   }
 
+  // ── Main Sign In ──────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-700"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/3 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
+    <div className="flex min-h-screen w-full bg-background">
+      {/* Left Side: Branding & Info (Hidden on Mobile) */}
+      <div className="hidden lg:flex w-1/2 bg-muted/30 relative flex-col justify-between p-12 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom_right,var(--tw-gradient-stops))] from-primary/5 via-transparent to-primary/10" />
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Brand Header */}
-        <div className="text-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/20">
-            <MessageSquare className="w-8 h-8 text-primary-foreground" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
+            <div className="p-2 bg-primary rounded-lg">
+              <MessageSquare className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <span>Chat Hive</span>
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
-            Welcome Back
-          </h1>
-          <p className="text-muted-foreground flex items-center justify-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Sign in to continue to Chat Hive
-          </p>
         </div>
 
-        {/* Main Card */}
-        <Card className="border-muted/40 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
-          <CardContent className="pt-6">
-            {authError && (
-              <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg mb-6 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
-                <p className="text-sm text-destructive">{authError}</p>
-              </div>
-            )}
+        <div className="relative z-10 space-y-8">
+          <h2 className="text-4xl font-medium leading-tight">
+            Connect instantly with <br />
+            <span className="text-primary font-semibold">
+              Real-time Precision.
+            </span>
+          </h2>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="grid gap-6">
+            <FeatureItem
+              icon={Zap}
+              title="Instant Delivery"
+              desc="Socket.IO powered messaging with zero latency."
+            />
+            <FeatureItem
+              icon={CheckCircle2}
+              title="Read Receipts"
+              desc="Know exactly when your messages are seen."
+            />
+            <FeatureItem
+              icon={Shield}
+              title="Secure Auth"
+              desc="Short-lived tokens and rotation for maximum security."
+            />
+          </div>
+        </div>
+
+        <div className="relative z-10 text-sm text-muted-foreground flex items-center gap-4">
+          <div className="flex -space-x-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="w-8 h-8 rounded-full border-2 border-background bg-muted"
+              />
+            ))}
+          </div>
+          <p>Joined by 2,000+ users worldwide</p>
+        </div>
+      </div>
+
+      {/* Right Side: Sign In Form */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div className="w-full max-w-[400px] space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+          <div className="space-y-2 text-center lg:text-left">
+            <h1 className="text-3xl font-semibold tracking-tight">
+              Welcome back
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Enter your credentials to access your account
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {authError && <ErrorAlert message={authError} />}
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="identifier" className="text-sm font-medium">
-                  Username or Email
-                </Label>
-                <div className="relative group">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                <Label htmlFor="identifier">Username or Email</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="identifier"
-                    type="text"
-                    className="pl-10 h-11 border-muted/40 focus-visible:ring-primary/20 transition-all"
-                    placeholder="username or you@example.com"
-                    autoFocus
+                    placeholder="name@example.com"
+                    className="pl-10 bg-muted/20 border-border/60 focus:bg-background transition-all"
                     {...register("identifier")}
                   />
                 </div>
                 {errors.identifier && (
-                  <p className="text-xs text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <AlertCircle className="w-3 h-3" />
+                  <p className="text-xs text-destructive">
                     {errors.identifier.message}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium">
-                    Password
-                  </Label>
-                  <Button
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <button
                     type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      setAuthError(null)
-                      setIsForgotPassword(true)
-                    }}
-                    className="text-xs h-auto p-0 font-medium text-primary hover:text-primary/80 hover:bg-transparent"
+                    onClick={() => setIsForgotPassword(true)}
+                    className="text-xs text-primary hover:underline font-medium"
                   >
-                    Forgot password?
-                  </Button>
+                    Forgot?
+                  </button>
                 </div>
-                <div className="relative group">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
-                    className="pl-10 h-11 border-muted/40 focus-visible:ring-primary/20 transition-all"
-                    placeholder="Enter your password"
+                    className="pl-10 bg-muted/20 border-border/60 focus:bg-background transition-all"
                     {...register("password")}
                   />
                 </div>
                 {errors.password && (
-                  <p className="text-xs text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <AlertCircle className="w-3 h-3" />
+                  <p className="text-xs text-destructive">
                     {errors.password.message}
                   </p>
                 )}
@@ -635,58 +579,71 @@ function SignInForm() {
 
               <Button
                 type="submit"
-                className="w-full h-11 font-medium group relative overflow-hidden shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                className="w-full shadow-md"
                 disabled={isSubmitting}
               >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      Sign In
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </span>
+                {isSubmitting ? "Authenticating..." : "Sign In"}
               </Button>
-
-              <ContinueWithGoogle />
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-muted/40"></div>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    New to Chat Hive?
-                  </span>
-                </div>
-              </div>
-
-              <Link to="/sign-up" className="block">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full h-11 font-medium border-muted/40 hover:bg-primary/5 hover:border-primary/30 transition-all group"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    Create an Account
-                    <Sparkles className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  </span>
-                </Button>
-              </Link>
             </form>
-          </CardContent>
-        </Card>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground mt-6 animate-in fade-in duration-700 delay-300">
-          By signing in, you agree to our Terms of Service and Privacy Policy
-        </p>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <ContinueWithGoogle />
+
+            <p className="text-center text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link
+                to="/sign-up"
+                className="text-primary font-medium hover:underline"
+              >
+                Create account
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
+    </div>
+  )
+}
+
+// ── Helper Components ─────────────────────────────────────────────────────────
+
+function FeatureItem({
+  icon: Icon,
+  title,
+  desc,
+}: {
+  icon: any
+  title: string
+  desc: string
+}) {
+  return (
+    <div className="flex gap-4">
+      <div className="mt-1 bg-primary/10 p-2 rounded-lg h-fit">
+        <Icon className="w-4 h-4 text-primary" />
+      </div>
+      <div>
+        <h4 className="font-medium text-sm">{title}</h4>
+        <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+      </div>
+    </div>
+  )
+}
+
+function ErrorAlert({ message }: { message: string }) {
+  return (
+    <div className="flex items-center gap-2 p-3 text-xs font-medium bg-destructive/10 border border-destructive/20 text-destructive rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
+      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+      {message}
     </div>
   )
 }

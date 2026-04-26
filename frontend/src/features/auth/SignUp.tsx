@@ -26,6 +26,8 @@ import {
   Loader2,
   Check,
   X,
+  Zap,
+  Image as ImageIcon,
 } from "lucide-react"
 import { useAuth } from "./hooks/useAuth"
 import debounce from "lodash.debounce"
@@ -48,7 +50,6 @@ function SignUpForm() {
   const [resendError, setResendError] = useState<null | string>(null)
 
   const navigate = useNavigate()
-
   const { signUp, verifyOtp, resendOtp, uniqueUserUsername } = useAuth()
 
   const {
@@ -74,7 +75,6 @@ function SignUpForm() {
         setUsernameAvailable(null)
         return
       }
-
       setCheckingUsername(true)
       const available = await uniqueUserUsername(username.trim())
       setUsernameAvailable(available)
@@ -89,34 +89,26 @@ function SignUpForm() {
 
   const handleVerificationSubmit = async () => {
     if (verificationCode.trim().length !== 6) return
-
     setIsSubmitting(true)
     setVerificationError(null)
-
     const { success, error } = await verifyOtp({
       identifier: identifier.trim(),
       otpCode: verificationCode,
     })
-
     if (success) {
       navigate("/sign-in")
     } else {
       setVerificationError(error)
-      // console.error("Otp verification error", error)
     }
-
     setIsSubmitting(false)
   }
 
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     const { email, username, password } = data
     if (password.trim() === "") return
-
     setIsSubmitting(true)
     setAuthError(null)
-
     const { success, error } = await signUp(data)
-
     if (success) {
       setIdentifier(email ?? username)
       setIsVerifying(true)
@@ -134,354 +126,313 @@ function SignUpForm() {
     }
   }
 
+  // Reusable Component for Verification and Errors
+  const AuthLayout = ({ children, title, subtitle, icon: Icon }: any) => (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6">
+      <div className="w-full max-w-[400px] space-y-6">
+        <div className="text-center space-y-2">
+          <div className="inline-flex p-3 rounded-xl bg-primary/10 mb-2">
+            <Icon className="w-6 h-6 text-primary" />
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+
   if (isVerifying) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-700"></div>
-        </div>
-
-        <div className="w-full max-w-md relative z-10">
-          <div className="text-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 backdrop-blur-sm border border-primary/20">
-              <Shield className="w-8 h-8 text-primary" />
-            </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
-              Verify Your Email
-            </h1>
-            <p className="text-muted-foreground">
-              We sent a 6-digit code to{" "}
-              <span className="font-medium text-foreground">{identifier}</span>
-            </p>
-          </div>
-
-          <Card className="border-muted/40 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
-            <CardContent className="pt-6">
-              {verificationError && (
-                <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg mb-6 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
-                  <p className="text-sm text-destructive">
-                    {verificationError}
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">
-                    Verification Code
-                  </Label>
-                  <InputOTP
-                    maxLength={6}
-                    value={verificationCode}
-                    onChange={(code) => setVerificationCode(code)}
-                    className="justify-center"
-                  >
-                    <InputOTPGroup className="gap-2">
-                      <InputOTPSlot
-                        index={0}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={1}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={2}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={3}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={4}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                      <InputOTPSlot
-                        index={5}
-                        className="w-12 h-12 text-lg border-muted/40"
-                      />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
-
-                <Button
-                  onClick={handleVerificationSubmit}
-                  className="w-full h-11 font-medium group relative overflow-hidden"
-                  disabled={isSubmitting || verificationCode.length !== 6}
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    {isSubmitting ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                        Verifying...
-                      </>
-                    ) : (
-                      <>
-                        Verify Email
-                        <CheckCircle2 className="w-4 h-4" />
-                      </>
-                    )}
-                  </span>
-                </Button>
-
-                <div className="text-center pt-2">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Didn't receive a code?
-                  </p>
-                  <Button
-                    onClick={handleResendCode}
-                    variant="ghost"
-                    className="text-sm font-medium hover:text-primary"
-                  >
-                    Resend Code
-                  </Button>
-                  {resendError && (
-                    <span className="text-xs text-red-500">{resendError}</span>
-                  )}
-                </div>
+      <AuthLayout
+        title="Verify Your Email"
+        subtitle={`We sent a code to ${identifier}`}
+        icon={Shield}
+      >
+        <Card className="border-border/50 shadow-sm">
+          <CardContent className="pt-6 space-y-6">
+            {verificationError && (
+              <div className="flex items-center gap-2 p-3 text-xs font-medium bg-destructive/10 border border-destructive/20 text-destructive rounded-lg">
+                <AlertCircle className="w-4 h-4" />
+                {verificationError}
               </div>
-            </CardContent>
-          </Card>
-
-          <p className="text-center text-xs text-muted-foreground mt-6 animate-in fade-in duration-700 delay-300">
-            Check your spam folder if you don't see the email
-          </p>
-        </div>
-      </div>
+            )}
+            <div className="flex flex-col items-center gap-6">
+              <InputOTP
+                maxLength={6}
+                value={verificationCode}
+                onChange={setVerificationCode}
+              >
+                <InputOTPGroup className="gap-2">
+                  {[...Array(6)].map((_, i) => (
+                    <InputOTPSlot
+                      key={i}
+                      index={i}
+                      className="rounded-md border-border h-12 w-12 text-lg"
+                    />
+                  ))}
+                </InputOTPGroup>
+              </InputOTP>
+              <Button
+                onClick={handleVerificationSubmit}
+                className="w-full h-11"
+                disabled={isSubmitting || verificationCode.length !== 6}
+              >
+                {isSubmitting ? "Verifying..." : "Confirm Account"}
+              </Button>
+              <div className="text-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResendCode}
+                  className="text-xs"
+                >
+                  Resend Code
+                </Button>
+                {resendError && (
+                  <p className="text-[10px] text-destructive mt-1">
+                    {resendError}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-700"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/3 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
+    <div className="flex min-h-screen w-full bg-background">
+      {/* Left Side: Branding & Features */}
+      <div className="hidden lg:flex w-1/2 bg-muted/30 relative flex-col justify-between p-12 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom_right,var(--tw-gradient-stops))] from-primary/5 via-transparent to-primary/10" />
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Brand Header */}
-        <div className="text-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/20">
-            <MessageSquare className="w-8 h-8 text-primary-foreground" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
+            <div className="p-2 bg-primary rounded-lg">
+              <MessageSquare className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <span>Chat Hive</span>
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
-            Join Chat Hive
-          </h1>
-          <p className="text-muted-foreground flex items-center justify-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Create your account and start chatting
-          </p>
         </div>
 
-        {/* Main Card */}
-        <Card className="border-muted/40 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
-          <CardContent className="pt-6">
+        <div className="relative z-10 space-y-8">
+          <h2 className="text-4xl font-medium leading-tight">
+            The future of <br />
+            <span className="text-primary font-semibold">
+              Real-time Connection.
+            </span>
+          </h2>
+
+          <div className="grid gap-6">
+            <FeatureItem
+              icon={Zap}
+              title="Instant Messaging"
+              desc="Experience live chat with real-time typing indicators."
+            />
+            <FeatureItem
+              icon={ImageIcon}
+              title="Rich Media"
+              desc="Share up to 15 images at once with high-fidelity previews."
+            />
+            <FeatureItem
+              icon={CheckCircle2}
+              title="Live Status"
+              desc="See exactly when your messages are delivered and read."
+            />
+          </div>
+        </div>
+
+        <div className="relative z-10 text-sm text-muted-foreground flex items-center gap-4">
+          <div className="flex -space-x-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="w-8 h-8 rounded-full border-2 border-background bg-muted"
+              />
+            ))}
+          </div>
+          <p>Join the Hive today</p>
+        </div>
+      </div>
+
+      {/* Right Side: Sign Up Form */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
+        <div className="w-full max-w-[420px] space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+          <div className="space-y-2 text-center lg:text-left">
+            <h1 className="text-3xl font-semibold tracking-tight">
+              Create an account
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Join the community and start chatting today
+            </p>
+          </div>
+
+          <div className="space-y-6">
             {authError && (
-              <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg mb-6 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
-                <p className="text-sm text-destructive">{authError}</p>
+              <div className="flex items-center gap-2 p-3 text-xs font-medium bg-destructive/10 border border-destructive/20 text-destructive rounded-lg">
+                <AlertCircle className="w-4 h-4" />
+                {authError}
               </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {/* Username Field */}
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium">
-                  Username
-                </Label>
-                <div className="relative group">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary z-10" />
+                <Label htmlFor="username">Username</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="username"
-                    type="text"
-                    className="pl-10 pr-10 h-11 border-muted/40 focus-visible:ring-primary/20 transition-all"
-                    placeholder="Choose a unique username"
-                    autoFocus
+                    placeholder="chat_king"
+                    className="pl-10 pr-10 bg-muted/20 border-border/60"
                     {...register("username")}
                   />
-                  {usernameValue && usernameValue.length >= 4 && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      {checkingUsername ? (
-                        <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
-                      ) : usernameAvailable !== null ? (
-                        usernameAvailable ? (
-                          <div className="flex items-center gap-1">
-                            <Check className="w-4 h-4 text-green-500" />
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <X className="w-4 h-4 text-destructive" />
-                          </div>
-                        )
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-                {usernameValue &&
-                  usernameValue.length >= 4 &&
-                  !checkingUsername &&
-                  usernameAvailable !== null && (
-                    <p
-                      className={cn(
-                        "text-xs flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200",
-                        usernameAvailable
-                          ? "text-green-500"
-                          : "text-destructive"
-                      )}
-                    >
-                      {usernameAvailable ? (
-                        <>
-                          <Check className="w-3 h-3" />
-                          Username is available
-                        </>
+                  <div className="absolute right-3 top-3">
+                    {checkingUsername ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                    ) : usernameValue?.length >= 4 &&
+                      usernameAvailable !== null ? (
+                      usernameAvailable ? (
+                        <Check className="w-4 h-4 text-green-500" />
                       ) : (
-                        <>
-                          <X className="w-3 h-3" />
-                          Username is already taken
-                        </>
-                      )}
-                    </p>
-                  )}
+                        <X className="w-4 h-4 text-destructive" />
+                      )
+                    ) : null}
+                  </div>
+                </div>
+                {usernameValue?.length >= 4 && usernameAvailable !== null && (
+                  <p
+                    className={cn(
+                      "text-[10px] font-medium",
+                      usernameAvailable ? "text-green-500" : "text-destructive"
+                    )}
+                  >
+                    {usernameAvailable
+                      ? "Username is available"
+                      : "Username is taken"}
+                  </p>
+                )}
                 {errors.username && (
-                  <p className="text-xs text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <AlertCircle className="w-3 h-3" />
+                  <p className="text-xs text-destructive">
                     {errors.username.message}
                   </p>
                 )}
               </div>
 
+              {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">
-                  Email Address
-                </Label>
-                <div className="relative group">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    className="pl-10 h-11 border-muted/40 focus-visible:ring-primary/20 transition-all"
                     placeholder="you@example.com"
+                    className="pl-10 bg-muted/20 border-border/60"
                     {...register("email")}
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-xs text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <AlertCircle className="w-3 h-3" />
+                  <p className="text-xs text-destructive">
                     {errors.email.message}
                   </p>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </Label>
-                <div className="relative group">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                  <Input
-                    id="password"
-                    type="password"
-                    className="pl-10 h-11 border-muted/40 focus-visible:ring-primary/20 transition-all"
-                    placeholder="Create a strong password"
-                    {...register("password")}
-                  />
+              {/* Password Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      className="pl-10 bg-muted/20 border-border/60"
+                      {...register("password")}
+                    />
+                  </div>
                 </div>
-                {errors.password && (
-                  <p className="text-xs text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <AlertCircle className="w-3 h-3" />
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="confirmPassword"
-                  className="text-sm font-medium"
-                >
-                  Confirm Password
-                </Label>
-                <div className="relative group">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    className="pl-10 h-11 border-muted/40 focus-visible:ring-primary/20 transition-all"
-                    placeholder="Confirm your password"
-                    {...register("passwordConfirmation")}
-                  />
+                <div className="space-y-2">
+                  <Label htmlFor="confirm">Confirm</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="confirm"
+                      type="password"
+                      className="pl-10 bg-muted/20 border-border/60"
+                      {...register("passwordConfirmation")}
+                    />
+                  </div>
                 </div>
-                {errors.passwordConfirmation && (
-                  <p className="text-xs text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <AlertCircle className="w-3 h-3" />
-                    {errors.passwordConfirmation.message}
-                  </p>
-                )}
               </div>
-
-              <div id="clerk-captcha" />
+              {(errors.password || errors.passwordConfirmation) && (
+                <p className="text-xs text-destructive">
+                  {errors.password?.message ||
+                    errors.passwordConfirmation?.message}
+                </p>
+              )}
 
               <Button
                 type="submit"
-                className="w-full h-11 font-medium group relative overflow-hidden shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                className="w-full h-11 shadow-md"
                 disabled={
                   isSubmitting ||
                   (usernameValue?.length >= 4 && !usernameAvailable)
                 }
               >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Creating Account...
-                    </>
-                  ) : (
-                    <>
-                      Create Account
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </span>
+                {isSubmitting ? "Creating Account..." : "Sign Up"}
               </Button>
-              <ContinueWithGoogle />
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-muted/40"></div>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    Already have an account?
-                  </span>
-                </div>
-              </div>
-
-              <Link to="/sign-in" className="block">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full h-11 font-medium border-muted/40 hover:bg-primary/5 hover:border-primary/30 transition-all group"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    Sign In Instead
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                </Button>
-              </Link>
             </form>
-          </CardContent>
-        </Card>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground mt-6 animate-in fade-in duration-700 delay-300">
-          By creating an account, you agree to our Terms of Service and Privacy
-          Policy
-        </p>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <ContinueWithGoogle />
+
+            <p className="text-center text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link
+                className="text-primary font-medium hover:underline"
+                to="/sign-in"
+              >
+                Sign In
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FeatureItem({
+  icon: Icon,
+  title,
+  desc,
+}: {
+  icon: any
+  title: string
+  desc: string
+}) {
+  return (
+    <div className="flex gap-4">
+      <div className="mt-1 bg-primary/10 p-2 rounded-lg h-fit">
+        <Icon className="w-4 h-4 text-primary" />
+      </div>
+      <div>
+        <h4 className="font-medium text-sm">{title}</h4>
+        <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
       </div>
     </div>
   )

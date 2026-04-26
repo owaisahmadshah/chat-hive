@@ -226,6 +226,10 @@ export class UserService {
       )
     }
 
+    if (dbUser.authProvider === "google") {
+      throw new ApiError(400, 'Please continue with Google, or reset password.')
+    }
+
     const isPasswordCorrect = await dbUser.isPasswordCorrect(password)
 
     if (!isPasswordCorrect) {
