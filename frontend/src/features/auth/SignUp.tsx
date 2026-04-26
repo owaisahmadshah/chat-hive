@@ -16,11 +16,9 @@ import {
 import {
   AlertCircle,
   MessageSquare,
-  Sparkles,
   Lock,
   Mail,
   User,
-  ArrowRight,
   Shield,
   CheckCircle2,
   Loader2,
