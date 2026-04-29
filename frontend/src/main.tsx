@@ -31,7 +31,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <BrowserRouter>
+        <BrowserRouter basename="chat-hive">
           <QueryClientProvider client={queryClient}>
             <Toaster position="top-right" richColors />
             <App />
