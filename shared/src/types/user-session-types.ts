@@ -7,6 +7,7 @@ export const createUserSessionSchema = z.object({
   deviceId: z.string(),
   deviceName: z.string(),
   platform: platformSchema,
+  tokenVersion: z.number().optional().default(1),
   refreshToken: z.string(),
 });
 
@@ -20,12 +21,13 @@ export type LastActiveAtSessionUpdate = z.infer<
   typeof lastActiveAtSessionUpdateSchema
 >;
 
-export interface LastActiveAtSession {
+export interface Session {
   id: string;
   userId: string;
   deviceId: string;
   deviceName: string;
   platform: Platform;
+  tokenVersion: number;
   refreshToken: string;
   createdAt: Date;
   expiresAt: Date;

@@ -1,0 +1,39 @@
+import { Module, Global } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import { DRIZZLE_PROVIDER } from '../config/config';
+import * as schema from './schema';
+import { EnvConfig } from '../config/env';
+
+@Global()
+@Module({
+  providers: [
+    {
+      provide: DRIZZLE_PROVIDER,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService<EnvConfig, true>) => {
+        const connectionString = configService.get('DATABASE_URL', {
+          infer: true,
+        });
+        const nodeEnv = configService.get('NODE_ENV', { infer: true });
+
+        const pool = new Pool({
+          connectionString,
+          ssl: nodeEnv === 'production' ? { rejectUnauthorized: false } : false,
+          max: 10,
+          idleTimeoutMillis: 3000,
+          connectionTimeoutMillis: 2000,
+        });
+
+        pool.on('error', (err) => {
+          console.error('Unexpected DB pool error', err);
+        });
+
+        return drizzle({ client: pool, schema, casing: 'snake_case' });
+      },
+    },
+  ],
+  exports: [DRIZZLE_PROVIDER],
+})
+export class DatabaseModule {}
