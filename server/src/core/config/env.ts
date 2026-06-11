@@ -18,13 +18,15 @@ const envSchema = z.object({
   CLIENT_URL: z.string(),
 });
 
-const parsed = envSchema.safeParse(process.env);
+export default () => {
+  const parsed = envSchema.safeParse(process.env);
 
-if (!parsed.success) {
-  console.error('Invalid environment variables:', parsed.error.format());
-  process.exit(1);
-}
+  if (!parsed.success) {
+    console.error('Invalid environment variables:', parsed.error.format());
+    process.exit(1);
+  }
+
+  return parsed.data;
+};
 
 export type EnvConfig = z.infer<typeof envSchema>;
-export const env = parsed.data;
-export default () => parsed.data;

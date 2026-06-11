@@ -3,7 +3,6 @@ import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseTransformInterceptor } from './common/interceptors/respnose-transform.interceptor';
-import { env } from './config/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -13,7 +12,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseTransformInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  await app.listen(env.PORT);
+  await app.listen(process.env.PORT ?? 3000);
 }
 
 bootstrap();
