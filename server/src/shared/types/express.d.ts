@@ -1,8 +1,8 @@
-import { ReqUser } from 'shared';
+import { JWTPayload } from './jwt-payload.type';
 
 declare module 'express' {
   interface Request {
-    user?: ReqUser;
+    user?: JWTPayload;
   }
 }
 

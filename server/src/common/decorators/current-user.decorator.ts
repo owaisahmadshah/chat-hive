@@ -4,10 +4,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { ReqUser } from 'shared';
+import { JWTPayload } from 'src/shared/types/jwt-payload.type';
 
 export const CurrentUser = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): ReqUser => {
+  (data: unknown, ctx: ExecutionContext): JWTPayload => {
     const request = ctx.switchToHttp().getRequest<Request>();
 
     if (!request.user) {

@@ -1,5 +1,5 @@
 {
-  "id": "ab142d4b-9b96-4b48-8c3f-b3d469c88972",
+  "id": "f85af4df-42f1-4fc6-bc0e-ed47b3b6a825",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -245,18 +245,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "refresh_token_hash": {
-          "name": "refresh_token_hash",
+        "refresh_token": {
+          "name": "refresh_token",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
-        },
-        "token_version": {
-          "name": "token_version",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 1
         },
         "last_active_at": {
           "name": "last_active_at",
@@ -270,12 +263,6 @@
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {
@@ -294,11 +281,11 @@
           "method": "btree",
           "with": {}
         },
-        "session_refresh_token_hash_idx": {
-          "name": "session_refresh_token_hash_idx",
+        "session_refresh_token_idx": {
+          "name": "session_refresh_token_idx",
           "columns": [
             {
-              "expression": "refresh_token_hash",
+              "expression": "refresh_token",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -428,7 +415,23 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "users_username_trgm_idx": {
+          "name": "users_username_trgm_idx",
+          "columns": [
+            {
+              "expression": "username",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {

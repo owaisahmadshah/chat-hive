@@ -4,8 +4,6 @@ const envSchema = z.object({
   PORT: z.string().transform(Number),
   CORS_ORIGIN: z.string(),
   DATABASE_URL: z.string(),
-  ACCESS_TOKEN_SECRET: z.string(),
-  REFRESH_TOKEN_SECRET: z.string(),
   ACCESS_TOKEN_EXPIRY: z.string(),
   REFRESH_TOKEN_EXPIRY: z.string(),
   CLOUDINARY_CLOUD_NAME: z.string(),
@@ -16,6 +14,9 @@ const envSchema = z.object({
   NODE_MAILER_PASSWORD: z.string(),
   SERVER_URL: z.string(),
   CLIENT_URL: z.string(),
+  REDIS_HOST: z.string(),
+  REDIS_PORT: z.coerce.number(),
+  JWT_SECRET: z.string(),
 });
 
 export default () => {
