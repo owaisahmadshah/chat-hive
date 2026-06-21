@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -75,6 +77,42 @@ export class AuthService {
     return tokens;
   }
 
+  async changePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.usersService.getUserWithPassword(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.authProvider == 'google' || !user.password) {
+      throw new BadRequestException(
+        'To change password please verify user email and set up new password',
+      );
+    }
+
+    const isPasswordCorrect = await this.cryptoService.comparePasswords(
+      oldPassword,
+      user.password,
+    );
+
+    if (!isPasswordCorrect) {
+      throw new UnauthorizedException('Incorrect password');
+    }
+
+    const hashedPassword = await this.cryptoService.hashPassword(newPassword);
+
+    const updatedUser = await this.usersService.changePassword(
+      userId,
+      hashedPassword,
+    );
+
+    return updatedUser;
+  }
+
   private async createSessionWithTokens(
     user: { id: string; email: string; username: string },
     sessionData: CreateUserSession,
@@ -145,6 +183,21 @@ export class AuthService {
       { id: user.id, email: user.email, username: user.username },
       { ...sessionData, userId: user.id },
     );
+
+    return tokens;
+  }
+
+  async resetPassword(
+    email: string,
+    otp: string,
+    newPassword: string,
+    sessionData: CreateUserSession,
+  ) {
+    const tokens = await this.verifyOTP(email, otp, sessionData);
+    const user = await this.usersService.getUserByEmail(email);
+
+    const hashedPassword = await this.cryptoService.hashPassword(newPassword);
+    await this.usersService.changePassword(user.id, hashedPassword);
 
     return tokens;
   }

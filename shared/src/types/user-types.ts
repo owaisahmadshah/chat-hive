@@ -24,8 +24,23 @@ export const verifyOTPSchema = z.object({
   otp: z.string().min(1, "OTP is required"),
 });
 
-export const resendOTP = z.object({
+export const resendOTPSchema = z.object({
   email: z.string(),
+});
+
+export const imageURLUpdateSchema = z.object({
+  imageURL: z.string(),
+});
+
+export const newPasswordSchema = z.object({
+  oldPassword: z.string(),
+  newPassword: z.string(),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string(),
+  otp: z.string(),
+  password: z.string(),
 });
 
 export type AuthProvider = z.infer<typeof authProviderSchema>;
@@ -33,7 +48,11 @@ export type CreateUser = z.infer<typeof createUserSchema>;
 export type UsernameSchema = z.infer<typeof usernameSchema>;
 export type LoginUser = z.infer<typeof loginUserSchema>;
 export type VerifyOTP = z.infer<typeof verifyOTPSchema>;
-export type ResendOTP = z.infer<typeof resendOTP>;
+export type ResendOTP = z.infer<typeof resendOTPSchema>;
+export type ImageURLUpdate = z.infer<typeof imageURLUpdateSchema>;
+export type NewPassword = z.infer<typeof newPasswordSchema>;
+export type ResetPassword = z.infer<typeof resetPasswordSchema>;
+
 export interface UserSummary {
   id: string;
   username: string;

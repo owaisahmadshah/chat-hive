@@ -5,6 +5,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Res,
   UseGuards,
@@ -13,12 +14,16 @@ import {
   createUserSchema,
   loginUserSchema,
   verifyOTPSchema,
+  newPasswordSchema,
   type CreateUserSession,
   type CreateUser,
   type LoginUser,
   type VerifyOTP,
-  resendOTP,
+  resendOTPSchema,
   type ResendOTP,
+  type NewPassword,
+  type ResetPassword,
+  resetPasswordSchema,
 } from 'shared';
 import { AuthService } from './auth.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
@@ -90,7 +95,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('otp/resend')
   async resendOTP(
-    @Body(new ZodValidationPipe(resendOTP)) verifyDto: ResendOTP,
+    @Body(new ZodValidationPipe(resendOTPSchema)) verifyDto: ResendOTP,
   ) {
     await this.authService.resendOTP(verifyDto.email);
 
@@ -156,5 +161,55 @@ export class AuthController {
   private clearAuthCookies(response: Response) {
     response.clearCookie('access_token', ACCESS_TOKEN_OPTIONS);
     response.clearCookie('refresh_token', REFRESH_TOKEN_OPTIONS);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('new-password')
+  async setNewPassword(
+    @CurrentUser() user: JWTPayload,
+    @Body(new ZodValidationPipe(newPasswordSchema)) passwordDto: NewPassword,
+  ) {
+    console.log(user, passwordDto);
+
+    const updatedUser = await this.authService.changePassword(
+      user.sub,
+      passwordDto.oldPassword,
+      passwordDto.newPassword,
+    );
+
+    return { data: updatedUser };
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(
+    @Body(new ZodValidationPipe(resendOTPSchema)) resendDto: ResendOTP,
+  ) {
+    await this.authService.resendOTP(resendDto.email);
+
+    return { message: 'Send OTP successfully' };
+  }
+
+  @Post('reset-password')
+  async resetPassword(
+    @Metadata() metadata: CreateUserSession,
+    @Body(new ZodValidationPipe(resetPasswordSchema))
+    resetPasswordDto: ResetPassword,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { accessToken, refreshToken } = await this.authService.resetPassword(
+      resetPasswordDto.email,
+      resetPasswordDto.otp,
+      resetPasswordDto.password,
+      {
+        deviceId: metadata.deviceId,
+        deviceName: metadata.deviceName,
+        platform: metadata.platform,
+      },
+    );
+
+    response.cookie('refresh_token', refreshToken, REFRESH_TOKEN_OPTIONS);
+    response.cookie('access_token', accessToken, ACCESS_TOKEN_OPTIONS);
+
+    return { message: 'Reset password successfully' };
   }
 }

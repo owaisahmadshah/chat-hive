@@ -175,7 +175,13 @@ export class UserRepository {
     const result = await this.getClient(tx)
       .select(projection)
       .from(users)
-      .where(or(eq(users.username, identifier), eq(users.email, identifier)))
+      .where(
+        or(
+          eq(users.username, identifier),
+          eq(users.email, identifier),
+          eq(users.id, identifier),
+        ),
+      )
       .limit(1);
 
     return (result[0] as T) ?? null;
