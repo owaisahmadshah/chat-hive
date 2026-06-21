@@ -94,4 +94,12 @@ export class UsersService {
 
     return user;
   }
+
+  async updateProfileImageURL(userId: string, url: string) {
+    return await this.userRepository.updateImageURL(userId, url);
+  }
+
+  async updateLastSeen(userId: string) {
+    return await this.userRepository.updateLastSeen(userId);
+  }
 }
