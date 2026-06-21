@@ -1,14 +1,13 @@
 import { z } from "zod";
 
-export const platformSchema = z.enum(["web", "mobile"]);
+export const platformSchema = z.enum(["web", "android", "ios", "desktop"]);
 
 export const createUserSessionSchema = z.object({
   userId: z.string().optional(),
   deviceId: z.string(),
   deviceName: z.string(),
   platform: platformSchema,
-  tokenVersion: z.number().optional().default(1),
-  refreshToken: z.string(),
+  refreshToken: z.string().optional(),
 });
 
 export const lastActiveAtSessionUpdateSchema = z.object({
@@ -23,12 +22,12 @@ export type LastActiveAtSessionUpdate = z.infer<
 
 export interface Session {
   id: string;
-  userId: string;
+  userId: string | null;
   deviceId: string;
   deviceName: string;
   platform: Platform;
-  tokenVersion: number;
-  refreshToken: string;
-  createdAt: Date;
-  expiresAt: Date;
+  refreshToken: string | null;
+  createdAt: Date | null;
 }
+
+export type SessionSummary = Omit<Session, "deviceName" | "platform">;

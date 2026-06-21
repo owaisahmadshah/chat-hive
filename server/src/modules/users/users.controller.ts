@@ -1,18 +1,16 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import type { CreateUser } from 'shared';
+import { Body, Controller, Get, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { UsersService } from './users.service';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import type { JWTPayload } from 'src/shared/types/jwt-payload.type';
 
 @Controller('users')
 export class UserController {
-  @Post('register')
-  registerUser(@Body() createUserDto: CreateUser) {
-    console.log(createUserDto);
-    return 'create user';
-  }
+  constructor(private readonly userService: UsersService) {}
 
   @UseGuards(AuthGuard)
   @Get('profile')
-  getProfile() {
-    return 'user';
+  async getUser(@CurrentUser() user: JWTPayload) {
+    return await this.userService.getUser(user.sub);
   }
 }

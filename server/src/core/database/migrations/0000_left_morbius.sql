@@ -28,11 +28,9 @@ CREATE TABLE "user_sessions" (
 	"device_id" varchar NOT NULL,
 	"device_name" varchar,
 	"platform" "platform" NOT NULL,
-	"refresh_token_hash" varchar,
-	"token_version" integer DEFAULT 1 NOT NULL,
+	"refresh_token" varchar,
 	"last_active_at" timestamp,
-	"created_at" timestamp DEFAULT now(),
-	"expires_at" timestamp NOT NULL
+	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -102,8 +100,9 @@ CREATE INDEX "chat_id_idx" ON "chat_members" USING btree ("chat_id");--> stateme
 CREATE INDEX "chat_id_and_user_id_idx" ON "chat_members" USING btree ("chat_id","user_id");--> statement-breakpoint
 CREATE INDEX "created_by_idx" ON "chats" USING btree ("created_by");--> statement-breakpoint
 CREATE INDEX "session_user_id_idx" ON "user_sessions" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "session_refresh_token_hash_idx" ON "user_sessions" USING btree ("refresh_token_hash");--> statement-breakpoint
+CREATE INDEX "session_refresh_token_idx" ON "user_sessions" USING btree ("refresh_token");--> statement-breakpoint
 CREATE UNIQUE INDEX "user_device_platform_idx" ON "user_sessions" USING btree ("user_id","device_id","platform");--> statement-breakpoint
+CREATE INDEX "users_username_trgm_idx" ON "users" USING gin ("username");--> statement-breakpoint
 CREATE INDEX "attachment_message_id_idx" ON "message_attachments" USING btree ("message_id");--> statement-breakpoint
 CREATE INDEX "attachment_public_id_idx" ON "message_attachments" USING btree ("public_id");--> statement-breakpoint
 CREATE INDEX "delete_message_id_idx" ON "message_deletes" USING btree ("message_id");--> statement-breakpoint

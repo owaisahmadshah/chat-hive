@@ -5,6 +5,7 @@ import { Pool } from 'pg';
 import { DRIZZLE_PROVIDER } from '../config/config';
 import * as schema from './schema';
 import { EnvConfig } from '../config/env';
+import { DatabaseService } from './database.service';
 
 @Global()
 @Module({
@@ -22,8 +23,8 @@ import { EnvConfig } from '../config/env';
           connectionString,
           ssl: nodeEnv === 'production' ? { rejectUnauthorized: false } : false,
           max: 10,
-          idleTimeoutMillis: 3000,
-          connectionTimeoutMillis: 2000,
+          idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 10000,
         });
 
         pool.on('error', (err) => {
@@ -33,7 +34,8 @@ import { EnvConfig } from '../config/env';
         return drizzle({ client: pool, schema, casing: 'snake_case' });
       },
     },
+    DatabaseService,
   ],
-  exports: [DRIZZLE_PROVIDER],
+  exports: [DRIZZLE_PROVIDER, DatabaseService],
 })
 export class DatabaseModule {}

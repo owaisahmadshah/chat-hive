@@ -9,18 +9,22 @@ export const sessionPlatormEnum = pgEnum('platform', [
   'desktop',
 ]);
 
-export const users = table('users', {
-  id: t.uuid().primaryKey().defaultRandom(),
-  username: t.varchar().unique().notNull(),
-  email: t.varchar().unique().notNull(),
-  imageURL: t.varchar(),
-  authProvider: authProviderEnum().notNull().default('local'),
-  authProviderId: t.varchar(),
-  password: t.varchar(),
-  verified: t.boolean().notNull().default(false),
-  lastSeen: t.timestamp(),
-  createdAt: t.timestamp().notNull().defaultNow(),
-});
+export const users = table(
+  'users',
+  {
+    id: t.uuid().primaryKey().defaultRandom(),
+    username: t.varchar().unique().notNull(),
+    email: t.varchar().unique().notNull(),
+    imageURL: t.varchar(),
+    authProvider: authProviderEnum().notNull().default('local'),
+    authProviderId: t.varchar(),
+    password: t.varchar(),
+    verified: t.boolean().notNull().default(false),
+    lastSeen: t.timestamp(),
+    createdAt: t.timestamp().notNull().defaultNow(),
+  },
+  (table) => [t.index('users_username_trgm_idx').using('gin', table.username)],
+);
 
 export const userSessions = table(
   'user_sessions',
@@ -30,15 +34,13 @@ export const userSessions = table(
     deviceId: t.varchar().notNull(),
     deviceName: t.varchar(),
     platform: sessionPlatormEnum().notNull(),
-    refreshTokenHash: t.varchar(),
-    tokenVersion: t.integer().notNull().default(1),
+    refreshToken: t.varchar(),
     lastActiveAt: t.timestamp(),
     createdAt: t.timestamp().defaultNow(),
-    expiresAt: t.timestamp().notNull(),
   },
   (table) => [
     t.index('session_user_id_idx').on(table.userId),
-    t.index('session_refresh_token_hash_idx').on(table.refreshTokenHash),
+    t.index('session_refresh_token_idx').on(table.refreshToken),
     t
       .uniqueIndex('user_device_platform_idx')
       .on(table.userId, table.deviceId, table.platform),
