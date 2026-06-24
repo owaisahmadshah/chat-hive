@@ -1,13 +1,10 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/core/database/database.service';
 import { UserRepository } from './users.repository';
 import { CreateUser, UserWithPassword, User } from 'shared';
 import { CryptoService } from 'src/shared/services/crypto.service';
 import { userProjections } from './users.projections';
+import { assertConflict, assertExists } from 'src/shared/assertions';
 
 @Injectable()
 export class UsersService {
@@ -23,17 +20,13 @@ export class UsersService {
       userProjections.summary,
     );
 
-    if (emailExists) {
-      throw new ConflictException('Email address is already registered');
-    }
+    assertConflict(!emailExists, 'Email already registered');
 
     const usernameExists = await this.userRepository.isUsernameExists(
       data.username,
     );
 
-    if (usernameExists) {
-      throw new ConflictException('Username is already taken');
-    }
+    assertConflict(!usernameExists, 'Username already taken');
 
     const hashedPassword = await this.cryptoService.hashPassword(data.password);
 
@@ -52,10 +45,7 @@ export class UsersService {
   async getUserWithPassword(identifier: string): Promise<UserWithPassword> {
     const user = await this.userRepository.getUserWithPassword(identifier);
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
+    assertExists(user, 'User not found');
     return user;
   }
 
@@ -71,10 +61,7 @@ export class UsersService {
       userProjections.user,
     );
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
+    assertExists(user, 'User not found');
     return user;
   }
 
@@ -88,10 +75,7 @@ export class UsersService {
       userProjections.user,
     );
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
+    assertExists(user, 'User not found');
     return user;
   }
 

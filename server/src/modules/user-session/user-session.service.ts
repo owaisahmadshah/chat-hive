@@ -3,6 +3,7 @@ import { CreateUserSession, SessionSummary } from 'shared';
 import { UserSessionRepository } from './user-session.repository';
 import { DBClient } from 'src/core/database/database.service';
 import { userSessionProjections } from './user-session.projections';
+import { assertExists } from 'src/shared/assertions';
 
 @Injectable()
 export class UserSessionService {
@@ -51,9 +52,7 @@ export class UserSessionService {
     const existingSession =
       await this.userSessionRepository.getSessionById(sessionId);
 
-    if (!existingSession) {
-      throw new NotFoundException('Session not found');
-    }
+    assertExists(existingSession, 'Session not found');
 
     return await this.userSessionRepository.updateRefreshToken(
       sessionId,
@@ -65,9 +64,7 @@ export class UserSessionService {
     const existingSession =
       await this.userSessionRepository.getSessionById(sessionId);
 
-    if (!existingSession) {
-      throw new NotFoundException('Session not found');
-    }
+    assertExists(existingSession, 'Session not found');
 
     return await this.userSessionRepository.deleteSession(sessionId);
   }
@@ -92,7 +89,8 @@ export class UserSessionService {
       userSessionProjections.summary,
     );
 
-    if (!session || session.userId !== userId) {
+    assertExists(session, 'Session not found');
+    if (session.userId !== userId) {
       throw new NotFoundException('Session not found');
     }
 
