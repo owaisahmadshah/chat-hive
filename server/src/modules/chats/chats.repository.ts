@@ -1,27 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, desc, eq, isNull, lt, ne, or, sql } from 'drizzle-orm';
-import { alias } from 'drizzle-orm/pg-core';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
 import * as schema from '../../core/database/schema';
 import { DBClient } from 'src/core/database/database.service';
-import { ChatMember, CreateChat, UpdateChat } from 'shared';
 import { chats, chatMembers } from '../../core/database/schema/chat';
-import { users } from '../../core/database/schema/user';
-import {
-  messages,
-  messageStatus,
-  messageDelete,
-} from '../../core/database/schema/message';
-
-const otherMember = alias(chatMembers, 'other_member');
-const otherUser = alias(users, 'other_user');
+import { CreateChat, UpdateChat } from 'shared';
+import { ChatQueryBuilder } from 'src/core/database/query-builders/chat-query-builder';
 
 @Injectable()
 export class ChatsRepository {
   constructor(
     @Inject(DRIZZLE_PROVIDER)
     private readonly mainDb: NodePgDatabase<typeof schema>,
+    private readonly qb: ChatQueryBuilder,
   ) {}
 
   private getClient(tx?: DBClient): DBClient {
@@ -45,104 +37,12 @@ export class ChatsRepository {
       updatedAt: Date;
     },
   ) {
-    const unreadSubquery = this.getClient()
-      .select({
-        chatId: messages.chatId,
-        unreadCount: sql<number>`COUNT(*)`.as('unread_count'),
-      })
-      .from(messages)
-      .leftJoin(
-        messageStatus,
-        and(
-          eq(messageStatus.messageId, messages.id),
-          eq(messageStatus.userId, sql`${userId}::uuid`),
-        ),
-      )
-      .leftJoin(
-        messageDelete,
-        and(
-          eq(messageDelete.messageId, messages.id),
-          eq(messageDelete.userId, sql`${userId}::uuid`),
-        ),
-      )
-      .where(
-        and(
-          ne(messages.senderId, sql`${userId}::uuid`),
-          isNull(messageStatus.id),
-          isNull(messageDelete.id),
-        ),
-      )
-      .groupBy(messages.chatId)
-      .as('unread');
+    const unreadMessagesSubQuery = this.qb.buildUnreadMessagesSubquery(userId);
 
-    const rows = await this.getClient()
-      .select({
-        id: chats.id,
-        name: sql<string>`
-          CASE
-            WHEN ${chats.isGroup} = true THEN ${chats.name}
-            ELSE ${otherUser.username}
-          END
-        `,
-        logoURL: sql<string>`
-          CASE
-            WHEN ${chats.isGroup} = true THEN ${chats.logoURL}
-            ELSE ${otherUser.imageURL}
-          END
-        `,
-        isGroup: chats.isGroup,
-        updatedAt: chats.updatedAt,
-        unreadCount: sql<number>`COALESCE(${unreadSubquery.unreadCount}, 0)`,
-        members: sql<ChatMember[]>`
-          CASE
-            WHEN ${chats.isGroup} = true THEN
-              jsonb_agg(
-                jsonb_build_object(
-                  'id',       ${chatMembers.id},
-                  'userId',   ${users.id},
-                  'username', ${users.username},
-                  'imageURL', ${users.imageURL},
-                  'role',     ${chatMembers.role},
-                  'joinedAt', ${chatMembers.joinedAt}
-                )
-              )
-            ELSE
-              '[]'::jsonb
-          END
-        `,
-      })
-      .from(chats)
-      .innerJoin(
-        chatMembers,
-        and(
-          eq(chatMembers.chatId, chats.id),
-          eq(chatMembers.userId, userId),
-          isNull(chatMembers.deletedAt),
-        ),
-      )
-      .innerJoin(users, eq(users.id, chatMembers.userId))
-      .leftJoin(
-        otherMember,
-        and(
-          eq(otherMember.chatId, chats.id),
-          ne(otherMember.userId, userId),
-          isNull(otherMember.deletedAt),
-        ),
-      )
-      .leftJoin(otherUser, eq(otherUser.id, otherMember.userId))
-      .leftJoin(unreadSubquery, eq(unreadSubquery.chatId, chats.id))
-      .where(
-        cursor
-          ? or(
-              lt(chats.updatedAt, cursor.updatedAt),
-              and(
-                eq(chats.updatedAt, cursor.updatedAt),
-                lt(chats.id, cursor.id),
-              ),
-            )
-          : undefined,
-      )
-      .groupBy(chats.id, otherUser.username, otherUser.imageURL)
+    const rows = await this.qb
+      .buildBaseChatQuery(userId, unreadMessagesSubQuery)
+      .where(this.qb.buildCursorCondition(cursor))
+      .groupBy(chats.id, schema.users.username, schema.users.imageURL)
       .orderBy(desc(chats.updatedAt), desc(chats.id))
       .limit(limit + 1);
 
@@ -150,97 +50,15 @@ export class ChatsRepository {
   }
 
   async getChatWithMembersAndUnreadMessages(userId: string, chatId: string) {
-    const unreadSubquery = this.getClient()
-      .select({
-        chatId: messages.chatId,
-        unreadCount: sql<number>`COUNT(*)`.as('unread_count'),
-      })
-      .from(messages)
-      .leftJoin(
-        messageStatus,
-        and(
-          eq(messageStatus.messageId, messages.id),
-          eq(messageStatus.userId, sql`${userId}::uuid`),
-        ),
-      )
-      .leftJoin(
-        messageDelete,
-        and(
-          eq(messageDelete.messageId, messages.id),
-          eq(messageDelete.userId, sql`${userId}::uuid`),
-        ),
-      )
-      .where(
-        and(
-          ne(messages.senderId, sql`${userId}::uuid`),
-          isNull(messageStatus.id),
-          isNull(messageDelete.id),
-        ),
-      )
-      .groupBy(messages.chatId)
-      .as('unread');
+    const unreadSubquery = this.qb.buildUnreadMessagesSubquery(userId, chatId);
 
-    const rows = await this.getClient()
-      .select({
-        id: chats.id,
-        isGroup: chats.isGroup,
-        updatedAt: chats.updatedAt,
-        unreadCount: sql<number>`COALESCE(${unreadSubquery.unreadCount}, 0)`,
-        name: sql<string>`
-          CASE
-            WHEN ${chats.isGroup} = true THEN ${chats.name}
-            ELSE ${otherUser.username}
-          END
-        `,
-        logoURL: sql<string>`
-          CASE
-            WHEN ${chats.isGroup} = true THEN ${chats.logoURL}
-            ELSE ${otherUser.imageURL}
-          END
-        `,
-        members: sql<ChatMember[]>`
-          CASE
-            WHEN ${chats.isGroup} = true THEN
-              jsonb_agg(
-                jsonb_build_object(
-                  'id',       ${chatMembers.id},
-                  'userId',   ${users.id},
-                  'username', ${users.username},
-                  'imageURL', ${users.imageURL},
-                  'role',     ${chatMembers.role},
-                  'joinedAt', ${chatMembers.joinedAt}
-                )
-              )
-            ELSE
-              '[]'::jsonb
-          END
-        `,
-      })
-      .from(chats)
-      .innerJoin(
-        chatMembers,
-        and(
-          eq(chatMembers.chatId, chats.id),
-          eq(chatMembers.userId, userId),
-          isNull(chatMembers.deletedAt),
-        ),
-      )
-      .innerJoin(users, eq(users.id, chatMembers.userId))
-      .leftJoin(
-        otherMember,
-        and(
-          eq(otherMember.chatId, chats.id),
-          ne(otherMember.userId, userId),
-          isNull(otherMember.deletedAt),
-        ),
-      )
-      .leftJoin(otherUser, eq(otherUser.id, otherMember.userId))
-      .leftJoin(unreadSubquery, eq(unreadSubquery.chatId, chats.id))
+    const rows = await this.qb
+      .buildBaseChatQuery(userId, unreadSubquery)
       .where(eq(chats.id, chatId))
       .groupBy(
         chats.id,
-        otherUser.username,
-        otherUser.imageURL,
+        schema.users.username,
+        schema.users.imageURL,
         unreadSubquery.unreadCount,
       );
 
