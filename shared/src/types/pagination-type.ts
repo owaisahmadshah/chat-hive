@@ -51,3 +51,5 @@ export const paginationSchema = z.object({
   limit: z.coerce.number(),
   cursor: z.string().nullable(),
 });
+
+export type ReqPagination = z.infer<typeof paginationSchema>;
