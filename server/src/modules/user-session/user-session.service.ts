@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateUserSession, SessionSummary } from 'shared';
 import { UserSessionRepository } from './user-session.repository';
 import { DBClient } from 'src/core/database/database.service';
@@ -90,9 +90,10 @@ export class UserSessionService {
     );
 
     assertExists(session, 'Session not found');
-    if (session.userId !== userId) {
-      throw new NotFoundException('Session not found');
-    }
+    assertExists(
+      session.userId !== userId ? null : session,
+      'Session not found',
+    );
 
     return session;
   }

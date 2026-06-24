@@ -47,9 +47,18 @@ export interface Pagination<T> {
   hasMore: boolean;
 }
 
-export const paginationSchema = z.object({
-  limit: z.coerce.number(),
-  cursor: z.string().nullable(),
-});
+export const paginationSchema = z
+  .object({
+    limit: z.coerce.number(),
+    cursor: z.string().nullable(),
+  })
+  .transform(({ limit, cursor }) => {
+    const pag = { limit, cursor };
+    if (!cursor) return { ...pag, cursor: null };
+    if (typeof cursor === "string" && cursor === "null") {
+      return { ...pag, cursor: null };
+    }
+    return pag;
+  });
 
 export type ReqPagination = z.infer<typeof paginationSchema>;

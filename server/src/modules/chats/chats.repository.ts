@@ -6,7 +6,10 @@ import * as schema from '../../core/database/schema';
 import { DBClient } from 'src/core/database/database.service';
 import { chats, chatMembers } from '../../core/database/schema/chat';
 import { CreateChat, UpdateChat } from 'shared';
-import { ChatQueryBuilder } from 'src/core/database/query-builders/chat-query-builder';
+import {
+  ChatQueryBuilder,
+  otherUser,
+} from 'src/core/database/query-builders/chat-query-builder';
 
 @Injectable()
 export class ChatsRepository {
@@ -46,7 +49,17 @@ export class ChatsRepository {
     const rows = await qb
       .buildBaseChatQuery(userId, unreadMessagesSubQuery)
       .where(qb.buildCursorCondition(cursor))
-      .groupBy(chats.id, schema.users.username, schema.users.imageURL)
+      .groupBy(
+        chats.id,
+        chats.isGroup,
+        chats.updatedAt,
+        chats.name,
+        chats.logoURL,
+        otherUser.id,
+        otherUser.username,
+        otherUser.imageURL,
+        unreadMessagesSubQuery.unreadCount,
+      )
       .orderBy(desc(chats.updatedAt), desc(chats.id))
       .limit(limit + 1);
 
@@ -62,8 +75,13 @@ export class ChatsRepository {
       .where(eq(chats.id, chatId))
       .groupBy(
         chats.id,
-        schema.users.username,
-        schema.users.imageURL,
+        chats.isGroup,
+        chats.updatedAt,
+        chats.name,
+        chats.logoURL,
+        otherUser.id,
+        otherUser.username,
+        otherUser.imageURL,
         unreadSubquery.unreadCount,
       );
 

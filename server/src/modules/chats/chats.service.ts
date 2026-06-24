@@ -35,7 +35,7 @@ export class ChatsService {
           {
             chatId: chat.id,
             role: 'admin',
-            memberId: userId,
+            userId: userId,
           },
         ];
 
@@ -44,7 +44,7 @@ export class ChatsService {
             chatMembers.push({
               chatId: chat.id,
               role: 'member',
-              memberId: members[i],
+              userId: members[i],
             });
         }
 
@@ -75,8 +75,8 @@ export class ChatsService {
 
     if (existingChat) {
       const members = await this.chatMembersService.addMembers([
-        { chatId: existingChat.id, role: 'admin', memberId: userId },
-        { chatId: existingChat.id, role: 'admin', memberId: consumerId },
+        { chatId: existingChat.id, role: 'admin', userId: userId },
+        { chatId: existingChat.id, role: 'admin', userId: consumerId },
       ]);
 
       return { ...existingChat, members: members };
@@ -85,10 +85,13 @@ export class ChatsService {
     const [chat] = await this.databaseService.transaction(async (tx) => {
       const chat = await this.chatsRepository.createChat(data, tx);
 
-      const members = await this.chatMembersService.addMembers([
-        { chatId: chat.id, role: 'admin', memberId: userId },
-        { chatId: chat.id, role: 'admin', memberId: consumerId },
-      ]);
+      const members = await this.chatMembersService.addMembers(
+        [
+          { chatId: chat.id, role: 'admin', userId: userId },
+          { chatId: chat.id, role: 'admin', userId: consumerId },
+        ],
+        tx,
+      );
 
       return [{ ...chat, members }];
     });

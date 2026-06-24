@@ -165,6 +165,22 @@ export class UserRepository {
     return (result[0] as T) ?? null;
   }
 
+  async getUserWithPasswordByUserId<
+    T extends Record<string, any> = typeof userProjections.userWithPass,
+  >(
+    identifier: string,
+    projection: T = userProjections.userWithPass as unknown as T,
+    tx?: DBClient,
+  ): Promise<InferColumnsDataTypes<T> | null> {
+    const result = await this.getClient(tx)
+      .select(projection)
+      .from(users)
+      .where(eq(users.id, identifier))
+      .limit(1);
+
+    return (result[0] as T) ?? null;
+  }
+
   async getUserWithPassword<
     T extends Record<string, any> = typeof userProjections.userWithPass,
   >(
@@ -175,13 +191,7 @@ export class UserRepository {
     const result = await this.getClient(tx)
       .select(projection)
       .from(users)
-      .where(
-        or(
-          eq(users.username, identifier),
-          eq(users.email, identifier),
-          eq(users.id, identifier),
-        ),
-      )
+      .where(or(eq(users.username, identifier), eq(users.email, identifier)))
       .limit(1);
 
     return (result[0] as T) ?? null;

@@ -46,7 +46,7 @@ export class ChatMembersRepository {
     return updatedMember;
   }
 
-  async getMemberWithAdmins(memberId: string, chatId: string) {
+  async getMemberWithAdminsByUserId(memberUserId: string, chatId: string) {
     const adminCountSubQuery = this.getClient()
       .select({
         chatId: chatMembers.chatId,
@@ -73,7 +73,13 @@ export class ChatMembersRepository {
         adminCountSubQuery,
         eq(chatMembers.chatId, adminCountSubQuery.chatId),
       )
-      .where(and(eq(chatMembers.id, memberId), isNull(chatMembers.deletedAt)));
+      .where(
+        and(
+          eq(chatMembers.userId, memberUserId),
+          isNull(chatMembers.deletedAt),
+          eq(chatMembers.chatId, chatId),
+        ),
+      );
 
     if (!result) return null;
 
@@ -87,7 +93,7 @@ export class ChatMembersRepository {
     const [member] = await this.getClient()
       .select()
       .from(chatMembers)
-      .where(eq(chatMembers.id, memberId));
+      .where(and(eq(chatMembers.id, memberId), isNull(chatMembers.deletedAt)));
 
     return member || null;
   }

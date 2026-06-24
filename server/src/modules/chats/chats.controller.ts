@@ -30,7 +30,7 @@ export class ChatsController {
   constructor(private readonly chatsService: ChatsService) {}
 
   @HttpCode(201)
-  @Post('new')
+  @Post()
   @UseGuards(AuthGuard)
   async createChat(
     @Body(new ZodValidationPipe(createChatSchema)) chatDto: CreateChat,

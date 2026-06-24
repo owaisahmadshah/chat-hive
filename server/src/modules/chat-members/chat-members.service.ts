@@ -8,19 +8,19 @@ import { assertExists, assertForbidden } from 'src/shared/assertions';
 export class ChatMembersService {
   constructor(private readonly chatMembersRepository: ChatMembersRepository) {}
 
-  async addMembersWithAdmin(data: CreateChatMember[], tx?: DBClient) {
-    await this.validateAdmin(data[0].adminId, data[0].chatId);
-
-    const dto = data.map((item) => ({
-      chatId: item.chatId,
-      memberId: item.memberId,
-      role: item.role,
-    }));
-
-    return await this.addMembers(dto, tx);
+  async addMembersWithAdmin(
+    members: CreateChatMember[],
+    adminUserId: string,
+    chatId: string,
+    tx?: DBClient,
+  ) {
+    await this.validateAdmin(adminUserId, chatId);
+    return await this.addMembers(members, tx);
   }
 
-  async addMembers(data: Omit<CreateChatMember, 'adminId'>[], tx?: DBClient) {
+  async addMembers(data: CreateChatMember[], tx?: DBClient) {
+    // TODO: Check if user already exists
+
     const addedMembers = await this.chatMembersRepository.createMembers(
       data,
       tx,
@@ -30,7 +30,7 @@ export class ChatMembersService {
   }
 
   async changeRole(
-    adminId: string,
+    adminUserId: string,
     memberId: string,
     chatId: string,
     role: ChatMemberRole,
@@ -39,7 +39,10 @@ export class ChatMembersService {
     const member = await this.chatMembersRepository.getMemberById(memberId);
 
     assertExists(member, 'Target member not found');
-    await this.validateAdmin(adminId, chatId, role);
+    await this.validateAdmin(adminUserId, chatId, {
+      newRole: role,
+      targetMemberId: memberId,
+    });
 
     const updatedMember = await this.chatMembersRepository.updateMemberRole(
       memberId,
@@ -51,36 +54,52 @@ export class ChatMembersService {
   }
 
   async deleteMember(
-    adminId: string,
+    adminUserId: string,
     memberId: string,
     chatId: string,
     tx?: DBClient,
   ) {
     const member = await this.chatMembersRepository.getMemberById(memberId);
     assertExists(member, 'Target member not found');
-    await this.validateAdmin(adminId, chatId);
+    await this.validateAdmin(adminUserId, chatId);
 
     await this.chatMembersRepository.deleteMember(memberId, tx);
   }
 
   private async validateAdmin(
-    adminId: string,
+    adminUserId: string,
     chatId: string,
-    newRole?: ChatMemberRole,
+    options?: { targetMemberId?: string; newRole?: ChatMemberRole },
   ) {
-    const admin = await this.chatMembersRepository.getMemberWithAdmins(
-      adminId,
-      chatId,
-    );
+    const adminMembership =
+      await this.chatMembersRepository.getMemberWithAdminsByUserId(
+        adminUserId,
+        chatId,
+      );
 
-    assertExists(admin, 'Admin not found');
+    assertExists(adminMembership, 'You are not a member of this chat');
     assertForbidden(
-      admin?.role === 'admin',
-      'Only admin can change roles and group contents',
+      adminMembership.role === 'admin',
+      'Only admins can modify roles or group membership',
     );
 
-    if (newRole && newRole === 'member') {
-      assertForbidden(admin.totalAdmins > 1, 'Cannot change last admin role');
+    if (!options) return;
+
+    const { targetMemberId, newRole } = options;
+
+    // CRITICAL RULE: Prevent leaving a chat with 0 admins
+    if (newRole === 'member') {
+      // Is the admin trying to demote themselves?
+      const isDemotingSelf =
+        adminMembership.id === targetMemberId ||
+        adminMembership.userId === targetMemberId;
+
+      if (isDemotingSelf) {
+        assertForbidden(
+          adminMembership.totalAdmins > 1,
+          'Cannot demote yourself because you are the last admin. Appoint another admin first',
+        );
+      }
     }
   }
 }

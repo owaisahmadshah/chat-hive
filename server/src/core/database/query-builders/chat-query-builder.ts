@@ -50,6 +50,7 @@ export class ChatQueryBuilder {
         ),
       )
       .where(and(...conditions))
+      .groupBy(messages.chatId)
       .as('unread');
   }
 
