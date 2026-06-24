@@ -6,7 +6,6 @@ import { DRIZZLE_PROVIDER } from '../config/config';
 import * as schema from './schema';
 import { EnvConfig } from '../config/env';
 import { DatabaseService } from './database.service';
-import { ChatQueryBuilder } from './query-builders/chat-query-builder';
 
 @Global()
 @Module({
@@ -37,6 +36,6 @@ import { ChatQueryBuilder } from './query-builders/chat-query-builder';
     },
     DatabaseService,
   ],
-  exports: [DRIZZLE_PROVIDER, DatabaseService, ChatQueryBuilder],
+  exports: [DRIZZLE_PROVIDER, DatabaseService],
 })
 export class DatabaseModule {}
