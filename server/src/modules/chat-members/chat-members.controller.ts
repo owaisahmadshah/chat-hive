@@ -19,6 +19,8 @@ import {
   type DeleteChatMember,
   deleteChatMemberSchema,
 } from 'shared';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { type JWTPayload } from 'src/shared/types/jwt-payload.type';
 
 @Controller('chat-members')
 export class ChatMembersController {
@@ -28,10 +30,15 @@ export class ChatMembersController {
   @Post()
   @UseGuards(AuthGuard)
   async addMembers(
+    @CurrentUser() user: JWTPayload,
     @Body(new ZodValidationPipe(createChatMembersSchema))
     dto: CreateChatMember[],
   ) {
-    const member = await this.chatMembersService.addMembersWithAdmin(dto);
+    const member = await this.chatMembersService.addMembersWithAdmin(
+      dto,
+      user.sub,
+      dto.at(0)!.chatId,
+    );
     return { data: member };
   }
 
@@ -39,11 +46,12 @@ export class ChatMembersController {
   @Patch('/change-role')
   @UseGuards(AuthGuard)
   async updateRole(
+    @CurrentUser() user: JWTPayload,
     @Body(new ZodValidationPipe(changeChatMemberRoleSchema))
     dto: ChangeMemberRole,
   ) {
     const member = await this.chatMembersService.changeRole(
-      dto.adminId,
+      user.sub,
       dto.memberId,
       dto.chatId,
       dto.role,
@@ -56,10 +64,11 @@ export class ChatMembersController {
   @Delete()
   @UseGuards(AuthGuard)
   async deleteMember(
+    @CurrentUser() user: JWTPayload,
     @Body(new ZodValidationPipe(deleteChatMemberSchema)) dto: DeleteChatMember,
   ) {
     await this.chatMembersService.deleteMember(
-      dto.adminId,
+      user.sub,
       dto.memberId,
       dto.chatId,
     );

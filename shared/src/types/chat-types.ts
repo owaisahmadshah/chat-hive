@@ -28,8 +28,7 @@ export const createChatSchema = baseCreateChatSchema.refine(
 
 export const createChatMemberSchema = z.object({
   chatId: z.string(),
-  memberId: z.string(),
-  adminId: z.string(),
+  userId: z.string(),
   role: chatMemberRoleSchema,
 });
 
@@ -56,14 +55,12 @@ export const addMemberSchema = z.object({
 });
 
 export const changeChatMemberRoleSchema = z.object({
-  adminId: z.string(),
   memberId: z.string(),
   chatId: z.string(),
   role: chatMemberRoleSchema,
 });
 
 export const deleteChatMemberSchema = z.object({
-  adminId: z.string(),
   memberId: z.string(),
   chatId: z.string(),
 });
