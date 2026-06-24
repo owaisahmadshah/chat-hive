@@ -13,7 +13,6 @@ export class ChatsRepository {
   constructor(
     @Inject(DRIZZLE_PROVIDER)
     private readonly mainDb: NodePgDatabase<typeof schema>,
-    private readonly qb: ChatQueryBuilder,
   ) {}
 
   private getClient(tx?: DBClient): DBClient {

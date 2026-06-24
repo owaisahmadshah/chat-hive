@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { User } from "./user-types";
+import { Message } from "./message-types";
 
-export const chatRoleSchema = z.enum(["admin", "member"]);
+export const chatMemberRoleSchema = z.enum(["admin", "member"]);
 
 const baseCreateChatSchema = z.object({
   createdBy: z.string(),
@@ -28,9 +28,12 @@ export const createChatSchema = baseCreateChatSchema.refine(
 
 export const createChatMemberSchema = z.object({
   chatId: z.string(),
-  userId: z.string(),
-  role: chatRoleSchema,
+  memberId: z.string(),
+  adminId: z.string(),
+  role: chatMemberRoleSchema,
 });
+
+export const createChatMembersSchema = z.array(createChatMemberSchema);
 
 export const deleteChatSchema = z.object({
   chatId: z.string(),
@@ -38,10 +41,6 @@ export const deleteChatSchema = z.object({
 
 export const chatIdParamSchema = z.object({
   chatId: z.string().uuid(),
-});
-
-export const deleteChatMemberSchema = z.object({
-  chatMemberId: z.string(),
 });
 
 export const updateChatSchema = z
@@ -56,17 +55,33 @@ export const addMemberSchema = z.object({
   role: z.enum(["admin", "member"]).optional(),
 });
 
-export type ChatRole = z.infer<typeof chatRoleSchema>;
+export const changeChatMemberRoleSchema = z.object({
+  adminId: z.string(),
+  memberId: z.string(),
+  chatId: z.string(),
+  role: chatMemberRoleSchema,
+});
+
+export const deleteChatMemberSchema = z.object({
+  adminId: z.string(),
+  memberId: z.string(),
+  chatId: z.string(),
+});
+
+export type ChatMemberRole = z.infer<typeof chatMemberRoleSchema>;
 export type CreateChat = z.infer<typeof baseCreateChatSchema>;
 export type CreateChatMember = z.infer<typeof createChatMemberSchema>;
+export type CreateChatMembers = z.infer<typeof createChatMembersSchema>;
 export type DeleteChat = z.infer<typeof deleteChatSchema>;
 export type ChatIdParam = z.infer<typeof chatIdParamSchema>;
 export type UpdateChat = z.infer<typeof updateChatSchema>;
 export type AddMember = z.infer<typeof addMemberSchema>;
+export type ChangeMemberRole = z.infer<typeof changeChatMemberRoleSchema>;
+export type DeleteChatMember = z.infer<typeof deleteChatMemberSchema>;
 
 export interface ChatMember {
   id: string;
-  role: ChatRole;
+  role: ChatMemberRole;
   joinedAt: Date;
   deletedAt?: Date | null;
   // ------------

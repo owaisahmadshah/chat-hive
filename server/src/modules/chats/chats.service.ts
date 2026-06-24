@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ChatsRepository } from './chats.repository';
 import {
   Chat,
@@ -15,6 +11,11 @@ import {
 } from 'shared';
 import { DatabaseService } from 'src/core/database/database.service';
 import { ChatMembersService } from '../chat-members/chat-members.service';
+import {
+  assertBadRequest,
+  assertExists,
+  assertForbidden,
+} from 'src/shared/assertions';
 
 @Injectable()
 export class ChatsService {
@@ -30,11 +31,11 @@ export class ChatsService {
         const { members, ...other } = data;
         const chat = await this.chatsRepository.createChat(other, tx);
 
-        const chatMembers: CreateChatMember[] = [
+        const chatMembers: Omit<CreateChatMember, 'adminId'>[] = [
           {
             chatId: chat.id,
             role: 'admin',
-            userId,
+            memberId: userId,
           },
         ];
 
@@ -43,7 +44,7 @@ export class ChatsService {
             chatMembers.push({
               chatId: chat.id,
               role: 'member',
-              userId: members[i],
+              memberId: members[i],
             });
         }
 
@@ -58,9 +59,10 @@ export class ChatsService {
       return chat;
     }
 
-    if (!Array.isArray(data.members) || data.members.length === 0) {
-      throw new BadRequestException('Must provide exactly receiver');
-    }
+    assertBadRequest(
+      Array.isArray(data.members) && data.members.length > 0,
+      'Must provide exactly one receiver',
+    );
 
     const consumerId = data.members.filter(
       (memberId) => memberId !== userId,
@@ -73,8 +75,8 @@ export class ChatsService {
 
     if (existingChat) {
       const members = await this.chatMembersService.addMembers([
-        { chatId: existingChat.id, role: 'admin', userId: userId },
-        { chatId: existingChat.id, role: 'admin', userId: consumerId },
+        { chatId: existingChat.id, role: 'admin', memberId: userId },
+        { chatId: existingChat.id, role: 'admin', memberId: consumerId },
       ]);
 
       return { ...existingChat, members: members };
@@ -84,8 +86,8 @@ export class ChatsService {
       const chat = await this.chatsRepository.createChat(data, tx);
 
       const members = await this.chatMembersService.addMembers([
-        { chatId: chat.id, role: 'admin', userId: userId },
-        { chatId: chat.id, role: 'admin', userId: consumerId },
+        { chatId: chat.id, role: 'admin', memberId: userId },
+        { chatId: chat.id, role: 'admin', memberId: consumerId },
       ]);
 
       return [{ ...chat, members }];
@@ -137,9 +139,7 @@ export class ChatsService {
       chatId,
     );
 
-    if (!chat) {
-      throw new NotFoundException('Chat not found');
-    }
+    assertExists(chat, 'Chat not found');
 
     return chat;
   }
@@ -147,13 +147,11 @@ export class ChatsService {
   async updateChat(chatId: string, updateData: UpdateChat) {
     const chat = await this.chatsRepository.getChatById(chatId);
 
-    if (!chat.isGroup) {
-      throw new BadRequestException('Cannot update private chats');
-    }
-
-    if (!updateData.name && !updateData.logoURL) {
-      throw new BadRequestException('Must provide name or logo url');
-    }
+    assertForbidden(chat.isGroup, 'Cannot update private chats');
+    assertBadRequest(
+      !!(updateData.name || updateData.logoURL),
+      'Must provide name or logo url',
+    );
 
     return await this.chatsRepository.updateChat(chatId, updateData);
   }
