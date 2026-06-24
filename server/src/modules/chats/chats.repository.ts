@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { and, desc, eq, isNull, lt, ne, or, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
 import * as schema from '../../core/database/schema';
 import { DBClient } from 'src/core/database/database.service';
@@ -12,6 +13,9 @@ import {
   messageStatus,
   messageDelete,
 } from '../../core/database/schema/message';
+
+const otherMember = alias(chatMembers, 'other_member');
+const otherUser = alias(users, 'other_user');
 
 @Injectable()
 export class ChatsRepository {
@@ -74,22 +78,38 @@ export class ChatsRepository {
     const rows = await this.getClient()
       .select({
         id: chats.id,
-        name: chats.name,
+        name: sql<string>`
+          CASE
+            WHEN ${chats.isGroup} = true THEN ${chats.name}
+            ELSE ${otherUser.username}
+          END
+        `,
+        logoURL: sql<string>`
+          CASE
+            WHEN ${chats.isGroup} = true THEN ${chats.logoURL}
+            ELSE ${otherUser.imageURL}
+          END
+        `,
         isGroup: chats.isGroup,
         updatedAt: chats.updatedAt,
         unreadCount: sql<number>`COALESCE(${unreadSubquery.unreadCount}, 0)`,
         members: sql<ChatMember[]>`
-        jsonb_agg(
-          jsonb_build_object(
-            'id', ${chatMembers.id},
-            'userId', ${users.id},
-            'username', ${users.username},
-            'imageURL', ${users.imageURL},
-            'role', ${chatMembers.role},
-            'joinedAt', ${chatMembers.joinedAt}
-          )
-        )
-      `,
+          CASE
+            WHEN ${chats.isGroup} = true THEN
+              jsonb_agg(
+                jsonb_build_object(
+                  'id',       ${chatMembers.id},
+                  'userId',   ${users.id},
+                  'username', ${users.username},
+                  'imageURL', ${users.imageURL},
+                  'role',     ${chatMembers.role},
+                  'joinedAt', ${chatMembers.joinedAt}
+                )
+              )
+            ELSE
+              '[]'::jsonb
+          END
+        `,
       })
       .from(chats)
       .innerJoin(
@@ -101,6 +121,15 @@ export class ChatsRepository {
         ),
       )
       .innerJoin(users, eq(users.id, chatMembers.userId))
+      .leftJoin(
+        otherMember,
+        and(
+          eq(otherMember.chatId, chats.id),
+          ne(otherMember.userId, userId),
+          isNull(otherMember.deletedAt),
+        ),
+      )
+      .leftJoin(otherUser, eq(otherUser.id, otherMember.userId))
       .leftJoin(unreadSubquery, eq(unreadSubquery.chatId, chats.id))
       .where(
         cursor
@@ -113,7 +142,7 @@ export class ChatsRepository {
             )
           : undefined,
       )
-      .groupBy(chats.id)
+      .groupBy(chats.id, otherUser.username, otherUser.imageURL)
       .orderBy(desc(chats.updatedAt), desc(chats.id))
       .limit(limit + 1);
 
@@ -154,22 +183,38 @@ export class ChatsRepository {
     const rows = await this.getClient()
       .select({
         id: chats.id,
-        name: chats.name,
         isGroup: chats.isGroup,
         updatedAt: chats.updatedAt,
-        unreadCount: sql<number>`COUNT(DISTINCT ${messages.id})`,
+        unreadCount: sql<number>`COALESCE(${unreadSubquery.unreadCount}, 0)`,
+        name: sql<string>`
+          CASE
+            WHEN ${chats.isGroup} = true THEN ${chats.name}
+            ELSE ${otherUser.username}
+          END
+        `,
+        logoURL: sql<string>`
+          CASE
+            WHEN ${chats.isGroup} = true THEN ${chats.logoURL}
+            ELSE ${otherUser.imageURL}
+          END
+        `,
         members: sql<ChatMember[]>`
-        jsonb_agg(
-          jsonb_build_object(
-            'id',        ${chatMembers.id},
-            'userId',    ${users.id},
-            'username',  ${users.username},
-            'imageURL',  ${users.imageURL},
-            'role',      ${chatMembers.role},
-            'joinedAt',  ${chatMembers.joinedAt}
-          )
-        )
-      `,
+          CASE
+            WHEN ${chats.isGroup} = true THEN
+              jsonb_agg(
+                jsonb_build_object(
+                  'id',       ${chatMembers.id},
+                  'userId',   ${users.id},
+                  'username', ${users.username},
+                  'imageURL', ${users.imageURL},
+                  'role',     ${chatMembers.role},
+                  'joinedAt', ${chatMembers.joinedAt}
+                )
+              )
+            ELSE
+              '[]'::jsonb
+          END
+        `,
       })
       .from(chats)
       .innerJoin(
@@ -181,9 +226,23 @@ export class ChatsRepository {
         ),
       )
       .innerJoin(users, eq(users.id, chatMembers.userId))
+      .leftJoin(
+        otherMember,
+        and(
+          eq(otherMember.chatId, chats.id),
+          ne(otherMember.userId, userId),
+          isNull(otherMember.deletedAt),
+        ),
+      )
+      .leftJoin(otherUser, eq(otherUser.id, otherMember.userId))
       .leftJoin(unreadSubquery, eq(unreadSubquery.chatId, chats.id))
       .where(eq(chats.id, chatId))
-      .groupBy(chats.id, unreadSubquery.unreadCount);
+      .groupBy(
+        chats.id,
+        otherUser.username,
+        otherUser.imageURL,
+        unreadSubquery.unreadCount,
+      );
 
     return rows[0] || null;
   }
@@ -200,8 +259,8 @@ export class ChatsRepository {
       .groupBy(chats.id)
       .having(
         and(
-          sql`count(${chatMembers.userId}) = 2`,
-          sql`count(case when ${chatMembers.userId} in (${actorId}, ${consumerId}) then 1 end) = 2`,
+          sql`count(case when ${chatMembers.deletedAt} is null then 1 end) = 2`,
+          sql`count(case when ${chatMembers.userId} in (${actorId}, ${consumerId}) and ${chatMembers.deletedAt} is null then 1 end) = 2`,
         ),
       )
       .limit(1);
