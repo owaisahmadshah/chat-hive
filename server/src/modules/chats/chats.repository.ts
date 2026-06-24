@@ -20,6 +20,10 @@ export class ChatsRepository {
     return tx ?? this.mainDb;
   }
 
+  private getQueryBuilder(tx?: DBClient): ChatQueryBuilder {
+    return new ChatQueryBuilder(this.getClient(tx));
+  }
+
   async createChat(data: CreateChat, tx?: DBClient) {
     const [result] = await this.getClient(tx)
       .insert(chats)
@@ -37,11 +41,12 @@ export class ChatsRepository {
       updatedAt: Date;
     },
   ) {
-    const unreadMessagesSubQuery = this.qb.buildUnreadMessagesSubquery(userId);
+    const qb = this.getQueryBuilder();
+    const unreadMessagesSubQuery = qb.buildUnreadMessagesSubquery(userId);
 
-    const rows = await this.qb
+    const rows = await qb
       .buildBaseChatQuery(userId, unreadMessagesSubQuery)
-      .where(this.qb.buildCursorCondition(cursor))
+      .where(qb.buildCursorCondition(cursor))
       .groupBy(chats.id, schema.users.username, schema.users.imageURL)
       .orderBy(desc(chats.updatedAt), desc(chats.id))
       .limit(limit + 1);
@@ -50,9 +55,10 @@ export class ChatsRepository {
   }
 
   async getChatWithMembersAndUnreadMessages(userId: string, chatId: string) {
-    const unreadSubquery = this.qb.buildUnreadMessagesSubquery(userId, chatId);
+    const qb = this.getQueryBuilder();
+    const unreadSubquery = qb.buildUnreadMessagesSubquery(userId, chatId);
 
-    const rows = await this.qb
+    const rows = await qb
       .buildBaseChatQuery(userId, unreadSubquery)
       .where(eq(chats.id, chatId))
       .groupBy(

@@ -7,7 +7,7 @@ import {
   messageStatus,
   users,
 } from '../schema';
-import { DBClient } from '../database.service';
+import { type DBClient } from '../database.service';
 import { and, eq, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import { ChatMember, CursorPayload } from 'shared';
 
