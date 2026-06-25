@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { User } from "./user-types";
+import { MessageUser, User } from "./user-types";
 
 export const messageStatusEnumSchema = z.enum(["sent", "delivered", "read"]);
 export const attachmentTypeEnumSchema = z.enum([
@@ -15,7 +15,7 @@ export const messageAttachmentSchema = z.object({
   type: attachmentTypeEnumSchema,
   url: z.string().url(),
   publicId: z.string(),
-  fileName: z.string(),
+  fileName: z.string().nullable(),
 });
 
 export const createMessageSchema = z
@@ -52,14 +52,37 @@ export type CreateMessage = z.infer<typeof createMessageSchema>;
 export type MessageStatus = z.infer<typeof messageStatusSchema>;
 export type DeleteMessage = z.infer<typeof deleteMessageSchema>;
 
+export interface MessageStatusRecord {
+  id: string;
+  messageId: string | null;
+  userId: string | null;
+  status: MessageStatusEnum;
+  createdAt: Date;
+}
+
+export interface MessageAttachmentRecord {
+  id: string;
+  messageId: string | null;
+  type: AttachmentTypeEnum;
+  url: string;
+  fileName: string | null;
+  publicId: string;
+  createdAt: Date | null;
+}
+
+export type ReplyToMessageRecord = null | {
+  id: string;
+  text: string | null;
+  senderId: string;
+};
+
 export interface Message {
   id: string;
   chatId: string;
-  sender: User;
+  sender: MessageUser;
   text: string | null;
-  attachments: MessageAttachment[];
-  replyTo: Message | null;
-  status: MessageStatusEnum;
+  attachments: Omit<MessageAttachmentRecord, "messageId" | "publicId">[];
+  replyTo: ReplyToMessageRecord;
+  status: Omit<MessageStatusRecord, "messageId">[];
   createdAt: Date;
-  updatedAt: Date;
 }

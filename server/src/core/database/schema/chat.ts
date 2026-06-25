@@ -30,6 +30,6 @@ export const chatMembers = table(
   },
   (table) => [
     t.index('chat_id_idx').on(table.chatId),
-    t.index('chat_id_and_user_id_idx').on(table.chatId, table.userId),
+    t.uniqueIndex('chat_id_user_id_unique').on(table.chatId, table.userId),
   ],
 );

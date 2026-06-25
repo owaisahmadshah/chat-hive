@@ -107,4 +107,15 @@ export class ChatMembersRepository {
 
     return member;
   }
+
+  async getChatMembersById(chatId: string) {
+    const members = await this.getClient()
+      .select()
+      .from(chatMembers)
+      .where(
+        and(eq(chatMembers.chatId, chatId), isNull(chatMembers.deletedAt)),
+      );
+
+    return members;
+  }
 }
