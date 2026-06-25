@@ -102,4 +102,8 @@ export class ChatMembersService {
       }
     }
   }
+
+  async getChatMembers(chatId: string) {
+    return await this.chatMembersRepository.getChatMembersById(chatId);
+  }
 }

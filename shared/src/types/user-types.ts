@@ -71,6 +71,12 @@ export interface User {
   createdAt: Date;
 }
 
+export interface MessageUser {
+  id: string;
+  username: string;
+  imageURL: string;
+}
+
 export interface UserWithPassword {
   id: string;
   username: string;
