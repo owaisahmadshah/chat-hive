@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
-import * as schema from '../../core/database/schema';
+import * as schema from '../../../core/database/schema';
 import { DBClient } from 'src/core/database/database.service';
-import { chats, chatMembers } from '../../core/database/schema/chat';
+import { chats, chatMembers } from '../../../core/database/schema/chat';
 import { CreateChat, UpdateChat } from 'shared';
 import {
   ChatQueryBuilder,
