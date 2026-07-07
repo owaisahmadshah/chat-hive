@@ -1,10 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { MessagesRepository } from './repositories/messages.repository';
 import { MessageAttachmentRepository } from './repositories/message-attachment.repository';
 import { MessageStatusRepository } from './repositories/message-status.repository';
 import { DatabaseService } from 'src/core/database/database.service';
 import { ChatMembersService } from '../chat-members/chat-members.service';
-import { CreateMessage, Message, MessageStatusEnum } from 'shared';
+import {
+  CreateMessage,
+  CursorPayload,
+  decodeCursor,
+  encodeCursor,
+  Message,
+  MessageStatusEnum,
+  Pagination,
+} from 'shared';
+import { MessageDeleteRepository } from './repositories/message-delete.repository';
 
 @Injectable()
 export class MessagesService {
@@ -12,6 +21,7 @@ export class MessagesService {
     private readonly messageRepository: MessagesRepository,
     private readonly messageAttachmentRepository: MessageAttachmentRepository,
     private readonly messageStatusRepository: MessageStatusRepository,
+    private readonly messageDeleteRepository: MessageDeleteRepository,
     private readonly databaseService: DatabaseService,
     private readonly chatMembersService: ChatMembersService,
   ) {}
@@ -32,8 +42,6 @@ export class MessagesService {
         const members = await this.chatMembersService.getChatMembers(
           messageDto.chatId,
         );
-
-        console.log(members);
 
         const statusesDto = members.map((member) => ({
           userId: member.userId!,
@@ -71,8 +79,58 @@ export class MessagesService {
 
     return {
       ...message,
-      status: statuses,
+      statuses,
       attachments,
     };
+  }
+
+  async deleteMessage(messageId: string, userId: string) {
+    const existingMessage =
+      await this.messageRepository.getMessageIdById(messageId);
+
+    if (!existingMessage) {
+      throw new NotFoundException('Message not found');
+    }
+
+    const deletedMessage = await this.messageDeleteRepository.deleteMessage(
+      messageId,
+      userId,
+    );
+
+    return deletedMessage;
+  }
+
+  async getMessagesByChatId(
+    chatId: string,
+    userId: string,
+    limit: number,
+    cursor: string | null,
+  ): Promise<Pagination<Message>> {
+    const decodedCursor: CursorPayload | null = cursor
+      ? decodeCursor(cursor)
+      : null;
+
+    const messages = await this.messageRepository.getMessagesByChatId(
+      chatId,
+      limit,
+      userId,
+      decodedCursor
+        ? {
+            id: decodedCursor.id,
+            createdAt: new Date(decodedCursor.createdAt!),
+          }
+        : undefined,
+    );
+
+    const hasMore = messages.length > limit;
+    const data = hasMore ? messages.slice(0, limit) : messages;
+    const nextCursor = hasMore
+      ? encodeCursor({
+          id: data.at(-1)!.id,
+          createdAt: data.at(-1)!.createdAt?.toISOString(),
+        })
+      : null;
+
+    return { data, nextCursor, hasMore };
   }
 }

@@ -42,7 +42,7 @@ export const messageStatusSchema = z.object({
 
 export const deleteMessageSchema = z.object({
   messageId: z.string(),
-  userId: z.string(),
+  userId: z.string().optional(),
 });
 
 export type MessageStatusEnum = z.infer<typeof messageStatusEnumSchema>;
@@ -83,6 +83,6 @@ export interface Message {
   text: string | null;
   attachments: Omit<MessageAttachmentRecord, "messageId" | "publicId">[];
   replyTo: ReplyToMessageRecord;
-  status: Omit<MessageStatusRecord, "messageId">[];
+  statuses: Omit<MessageStatusRecord, "messageId">[];
   createdAt: Date;
 }

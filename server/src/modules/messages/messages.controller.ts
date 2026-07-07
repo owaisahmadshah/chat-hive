@@ -1,7 +1,27 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { type CreateMessage, createMessageSchema } from 'shared';
+import {
+  type ChatIdParam,
+  chatIdParamSchema,
+  type CreateMessage,
+  createMessageSchema,
+  type DeleteMessage,
+  deleteMessageSchema,
+  paginationSchema,
+  type ReqPagination,
+} from 'shared';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { type JWTPayload } from 'src/shared/types/jwt-payload.type';
 import { AuthGuard } from 'src/common/guards/auth.guard';
@@ -10,7 +30,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
-  @HttpCode(201)
+  @HttpCode(HttpStatus.CREATED)
   @Post()
   @UseGuards(AuthGuard)
   async createMessage(
@@ -23,5 +43,38 @@ export class MessagesController {
     );
 
     return { data: createdMessage };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Delete(':messageId')
+  @UseGuards(AuthGuard)
+  async deleteMessage(
+    @CurrentUser() user: JWTPayload,
+    @Param(new ZodValidationPipe(deleteMessageSchema)) params: DeleteMessage,
+  ) {
+    const deletedMessage = await this.messagesService.deleteMessage(
+      params.messageId,
+      user.sub,
+    );
+
+    return { data: deletedMessage };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get(':chatId')
+  @UseGuards(AuthGuard)
+  async getChatMessages(
+    @Param(new ZodValidationPipe(chatIdParamSchema)) params: ChatIdParam,
+    @CurrentUser() user: JWTPayload,
+    @Query(new ZodValidationPipe(paginationSchema)) queries: ReqPagination,
+  ) {
+    const messages = await this.messagesService.getMessagesByChatId(
+      params.chatId,
+      user.sub,
+      Number(queries.limit),
+      queries.cursor,
+    );
+
+    return { data: messages };
   }
 }

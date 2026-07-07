@@ -1,13 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { alias } from 'drizzle-orm/pg-core';
-import { eq, sql } from 'drizzle-orm';
-import { CreateMessage, ReplyToMessageRecord } from 'shared';
+import { and, eq, lt, or, sql } from 'drizzle-orm';
+import { CreateMessage, Message, ReplyToMessageRecord } from 'shared';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
 import { DBClient } from 'src/core/database/database.service';
 import * as schema from 'src/core/database/schema';
-import { messages } from 'src/core/database/schema/message';
-import { users } from 'src/core/database/schema';
+import {
+  messages,
+  users,
+  messageAttachments,
+  messageStatus,
+} from 'src/core/database/schema';
 
 const replyToMessage = alias(messages, 'reply_message');
 
@@ -77,5 +81,118 @@ export class MessagesRepository {
       .limit(1);
 
     return message ?? null;
+  }
+
+  async getMessageIdById(messageId: string) {
+    const result = await this.getClient()
+      .select({
+        id: messages.id,
+        chatId: messages.chatId,
+      })
+      .from(messages)
+      .where(eq(messages.id, messageId))
+      .limit(1);
+
+    return result.length > 0 ? result[0] : null;
+  }
+
+  async getMessagesByChatId(
+    chatId: string,
+    limit: number,
+    userId: string,
+    cursor?: { id: string; createdAt: Date },
+  ) {
+    const client = this.getClient();
+
+    const results = await client
+      .select({
+        id: messages.id,
+        chatId: messages.chatId,
+        text: messages.text,
+        createdAt: messages.createdAt,
+        sender: {
+          id: users.id,
+          username: users.username,
+          imageURL: users.imageURL,
+        },
+        replyTo: sql<Message['replyTo'] | null>`
+          CASE
+            WHEN ${messages.replyTo} IS NOT NULL THEN
+              jsonb_build_object(
+                'id',       ${replyToMessage.id},
+                'text',     ${replyToMessage.text},
+                'senderId', ${replyToMessage.senderId}
+              )
+            ELSE NULL
+          END
+        `,
+        attachments: sql<Message['attachments']>`
+          COALESCE(
+            jsonb_agg(
+              jsonb_build_object(
+                'id', ${messageAttachments.id},
+                'type', ${messageAttachments.type},
+                'url', ${messageAttachments.url},
+                'fileName', ${messageAttachments.fileName},
+                'createdAt' ${messageAttachments.createdAt}
+              )
+            ) FILTER (WHERE ${messageAttachments.id} IS NOT NULL),
+            '[]'::jsonb
+          )
+        `,
+        statuses: sql<Message['statuses']>`
+          COALESCE(
+            jsonb_agg(
+              jsonb_build_object(
+                'id', ${messageStatus.id},
+                'userId', ${messageStatus.userId},
+                'status', ${messageStatus.status}
+              )
+            ) FILTER (WHERE ${messageStatus.id} IS NOT NULL),
+            '[]'::jsonb
+          )
+        `,
+      })
+      .from(messages)
+      .innerJoin(users, eq(messages.senderId, users.id))
+      .leftJoin(replyToMessage, eq(replyToMessage.id, messages.replyTo))
+      .leftJoin(
+        messageAttachments,
+        eq(messages.id, messageAttachments.messageId),
+      )
+      .leftJoin(messageStatus, eq(messages.id, messageStatus.messageId))
+      .leftJoin(
+        schema.messageDelete,
+        and(
+          eq(messages.id, schema.messageDelete.messageId),
+          eq(schema.messageDelete.userId, userId),
+        ),
+      )
+      .where(
+        and(
+          eq(messages.chatId, chatId),
+          sql`${schema.messageDelete.id} IS NULL`,
+          cursor
+            ? or(
+                lt(messages.createdAt, cursor.createdAt),
+                and(
+                  eq(messages.createdAt, cursor.createdAt),
+                  lt(messages.id, cursor.id),
+                ),
+              )
+            : undefined,
+        ),
+      )
+      .groupBy(
+        messages.id,
+        users.id,
+        replyToMessage.id,
+        replyToMessage.text,
+        replyToMessage.senderId,
+      )
+      .orderBy(sql`${messages.createdAt} DESC, ${messages.id} DESC`)
+      .limit(limit);
+
+    return results;
   }
 }
