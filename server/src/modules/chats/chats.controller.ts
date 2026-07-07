@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -12,10 +14,16 @@ import {
 import { ChatsService } from './chats.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import {
+  changeChatMemberRoleSchema,
+  type ChangeMemberRole,
   type ChatIdParam,
   chatIdParamSchema,
   type CreateChat,
+  type CreateChatMember,
+  createChatMembersSchema,
   createChatSchema,
+  type DeleteChatMember,
+  deleteChatMemberSchema,
   paginationSchema,
   type ReqPagination,
   type UpdateChat,
@@ -29,7 +37,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 export class ChatsController {
   constructor(private readonly chatsService: ChatsService) {}
 
-  @HttpCode(201)
+  @HttpCode(HttpStatus.CREATED)
   @Post()
   @UseGuards(AuthGuard)
   async createChat(
@@ -40,7 +48,7 @@ export class ChatsController {
     return { data: createdChat };
   }
 
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @Get()
   @UseGuards(AuthGuard)
   async getMyChats(
@@ -55,7 +63,7 @@ export class ChatsController {
     return { data: chats };
   }
 
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @Get(':chatId')
   @UseGuards(AuthGuard)
   async getChatById(
@@ -66,7 +74,7 @@ export class ChatsController {
     return { data: chat };
   }
 
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @Patch(':chatId')
   @UseGuards(AuthGuard)
   async updateChat(
@@ -79,5 +87,51 @@ export class ChatsController {
     );
 
     return { data: updatedChat };
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/member')
+  @UseGuards(AuthGuard)
+  async addMembers(
+    @CurrentUser() user: JWTPayload,
+    @Body(new ZodValidationPipe(createChatMembersSchema))
+    dto: CreateChatMember[],
+  ) {
+    const member = await this.chatsService.addMembersWithAdmin(
+      dto,
+      user.sub,
+      dto.at(0)!.chatId,
+    );
+    return { data: member };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Patch('/member/change-role')
+  @UseGuards(AuthGuard)
+  async updateRole(
+    @CurrentUser() user: JWTPayload,
+    @Body(new ZodValidationPipe(changeChatMemberRoleSchema))
+    dto: ChangeMemberRole,
+  ) {
+    const member = await this.chatsService.changeRole(
+      user.sub,
+      dto.memberId,
+      dto.chatId,
+      dto.role,
+    );
+
+    return { data: member };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Delete('/member')
+  @UseGuards(AuthGuard)
+  async deleteMember(
+    @CurrentUser() user: JWTPayload,
+    @Body(new ZodValidationPipe(deleteChatMemberSchema)) dto: DeleteChatMember,
+  ) {
+    await this.chatsService.deleteMember(user.sub, dto.memberId, dto.chatId);
+
+    return { data: {} };
   }
 }

@@ -10,7 +10,6 @@ import { EmailModule } from './modules/email/email.module';
 import { UserSessionModule } from './modules/user-session/user-session.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ChatsModule } from './modules/chats/chats.module';
-import { ChatMembersModule } from './modules/chat-members/chat-members.module';
 import { MessagesModule } from './modules/messages/messages.module';
 
 @Module({
@@ -67,7 +66,6 @@ import { MessagesModule } from './modules/messages/messages.module';
     UserSessionModule,
     AuthModule,
     ChatsModule,
-    ChatMembersModule,
     MessagesModule,
   ],
   controllers: [],
