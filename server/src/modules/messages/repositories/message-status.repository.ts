@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { and, eq, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { MessageStatus } from 'shared';
+import { MessageStatus, MessageStatusEnum } from 'shared';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
 import { DBClient } from 'src/core/database/database.service';
 import * as schema from 'src/core/database/schema';
@@ -29,5 +30,55 @@ export class MessageStatusRepository {
       });
 
     return results;
+  }
+
+  async updateStatusByMessageId(
+    messageId: string,
+    userId: string,
+    status: MessageStatusEnum,
+    tx?: DBClient,
+  ) {
+    const updatedStatus = await this.getClient(tx)
+      .update(messageStatus)
+      .set({ status })
+      .where(
+        and(
+          eq(messageStatus.messageId, messageId),
+          eq(messageStatus.userId, userId),
+        ),
+      )
+      .returning({
+        status: messageStatus.status,
+        userId: messageStatus.userId,
+        messageId: messageStatus.messageId,
+      });
+
+    return updatedStatus.at(0);
+  }
+
+  async updateMessagesStatusByChatId(
+    chatId: string,
+    userId: string,
+    status: 'sent' | 'delivered' | 'read',
+    tx?: DBClient,
+  ) {
+    // TODO: For optimization ignore all the deleted messages
+    const updatedRows = await this.getClient(tx)
+      .update(messageStatus)
+      .set({ status, updatedAt: new Date() })
+      .where(
+        and(
+          eq(messageStatus.userId, userId),
+          sql`${messageStatus.status} != ${status}`,
+          sql`${messageStatus.messageId} IN (
+          SELECT id FROM messages WHERE chat_id = ${chatId}
+        )`,
+        ),
+      )
+      .returning({
+        messageId: messageStatus.messageId,
+      });
+
+    return updatedRows;
   }
 }

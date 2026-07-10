@@ -1,10 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/core/database/database.service';
-import { UserRepository } from './users.repository';
-import { CreateUser, UserWithPassword, User } from 'shared';
+import { DatabaseService, DBClient } from 'src/core/database/database.service';
+import { UserRepository } from './repositories/users.repository';
+import {
+  CreateUser,
+  UserWithPassword,
+  User,
+  SessionSummary,
+  CreateUserSession,
+} from 'shared';
 import { CryptoService } from 'src/shared/services/crypto.service';
-import { userProjections } from './users.projections';
+import { userProjections } from './projections/users.projections';
 import { assertConflict, assertExists } from 'src/shared/assertions';
+import { UserSessionRepository } from './repositories/user-session.repository';
+import { userSessionProjections } from './projections/user-session.projections';
 
 @Injectable()
 export class UsersService {
@@ -12,6 +20,7 @@ export class UsersService {
     private readonly databaseService: DatabaseService,
     private readonly userRepository: UserRepository,
     private readonly cryptoService: CryptoService,
+    private readonly userSessionRepository: UserSessionRepository,
   ) {}
 
   async createUser(data: CreateUser) {
@@ -85,5 +94,94 @@ export class UsersService {
 
   async updateLastSeen(userId: string) {
     return await this.userRepository.updateLastSeen(userId);
+  }
+
+  async getSession(
+    userId: string,
+    deviceId: string,
+  ): Promise<SessionSummary | null> {
+    const session =
+      await this.userSessionRepository.getSesssionByUserIdAndDeviceId(
+        userId,
+        deviceId,
+      );
+
+    return session;
+  }
+
+  async createSession(
+    data: CreateUserSession,
+    tx?: DBClient,
+  ): Promise<SessionSummary> {
+    const existingSession =
+      await this.userSessionRepository.getSesssionByUserIdAndDeviceId(
+        data.userId!,
+        data.deviceId,
+      );
+
+    if (existingSession) {
+      const updatedSession =
+        await this.userSessionRepository.updateRefreshToken(
+          existingSession.id,
+          data.refreshToken as string,
+          tx,
+        );
+
+      return updatedSession;
+    }
+
+    const session = await this.userSessionRepository.create(data, tx);
+
+    return session;
+  }
+
+  async updateRefreshToken(sessionId: string, refreshToken: string) {
+    const existingSession =
+      await this.userSessionRepository.getSessionById(sessionId);
+
+    assertExists(existingSession, 'Session not found');
+
+    return await this.userSessionRepository.updateRefreshToken(
+      sessionId,
+      refreshToken,
+    );
+  }
+
+  async deleteSession(sessionId: string) {
+    const existingSession =
+      await this.userSessionRepository.getSessionById(sessionId);
+
+    assertExists(existingSession, 'Session not found');
+
+    return await this.userSessionRepository.deleteSession(sessionId);
+  }
+
+  async deleteAllSessions(userId: string) {
+    return await this.userSessionRepository.deleteAllSessions(userId);
+  }
+
+  async deleteAllSessionsExcept(userId: string, currentSessionId: string) {
+    return this.userSessionRepository.deleteAllSessionsExcept(
+      userId,
+      currentSessionId,
+    );
+  }
+
+  async getSessionByIdAndUserId(
+    sessionId: string,
+    userId: string,
+  ): Promise<SessionSummary> {
+    const session = await this.userSessionRepository.getSessionById(
+      sessionId,
+      userSessionProjections.summary,
+    );
+
+    assertExists(session, 'Session not found');
+    assertExists(
+      session.userId !== userId ? null : session,
+      'Session not found',
+    );
+
+    return session;
   }
 }

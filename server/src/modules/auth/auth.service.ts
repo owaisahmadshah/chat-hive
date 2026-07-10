@@ -13,7 +13,6 @@ import { RedisService } from 'src/core/redis/redis.service';
 import { UsersService } from '../users/users.service';
 import { CryptoService } from 'src/shared/services/crypto.service';
 import { CreateUser, CreateUserSession } from 'shared';
-import { UserSessionService } from '../user-session/user-session.service';
 import { JWTPayload } from 'src/shared/types/jwt-payload.type';
 import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from 'src/core/config/env';
@@ -28,7 +27,6 @@ export class AuthService {
     private readonly emailService: EmailService,
     private readonly redisService: RedisService,
     private readonly jwtService: JwtService,
-    private readonly userSessionService: UserSessionService,
     private readonly ConfigService: ConfigService<EnvConfig, true>,
   ) {}
 
@@ -117,7 +115,7 @@ export class AuthService {
     user: { id: string; email: string; username: string },
     sessionData: CreateUserSession,
   ) {
-    const session = await this.userSessionService.createSession({
+    const session = await this.usersService.createSession({
       ...sessionData,
       userId: user.id,
       refreshToken: 'temp',
@@ -132,38 +130,31 @@ export class AuthService {
 
     const { accessToken, refreshToken } = await this.genTokens(payload);
 
-    await this.userSessionService.updateRefreshToken(session.id, refreshToken);
+    await this.usersService.updateRefreshToken(session.id, refreshToken);
 
     return { accessToken, refreshToken };
   }
 
   async logout(userId: string, sessionId: string) {
-    await this.userSessionService.getSessionByIdAndUserId(sessionId, userId);
+    await this.usersService.getSessionByIdAndUserId(sessionId, userId);
 
-    const deletedSession =
-      await this.userSessionService.deleteSession(sessionId);
+    const deletedSession = await this.usersService.deleteSession(sessionId);
 
     return deletedSession;
   }
 
   async logoutAllSessionExcept(userId: string, sessionId: string) {
-    return await this.userSessionService.deleteAllSessionsExcept(
-      userId,
-      sessionId,
-    );
+    return await this.usersService.deleteAllSessionsExcept(userId, sessionId);
   }
 
   async logoutAllSessions(userId: string) {
-    return await this.userSessionService.deleteAllSessions(userId);
+    return await this.usersService.deleteAllSessions(userId);
   }
 
   async updateSession(payload: JWTPayload) {
     const { accessToken, refreshToken } = await this.genTokens(payload);
 
-    await this.userSessionService.updateRefreshToken(
-      payload.sessionId,
-      refreshToken,
-    );
+    await this.usersService.updateRefreshToken(payload.sessionId, refreshToken);
 
     return { accessToken, refreshToken };
   }
