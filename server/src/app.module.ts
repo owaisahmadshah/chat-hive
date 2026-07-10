@@ -7,7 +7,6 @@ import { UsersModule } from './modules/users/users.module';
 import { DatabaseModule } from './core/database/database.module';
 import { RedisModule } from './core/redis/redis.module';
 import { EmailModule } from './modules/email/email.module';
-import { UserSessionModule } from './modules/user-session/user-session.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { MessagesModule } from './modules/messages/messages.module';
@@ -63,7 +62,6 @@ import { MessagesModule } from './modules/messages/messages.module';
     UsersModule,
     RedisModule,
     EmailModule,
-    UserSessionModule,
     AuthModule,
     ChatsModule,
     MessagesModule,

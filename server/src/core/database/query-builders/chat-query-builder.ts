@@ -14,6 +14,9 @@ import { ChatMember, CursorPayload } from 'shared';
 export const otherMember = alias(chatMembers, 'other_member');
 export const otherUser = alias(users, 'other_user');
 
+export const groupMember = alias(chatMembers, 'group_member');
+export const groupMemberUser = alias(users, 'group_member_user');
+
 // ======== Chat Query Builder ===========
 export class ChatQueryBuilder {
   constructor(private readonly client: DBClient) {}
@@ -21,8 +24,8 @@ export class ChatQueryBuilder {
   buildUnreadMessagesSubquery(userId: string, chatId?: string) {
     const conditions = [
       ne(messages.senderId, sql`${userId}::uuid`),
-      isNull(messageStatus.id),
-      isNull(messageStatus.id),
+      ne(messageStatus.status, 'read'),
+      isNull(messageDelete.id),
     ];
 
     if (chatId) {
@@ -35,7 +38,7 @@ export class ChatQueryBuilder {
         unreadCount: sql<number>`COUNT(*)`.as('unread_count'),
       })
       .from(messages)
-      .leftJoin(
+      .innerJoin(
         messageStatus,
         and(
           eq(messageStatus.messageId, messages.id),
@@ -61,39 +64,27 @@ export class ChatQueryBuilder {
       id: chats.id,
       isGroup: chats.isGroup,
       updatedAt: chats.updatedAt,
-
-      unreadCount: sql<number>`COALESCE(${unreadSubquery.unreadCount}, 0)`,
+      unreadCount: sql<number>`COALESCE(${unreadSubquery.unreadCount}, 0)::int`,
 
       name: sql<string>`
-        CASE
-          WHEN ${chats.isGroup} = true THEN ${chats.name}
-          ELSE ${otherUser.username}
-        END
+        CASE WHEN ${chats.isGroup} = true THEN ${chats.name}
+        ELSE ${otherUser.username} END
       `,
-
       logoURL: sql<string>`
-        CASE
-          WHEN ${chats.isGroup} = true THEN ${chats.logoURL}
-          ELSE ${otherUser.imageURL}
-        END
+        CASE WHEN ${chats.isGroup} = true THEN ${chats.logoURL}
+        ELSE ${otherUser.imageURL} END
       `,
-
       members: sql<ChatMember[]>`
-        CASE
-          WHEN ${chats.isGroup} = true THEN
-            jsonb_agg(
-              jsonb_build_object(
-                'id',       ${chatMembers.id},
-                'userId',   ${users.id},
-                'username', ${users.username},
-                'imageURL', ${users.imageURL},
-                'role',     ${chatMembers.role},
-                'joinedAt', ${chatMembers.joinedAt}
-              )
-            )
-          ELSE
-            '[]'::jsonb
-        END
+        jsonb_agg(
+          jsonb_build_object(
+            'id',       ${groupMember.id},
+            'userId',   ${groupMemberUser.id},
+            'username', ${groupMemberUser.username},
+            'imageURL', ${groupMemberUser.imageURL},
+            'role',     ${groupMember.role},
+            'joinedAt', ${groupMember.joinedAt}
+          )
+        ) FILTER (WHERE ${groupMember.id} IS NOT NULL)
       `,
     };
   }
@@ -113,7 +104,6 @@ export class ChatQueryBuilder {
           isNull(chatMembers.deletedAt),
         ),
       )
-      .innerJoin(users, eq(users.id, chatMembers.userId))
       .leftJoin(
         otherMember,
         and(
@@ -123,6 +113,11 @@ export class ChatQueryBuilder {
         ),
       )
       .leftJoin(otherUser, eq(otherUser.id, otherMember.userId))
+      .leftJoin(
+        groupMember,
+        and(eq(groupMember.chatId, chats.id), isNull(groupMember.deletedAt)),
+      )
+      .leftJoin(groupMemberUser, eq(groupMemberUser.id, groupMember.userId))
       .leftJoin(unreadSubquery, eq(unreadSubquery.chatId, chats.id));
   }
 

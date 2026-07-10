@@ -8,7 +8,7 @@ import { users } from '../../../core/database/schema';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
 import { AuthProvider, CreateUser, User, UserSummary } from 'shared';
 import { DBClient } from 'src/core/database/database.service';
-import { userProjections } from '../users.projections';
+import { userProjections } from '../projections/users.projections';
 
 @Injectable()
 export class UserRepository {

@@ -7,5 +7,6 @@ import { ChatMembersRepository } from './repositories/chat-members.repository';
 @Module({
   controllers: [ChatsController],
   providers: [ChatsService, ChatsRepository, ChatMembersRepository],
+  exports: [ChatsService],
 })
 export class ChatsModule {}

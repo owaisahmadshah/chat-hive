@@ -104,6 +104,42 @@ export class MessagesRepository {
   ) {
     const client = this.getClient();
 
+    const attachmentsAgg = client
+      .select({
+        messageId: messageAttachments.messageId,
+        attachments: sql<Message['attachments']>`
+        jsonb_agg(
+          jsonb_build_object(
+            'id', ${messageAttachments.id},
+            'type', ${messageAttachments.type},
+            'url', ${messageAttachments.url},
+            'fileName', ${messageAttachments.fileName},
+            'createdAt', ${messageAttachments.createdAt}
+          )
+        )
+      `.as('attachments'),
+      })
+      .from(messageAttachments)
+      .groupBy(messageAttachments.messageId)
+      .as('attachments_agg');
+
+    const statusesAgg = client
+      .select({
+        messageId: messageStatus.messageId,
+        statuses: sql<Message['statuses']>`
+        jsonb_agg(
+          jsonb_build_object(
+            'id', ${messageStatus.id},
+            'userId', ${messageStatus.userId},
+            'status', ${messageStatus.status}
+          )
+        )
+      `.as('statuses'),
+      })
+      .from(messageStatus)
+      .groupBy(messageStatus.messageId)
+      .as('statuses_agg');
+
     const results = await client
       .select({
         id: messages.id,
@@ -116,51 +152,28 @@ export class MessagesRepository {
           imageURL: users.imageURL,
         },
         replyTo: sql<Message['replyTo'] | null>`
-          CASE
-            WHEN ${messages.replyTo} IS NOT NULL THEN
-              jsonb_build_object(
-                'id',       ${replyToMessage.id},
-                'text',     ${replyToMessage.text},
-                'senderId', ${replyToMessage.senderId}
-              )
-            ELSE NULL
-          END
-        `,
+        CASE
+          WHEN ${messages.replyTo} IS NOT NULL THEN
+            jsonb_build_object(
+              'id',       ${replyToMessage.id},
+              'text',     ${replyToMessage.text},
+              'senderId', ${replyToMessage.senderId}
+            )
+          ELSE NULL
+        END
+      `,
         attachments: sql<Message['attachments']>`
-          COALESCE(
-            jsonb_agg(
-              jsonb_build_object(
-                'id', ${messageAttachments.id},
-                'type', ${messageAttachments.type},
-                'url', ${messageAttachments.url},
-                'fileName', ${messageAttachments.fileName},
-                'createdAt' ${messageAttachments.createdAt}
-              )
-            ) FILTER (WHERE ${messageAttachments.id} IS NOT NULL),
-            '[]'::jsonb
-          )
-        `,
+        COALESCE(${attachmentsAgg.attachments}, '[]'::jsonb)
+      `,
         statuses: sql<Message['statuses']>`
-          COALESCE(
-            jsonb_agg(
-              jsonb_build_object(
-                'id', ${messageStatus.id},
-                'userId', ${messageStatus.userId},
-                'status', ${messageStatus.status}
-              )
-            ) FILTER (WHERE ${messageStatus.id} IS NOT NULL),
-            '[]'::jsonb
-          )
-        `,
+        COALESCE(${statusesAgg.statuses}, '[]'::jsonb)
+      `,
       })
       .from(messages)
       .innerJoin(users, eq(messages.senderId, users.id))
       .leftJoin(replyToMessage, eq(replyToMessage.id, messages.replyTo))
-      .leftJoin(
-        messageAttachments,
-        eq(messages.id, messageAttachments.messageId),
-      )
-      .leftJoin(messageStatus, eq(messages.id, messageStatus.messageId))
+      .leftJoin(attachmentsAgg, eq(messages.id, attachmentsAgg.messageId))
+      .leftJoin(statusesAgg, eq(messages.id, statusesAgg.messageId))
       .leftJoin(
         schema.messageDelete,
         and(
@@ -182,13 +195,6 @@ export class MessagesRepository {
               )
             : undefined,
         ),
-      )
-      .groupBy(
-        messages.id,
-        users.id,
-        replyToMessage.id,
-        replyToMessage.text,
-        replyToMessage.senderId,
       )
       .orderBy(sql`${messages.createdAt} DESC, ${messages.id} DESC`)
       .limit(limit);
