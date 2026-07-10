@@ -3,9 +3,9 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
 import { DBClient } from 'src/core/database/database.service';
 import { CreateUserSession, SessionSummary } from 'shared';
-import * as schema from '../../core/database/schema';
-import { userSessions } from '../../core/database/schema';
-import { userSessionProjections } from './user-session.projections';
+import * as schema from 'src/core/database/schema';
+import { userSessions } from 'src/core/database/schema';
+import { userSessionProjections } from '../projections/user-session.projections';
 import { and, eq, InferColumnsDataTypes, ne } from 'drizzle-orm';
 
 @Injectable()

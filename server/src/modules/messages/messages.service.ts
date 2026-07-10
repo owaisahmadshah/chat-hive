@@ -3,7 +3,6 @@ import { MessagesRepository } from './repositories/messages.repository';
 import { MessageAttachmentRepository } from './repositories/message-attachment.repository';
 import { MessageStatusRepository } from './repositories/message-status.repository';
 import { DatabaseService } from 'src/core/database/database.service';
-import { ChatMembersService } from '../chat-members/chat-members.service';
 import {
   CreateMessage,
   CursorPayload,
@@ -14,6 +13,7 @@ import {
   Pagination,
 } from 'shared';
 import { MessageDeleteRepository } from './repositories/message-delete.repository';
+import { ChatsService } from '../chats/chats.service';
 
 @Injectable()
 export class MessagesService {
@@ -23,7 +23,7 @@ export class MessagesService {
     private readonly messageStatusRepository: MessageStatusRepository,
     private readonly messageDeleteRepository: MessageDeleteRepository,
     private readonly databaseService: DatabaseService,
-    private readonly chatMembersService: ChatMembersService,
+    private readonly chatsService: ChatsService,
   ) {}
 
   async createMessage(dto: CreateMessage, userId: string): Promise<Message> {
@@ -39,7 +39,7 @@ export class MessagesService {
           tx,
         );
 
-        const members = await this.chatMembersService.getChatMembers(
+        const members = await this.chatsService.getChatMembers(
           messageDto.chatId,
         );
 
@@ -132,5 +132,39 @@ export class MessagesService {
       : null;
 
     return { data, nextCursor, hasMore };
+  }
+
+  async updateMessageStatus(
+    userId: string,
+    messageId: string,
+    status: MessageStatusEnum,
+  ) {
+    const updatedMessageStatus =
+      await this.messageStatusRepository.updateStatusByMessageId(
+        messageId,
+        userId,
+        status,
+      );
+
+    if (!updatedMessageStatus) {
+      throw new NotFoundException('Message status not found');
+    }
+
+    return updatedMessageStatus;
+  }
+
+  async updateMessagesStatusByChatId(
+    userId: string,
+    chatId: string,
+    status: MessageStatusEnum,
+  ) {
+    const updatedRows =
+      await this.messageStatusRepository.updateMessagesStatusByChatId(
+        chatId,
+        userId,
+        status,
+      );
+
+    return { chatId, messageIds: updatedRows.map((row) => row.messageId) };
   }
 }

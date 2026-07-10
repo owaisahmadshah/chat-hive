@@ -134,4 +134,6 @@ export class ChatsController {
 
     return { data: {} };
   }
+
+  // TODO: GET /sync refetch chats
 }

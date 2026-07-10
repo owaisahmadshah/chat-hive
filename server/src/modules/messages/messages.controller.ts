@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -19,8 +20,12 @@ import {
   createMessageSchema,
   type DeleteMessage,
   deleteMessageSchema,
+  type MessageStatus,
+  messageStatusSchema,
   paginationSchema,
   type ReqPagination,
+  type UpdateMessagesStatus,
+  updateMessageStatusSchema,
 } from 'shared';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { type JWTPayload } from 'src/shared/types/jwt-payload.type';
@@ -61,7 +66,7 @@ export class MessagesController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Get(':chatId')
+  @Get('all/:chatId')
   @UseGuards(AuthGuard)
   async getChatMessages(
     @Param(new ZodValidationPipe(chatIdParamSchema)) params: ChatIdParam,
@@ -77,4 +82,40 @@ export class MessagesController {
 
     return { data: messages };
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Patch('status/update-one')
+  @UseGuards(AuthGuard)
+  async updateMessageStatus(
+    @CurrentUser() user: JWTPayload,
+    @Body(new ZodValidationPipe(messageStatusSchema)) body: MessageStatus,
+  ) {
+    const updatedStatus = await this.messagesService.updateMessageStatus(
+      user.sub,
+      body.messageId,
+      body.status,
+    );
+
+    return { data: updatedStatus };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Patch('status/update-many')
+  @UseGuards(AuthGuard)
+  async updateMessagesStatusByChatId(
+    @CurrentUser() user: JWTPayload,
+    @Body(new ZodValidationPipe(updateMessageStatusSchema))
+    body: UpdateMessagesStatus,
+  ) {
+    const updatedStatus =
+      await this.messagesService.updateMessagesStatusByChatId(
+        user.sub,
+        body.chatId,
+        body.status,
+      );
+
+    return { data: updatedStatus };
+  }
+
+  // TODO: DELETE message for all users
 }

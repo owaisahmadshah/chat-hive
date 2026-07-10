@@ -36,7 +36,13 @@ export const createMessageSchema = z
 
 export const messageStatusSchema = z.object({
   messageId: z.string(),
-  userId: z.string(),
+  userId: z.string().optional(),
+  status: messageStatusEnumSchema,
+});
+
+export const updateMessageStatusSchema = z.object({
+  chatId: z.string(),
+  userId: z.string().optional(),
   status: messageStatusEnumSchema,
 });
 
@@ -51,6 +57,7 @@ export type MessageAttachment = z.infer<typeof messageAttachmentSchema>;
 export type CreateMessage = z.infer<typeof createMessageSchema>;
 export type MessageStatus = z.infer<typeof messageStatusSchema>;
 export type DeleteMessage = z.infer<typeof deleteMessageSchema>;
+export type UpdateMessagesStatus = z.infer<typeof updateMessageStatusSchema>;
 
 export interface MessageStatusRecord {
   id: string;

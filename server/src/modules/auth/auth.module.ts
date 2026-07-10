@@ -5,7 +5,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from 'src/core/config/env';
 import { UsersModule } from '../users/users.module';
-import { UserSessionModule } from '../user-session/user-session.module';
 import { SharedModule } from 'src/shared/shared.module';
 import { EmailModule } from '../email/email.module';
 import { RedisModule } from 'src/core/redis/redis.module';
@@ -23,7 +22,6 @@ import { RedisModule } from 'src/core/redis/redis.module';
       }),
     }),
     UsersModule,
-    UserSessionModule,
     SharedModule,
     EmailModule,
     RedisModule,

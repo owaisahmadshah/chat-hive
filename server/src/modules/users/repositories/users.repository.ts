@@ -2,13 +2,13 @@ import { Injectable, Inject } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { and, asc, eq, gt, ilike, or } from 'drizzle-orm';
 import { InferColumnsDataTypes } from 'drizzle-orm';
-import * as schema from '../../core/database/schema';
+import * as schema from '../../../core/database/schema';
 
-import { users } from '../../core/database/schema';
+import { users } from '../../../core/database/schema';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
 import { AuthProvider, CreateUser, User, UserSummary } from 'shared';
 import { DBClient } from 'src/core/database/database.service';
-import { userProjections } from './users.projections';
+import { userProjections } from '../users.projections';
 
 @Injectable()
 export class UserRepository {
