@@ -85,10 +85,10 @@ export class MessagesService {
   }
 
   async deleteMessage(messageId: string, userId: string) {
-    const existingMessage =
-      await this.messageRepository.getMessageIdById(messageId);
+    const existingDeletedMessage =
+      await this.messageDeleteRepository.getMessageById(messageId, userId);
 
-    if (!existingMessage) {
+    if (existingDeletedMessage) {
       throw new NotFoundException('Message not found');
     }
 

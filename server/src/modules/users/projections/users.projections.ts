@@ -1,4 +1,4 @@
-import { users } from '../../core/database/schema';
+import { users } from 'src/core/database/schema';
 
 export const userProjections = {
   summary: {
