@@ -29,13 +29,13 @@ export class RedisService {
     const key = REDIS_KEYS.otp(email);
     const attemptsKey = REDIS_KEYS.otpAttempts(email);
 
-    const attempts = await this.redis.incr(attemptsKey);
-
     const storedOTP = await this.redis.get(key);
 
     if (!storedOTP) {
       return false;
     }
+
+    const attempts = await this.redis.incr(attemptsKey);
 
     if (attempts >= maxAttempts) {
       await this.redis.del([key, attemptsKey]);

@@ -54,7 +54,7 @@ export class ChatsService {
         return [{ ...chat, members: createdMembers }];
       });
 
-      return chat;
+      return await this.getChatById(userId, chat.id);
     }
 
     assertBadRequest(
@@ -72,12 +72,12 @@ export class ChatsService {
     );
 
     if (existingChat) {
-      const members = await this.addMembers([
+      await this.addMembers([
         { chatId: existingChat.id, role: 'admin', userId: userId },
         { chatId: existingChat.id, role: 'admin', userId: consumerId },
       ]);
 
-      return { ...existingChat, members: members };
+      return await this.getChatById(userId, existingChat.id);
     }
 
     const [chat] = await this.databaseService.transaction(async (tx) => {
@@ -94,7 +94,7 @@ export class ChatsService {
       return [{ ...chat, members }];
     });
 
-    return chat;
+    return await this.getChatById(userId, chat.id);
   }
 
   async getMyChats(

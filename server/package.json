@@ -29,7 +29,11 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.28",
+    "@nestjs/websockets": "^11.1.28",
+    "@socket.io/redis-adapter": "^8.3.0",
     "bcrypt": "^6.0.0",
+    "cookie": "^2.0.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
@@ -40,6 +44,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "shared": "workspace:*",
+    "socket.io": "^4.8.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {
