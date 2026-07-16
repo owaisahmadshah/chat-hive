@@ -10,6 +10,7 @@ import { EmailModule } from './modules/email/email.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { MessagesModule } from './modules/messages/messages.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { MessagesModule } from './modules/messages/messages.module';
     AuthModule,
     ChatsModule,
     MessagesModule,
+    RealtimeModule,
   ],
   controllers: [],
 })
