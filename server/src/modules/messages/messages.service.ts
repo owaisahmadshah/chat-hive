@@ -51,8 +51,6 @@ export class MessagesService {
             : 'sent') as MessageStatusEnum,
         }));
 
-        console.log(statusesDto);
-
         const statuses = await this.messageStatusRepository.createManyStatus(
           statusesDto,
           tx,
@@ -166,5 +164,15 @@ export class MessagesService {
       );
 
     return { chatId, messageIds: updatedRows.map((row) => row.messageId) };
+  }
+
+  async getMessageById(messageId: string) {
+    const message = await this.messageRepository.getMessageById(messageId);
+
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+
+    return message;
   }
 }
