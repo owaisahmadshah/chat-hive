@@ -1,15 +1,25 @@
+import { UseFilters } from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
   SubscribeMessage,
   MessageBody,
   ConnectedSocket,
+  WsException,
 } from '@nestjs/websockets';
-import { type CreateChat, SOCKET_EVENTS } from 'shared';
+import {
+  type CreateChat,
+  type CreateMessage,
+  type MessageStatus,
+  SOCKET_EVENTS,
+} from 'shared';
 import { Server, Socket } from 'socket.io';
+import { WsCatchAllFilter } from 'src/common/filters/ws-exception.filter';
 import { PresenceRepository } from 'src/core/redis/repositories/presence.repository';
 import { ChatsService } from 'src/modules/chats/chats.service';
+import { MessagesService } from 'src/modules/messages/messages.service';
 
+@UseFilters(WsCatchAllFilter)
 @WebSocketGateway({
   namespace: '/chat',
   cors: { origin: process.env.CLIENT_URL, credentials: true },
@@ -21,6 +31,7 @@ export class ChatGateway {
   constructor(
     private readonly presenceRepository: PresenceRepository,
     private readonly chatsService: ChatsService,
+    private readonly messagesService: MessagesService,
   ) {}
 
   // TODO: Validate data
@@ -32,10 +43,7 @@ export class ChatGateway {
     const userId = this.getUserId(client);
 
     if (!userId) {
-      return {
-        event: 'error',
-        data: { message: 'Unauthorized profile tracking context' },
-      };
+      throw new WsException('Unauthorized');
     }
 
     const createdChat = await this.chatsService.createChat(data, userId);
@@ -67,6 +75,50 @@ export class ChatGateway {
     return createdChat;
   }
 
+  @SubscribeMessage(SOCKET_EVENTS.CREATE_NEW_MESSAGE)
+  async handleCreateNewMessage(
+    @MessageBody() data: CreateMessage,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const userId = this.getUserId(client);
+
+    if (!userId) {
+      throw new WsException('Unauthorized');
+    }
+
+    const createdMessage = await this.messagesService.createMessage(
+      data,
+      userId,
+    );
+
+    const roomName = this.getRoomName(data.chatId);
+    const roomUsers = await this.presenceRepository.getActiveChatRoom(roomName);
+    const activeUserIds = new Set(roomUsers?.users.map((u) => u.userId) ?? []);
+
+    for (const messageMem of createdMessage.statuses) {
+      if (!messageMem.userId) continue;
+      if (messageMem.userId === userId) continue; // sender
+      if (activeUserIds.has(messageMem.userId)) continue; // covered by room broadcast
+
+      const presence = await this.presenceRepository.getUserPresence(
+        messageMem.userId,
+      );
+
+      if (!presence) continue; // fully offline
+
+      this.server
+        .to(presence.socketId)
+        .emit(SOCKET_EVENTS.NEW_MESSAGE_CREATED, createdMessage);
+    }
+
+    this.server
+      .to(roomName)
+      .except(client.id)
+      .emit(SOCKET_EVENTS.NEW_MESSAGE_CREATED, createdMessage);
+
+    return createdMessage;
+  }
+
   @SubscribeMessage(SOCKET_EVENTS.JOIN_CHAT)
   async handleJoinChat(
     @MessageBody() data: { chatId: string },
@@ -74,10 +126,7 @@ export class ChatGateway {
   ) {
     const userId = this.getUserId(client);
     if (!userId) {
-      return {
-        event: 'error',
-        data: { message: 'Unauthorized profile tracking context' },
-      };
+      throw new WsException('Unauthorized');
     }
 
     const roomName = this.getRoomName(data.chatId);
@@ -89,7 +138,7 @@ export class ChatGateway {
     });
 
     console.log(`[CHAT ROOM] User ${userId} joined room channel: ${roomName}`);
-    return { event: 'joinedChat', data: { chatId: data.chatId } };
+    return { chatId: data.chatId, success: true };
   }
 
   @SubscribeMessage(SOCKET_EVENTS.LEAVE_CHAT)
@@ -108,7 +157,40 @@ export class ChatGateway {
     console.log(
       `[CHAT ROOM] Socket ${client.id} backed out of channel: ${roomName}`,
     );
-    return { chatId: data.chatId, status: true };
+    return { chatId: data.chatId, success: true };
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.UPDATE_MESSAGE_STATUS)
+  async handleUpdateMessageStatus(
+    @MessageBody() data: MessageStatus,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const userId = this.getUserId(client);
+
+    if (!userId) {
+      throw new WsException('Unauthorized');
+    }
+
+    const updatedMessage = await this.messagesService.updateMessageStatus(
+      userId,
+      data.messageId,
+      data.status,
+    );
+
+    // Only notify message sender
+    const message = await this.messagesService.getMessageById(data.messageId);
+
+    const presence = await this.presenceRepository.getUserPresence(
+      message.sender.id,
+    );
+
+    if (presence) {
+      this.server
+        .to(presence.socketId)
+        .emit(SOCKET_EVENTS.UPDATED_MESSAGE_STATUS, message);
+    }
+
+    return updatedMessage;
   }
 
   private getUserId(client: Socket) {
