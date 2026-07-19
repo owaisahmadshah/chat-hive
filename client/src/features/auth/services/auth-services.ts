@@ -17,11 +17,11 @@ export const signInServ = async (data: LoginUser) => {
 };
 
 export const verifyOTPServ = async (data: VerifyOTP) => {
-  return await api.post("/api/v1/auth/verify-otp", data);
+  return await api.post("/api/v1/auth/otp/verify", data);
 };
 
 export const resendOTPServ = async (data: ResendOTP) => {
-  return await api.post("/api/v1/auth/resend/otp", data);
+  return await api.post("/api/v1/auth/otp/resend", data);
 };
 
 export const refreshTokenServ = async () => {

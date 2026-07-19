@@ -8,7 +8,10 @@ import { RedisIoAdapter } from './core/redis/redis-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    cors: true,
+    cors: {
+      origin: 'http://localhost:5173',
+      credentials: true,
+    },
     bufferLogs: true,
   });
 

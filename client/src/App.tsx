@@ -8,14 +8,14 @@ import ForgotPassword from "./features/auth/ForgotPassword";
 function App() {
   return (
     <Routes>
-      {/* <Route
+      <Route
         path="/"
         element={
           <PrivateRoute url="/" redirectTo="/sign-in">
-            <HomePage />
+            <div>Home page</div>
           </PrivateRoute>
         }
-      /> */}
+      />
       <Route
         path="/sign-in"
         element={

@@ -8,12 +8,12 @@ type PrivateRouteProps = RouteProps & {
 };
 
 const PrivateRoute = ({ url, redirectTo, children }: PrivateRouteProps) => {
-  const { user: data } = useUser();
+  const { state } = useUser();
 
-  const { isAuthenticated, isPending } = data;
+  const { isAuthenticated, isPending } = state;
 
   if (isPending) {
-    return;
+    return <div className="loading-screen">Verifying Session...</div>;
   }
 
   if (!isAuthenticated && url === "/") {

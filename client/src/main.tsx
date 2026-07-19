@@ -6,14 +6,14 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.tsx";
 import { ThemeProvider } from "./context/theme-provider.tsx";
-import { Toaster } from "sonner"; // if sooner don't work import from components
+import { Toaster } from "sonner";
 import { UserProvider } from "./context/user-provider.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       refetchOnReconnect: true,
       refetchOnMount: true,
       refetchInterval: false,
@@ -26,16 +26,15 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <UserProvider>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        {/* <BrowserRouter basename="chat-hive"> */}
-        <BrowserRouter>
-          <QueryClientProvider client={queryClient}>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <UserProvider>
             <Toaster position="top-right" richColors />
             <App />
-          </QueryClientProvider>
-        </BrowserRouter>
-      </ThemeProvider>
-    </UserProvider>
+          </UserProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   </StrictMode>,
 );
