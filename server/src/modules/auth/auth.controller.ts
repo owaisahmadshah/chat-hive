@@ -169,8 +169,6 @@ export class AuthController {
     @CurrentUser() user: JWTPayload,
     @Body(new ZodValidationPipe(newPasswordSchema)) passwordDto: NewPassword,
   ) {
-    console.log(user, passwordDto);
-
     const updatedUser = await this.authService.changePassword(
       user.sub,
       passwordDto.oldPassword,
