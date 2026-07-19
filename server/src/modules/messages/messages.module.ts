@@ -17,5 +17,6 @@ import { ChatsModule } from '../chats/chats.module';
     MessageDeleteRepository,
     MessageStatusRepository,
   ],
+  exports: [MessagesService],
 })
 export class MessagesModule {}

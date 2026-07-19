@@ -12,8 +12,9 @@ export class UserController {
 
   @UseGuards(AuthGuard)
   @Get('profile')
-  async getUser(@CurrentUser() user: JWTPayload) {
-    return await this.userService.getUser(user.sub);
+  async getUser(@CurrentUser() reqUser: JWTPayload) {
+    const user = await this.userService.getUser(reqUser.sub);
+    return { data: user };
   }
 
   @UseGuards(AuthGuard)

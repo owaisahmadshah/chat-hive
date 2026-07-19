@@ -3,7 +3,7 @@ import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -11,7 +11,19 @@ const api = axios.create({
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const axiosPayload = response.data;
+
+    if (
+      axiosPayload &&
+      typeof axiosPayload === "object" &&
+      "success" in axiosPayload
+    ) {
+      return axiosPayload.data;
+    }
+
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
     // Check if response exists (network errors won't have error.response)
@@ -22,15 +34,14 @@ api.interceptors.response.use(
     if (
       error.response.status === 401 &&
       !originalRequest._retry &&
-      (error.response.data.message === "Unauthorized" ||
-        error.response.data.message ===
-          "Unauthorized: Invalid or expired token")
+      error.response.data.error === "Unauthorized" &&
+      error.response.data.message === "Access token not found"
     ) {
       originalRequest._retry = true;
 
       try {
         await axios.post(
-          `${BASE_URL}/v1/user/refresh-token`,
+          `${BASE_URL}/v1/auth/refresh-token`,
           {},
           { withCredentials: true },
         );

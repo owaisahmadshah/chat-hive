@@ -8,23 +8,21 @@ export interface UserContextStateType {
 }
 
 export interface UserContextType {
-  user: UserContextStateType;
+  state: UserContextStateType;
   setUser: (user: User) => void;
   clearUser: () => void;
 }
 
 export const initialState: UserContextStateType = {
   user: null,
-  isPending: false, // TODO: Must change to true after adding useGetUser hook
+  isPending: true,
   isAuthenticated: false,
 };
 
-// 1. Export only the context and types here
 export const UserContext = createContext<UserContextType | undefined>(
   undefined,
 );
 
-// 2. Export the hook here
 export function useUser() {
   const context = useContext(UserContext);
   if (context === undefined) {
