@@ -4,6 +4,7 @@ import PrivateRoute from "@/routes/PrivateRoute";
 import { SignUp } from "@/features/auth/SignUp";
 import SignIn from "./features/auth/SignIn";
 import ForgotPassword from "./features/auth/ForgotPassword";
+import HomePage from "./routes/HomePage";
 
 function App() {
   return (
@@ -12,7 +13,7 @@ function App() {
         path="/"
         element={
           <PrivateRoute url="/" redirectTo="/sign-in">
-            <div>Home page</div>
+            <HomePage />
           </PrivateRoute>
         }
       />
