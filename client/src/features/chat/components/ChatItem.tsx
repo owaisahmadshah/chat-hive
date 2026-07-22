@@ -16,7 +16,7 @@ export const ChatItem = (props: IChatItemProps) => {
   // Fallback label generation from group name or member username
   const chatTitle = chat.name;
   const avatarUrl = chat.members[0].imageURL || "";
-  const initial = chatTitle?.toUpperCase() || "C";
+  const initial = chatTitle ? chatTitle[0].toUpperCase() : "C";
 
   return (
     <div

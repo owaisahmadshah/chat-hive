@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type { Chat, Pagination, ReqPagination } from "shared";
+import type { Chat, Pagination, ReqPagination, UserSummary } from "shared";
 
 export const getFeedChatsServ = async (params: ReqPagination) => {
   const data = await api.get<Pagination<Chat>>("/api/v1/chats", { params });
@@ -9,4 +9,17 @@ export const getFeedChatsServ = async (params: ReqPagination) => {
 export const getChatByIdServ = async (chatId: string) => {
   const data = await api.get<Chat>(`/api/v1/chats/${chatId}`);
   return data;
+};
+
+export const getUsersByUsernameServ = async (
+  username: string,
+  params: ReqPagination,
+) => {
+  const data = await api.get<Pagination<UserSummary>>(
+    `/api/v1/users/${username}`,
+    {
+      params,
+    },
+  );
+  return data as unknown as Pagination<UserSummary>;
 };

@@ -7,6 +7,8 @@ import {
   User,
   SessionSummary,
   CreateUserSession,
+  decodeCursor,
+  encodeCursor,
 } from 'shared';
 import { CryptoService } from 'src/shared/services/crypto.service';
 import { userProjections } from './projections/users.projections';
@@ -183,5 +185,27 @@ export class UsersService {
     );
 
     return session;
+  }
+
+  async getUsers(query: string, limit: number, cursor: string | null) {
+    const decodedCursor = cursor ? decodeCursor(cursor) : null;
+    const users = await this.userRepository.getUsersByUsername(
+      query,
+      limit,
+      decodedCursor?.username
+        ? { userId: decodedCursor.id, username: decodedCursor?.username }
+        : null,
+    );
+
+    const hasMore = users.length > limit;
+    const data = hasMore ? users.slice(0, limit) : users;
+    const nextCursor = hasMore
+      ? encodeCursor({
+          id: data.at(-1)!.id,
+          username: data.at(-1)!.username,
+        })
+      : null;
+
+    return { data, nextCursor, hasMore };
   }
 }
