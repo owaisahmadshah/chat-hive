@@ -200,7 +200,7 @@ export class UserRepository {
   async getUsersByUsername(
     username: string,
     limit: number,
-    cursor: { userId: string; username: string },
+    cursor: { userId: string; username: string } | null,
     tx?: DBClient,
   ): Promise<UserSummary[]> {
     const query = this.getClient(tx)

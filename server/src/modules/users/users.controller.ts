@@ -1,10 +1,25 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { UsersService } from './users.service';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { JWTPayload } from 'src/shared/types/jwt-payload.type';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { type ImageURLUpdate, imageURLUpdateSchema } from 'shared';
+import {
+  type ChatUser,
+  chatUserSchema,
+  type ImageURLUpdate,
+  imageURLUpdateSchema,
+  paginationSchema,
+  type ReqPagination,
+} from 'shared';
 
 @Controller('users')
 export class UserController {
@@ -29,5 +44,19 @@ export class UserController {
     );
 
     return { message: 'Updated profile image successfully', data: updatedUser };
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':username')
+  async getUsers(
+    @Param(new ZodValidationPipe(chatUserSchema)) params: ChatUser,
+    @Query(new ZodValidationPipe(paginationSchema)) pagination: ReqPagination,
+  ) {
+    const paginatedUsers = await this.userService.getUsers(
+      params.username,
+      pagination.limit,
+      pagination.cursor,
+    );
+    return { data: paginatedUsers };
   }
 }
