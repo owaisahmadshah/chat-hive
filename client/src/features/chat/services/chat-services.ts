@@ -1,5 +1,11 @@
 import api from "@/lib/api";
-import type { Chat, Pagination, ReqPagination, UserSummary } from "shared";
+import type {
+  Chat,
+  DeleteChat,
+  Pagination,
+  ReqPagination,
+  UserSummary,
+} from "shared";
 
 export const getFeedChatsServ = async (params: ReqPagination) => {
   const data = await api.get<Pagination<Chat>>("/api/v1/chats", { params });
@@ -22,4 +28,9 @@ export const getUsersByUsernameServ = async (
     },
   );
   return data as unknown as Pagination<UserSummary>;
+};
+
+export const deleteChatByIdServ = async (data: DeleteChat) => {
+  const response = await api.delete(`/api/v1/chats/${data.chatId}`);
+  return response as unknown as { chatId: string; message: string };
 };

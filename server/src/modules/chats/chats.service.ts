@@ -236,7 +236,7 @@ export class ChatsService {
 
     const { targetMemberId, newRole } = options;
 
-    // CRITICAL RULE: Prevent leaving a chat with 0 admins
+    //! CRITICAL RULE: Prevent leaving a chat with 0 admins
     if (newRole === 'member') {
       // Is the admin trying to demote themselves?
       const isDemotingSelf =
@@ -254,5 +254,40 @@ export class ChatsService {
 
   async getChatMembers(chatId: string) {
     return await this.chatMembersRepository.getChatMembersById(chatId);
+  }
+
+  async deleteChatForUser(userId: string, chatId: string) {
+    return await this.databaseService.transaction(async (tx) => {
+      const chat = await this.chatsRepository.getChatById(chatId);
+      assertExists(chat, 'Chat not found');
+
+      const member = await this.chatMembersRepository.getMemberByChatAndUserId(
+        chatId,
+        userId,
+        tx,
+      );
+
+      assertExists(member, 'You are not a member of this chat');
+
+      // If user already deleted this chat, return early
+      if (member.deletedAt) {
+        return { chatId, message: 'Chat already deleted for user' };
+      }
+
+      // Mark member as soft-deleted for this user
+      await this.chatMembersRepository.softDeleteMember(member.id, tx);
+
+      // Count remaining active members
+      const activeMembersCount =
+        await this.chatMembersRepository.countActiveMembers(chatId, tx);
+
+      // If no active members remain, hard delete the entire chat
+      if (activeMembersCount === 0) {
+        await this.chatsRepository.hardDeleteChat(chatId, tx);
+        return { chatId, message: 'Chat permanently deleted' };
+      }
+
+      return { chatId, message: 'Chat deleted for user' };
+    });
   }
 }

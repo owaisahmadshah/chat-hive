@@ -7,6 +7,7 @@ import { ChatListEmpty } from "./components/ChatListEmpty";
 import { LoadMore } from "@/components/LoadMore";
 import { useGetFeedChats } from "./hooks/useGetFeedChats";
 import type { Chat } from "shared";
+import { useDeleteChat } from "./hooks/useDeleteChat";
 
 interface IChatSectionProps {
   activeChatId: string | null;
@@ -27,6 +28,8 @@ export const ChatSection = (props: IChatSectionProps) => {
     useGetFeedChats();
 
   const chats: Chat[] = data?.pages.flatMap((page) => page.data) ?? [];
+
+  const { mutateAsync: deleteChatById } = useDeleteChat();
 
   const handleChatClick = (chat: Chat) => {
     // Finds first member that isn't the logged-in user if needed
@@ -57,6 +60,7 @@ export const ChatSection = (props: IChatSectionProps) => {
                 chat={chat}
                 activeChatId={activeChatId}
                 handleChatClick={() => handleChatClick(chat)}
+                handleDeleteChat={(chatId) => deleteChatById({ chatId })}
               />
             ))
           ) : (
