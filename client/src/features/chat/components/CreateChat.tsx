@@ -23,11 +23,17 @@ import { LoadMore } from "@/components/LoadMore";
 import { useGetUsersByUsername } from "../hooks/useGetUsersByUsername";
 import CreateChatUserItem from "./CreateChatUserItem";
 import type { UserSummary } from "shared";
+import { useUser } from "@/context/user-context";
+import { useCreateNewChat } from "../hooks/useCreateNewChat";
 
 export function CreateChat() {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  const { state } = useUser();
+  const currentUserId = state.user?.id;
+  const createChat = useCreateNewChat();
 
   // Debounce input updates by 500ms before sending API requests
   const handleDebounce = useMemo(
@@ -55,9 +61,15 @@ export function CreateChat() {
 
   const users: UserSummary[] = data?.pages.flatMap((page) => page.data) ?? [];
 
-  const handleSelectUser = (user: UserSummary) => {
-    // Action handler to trigger chat creation or set URL params
-    console.log("Selected user for new chat:", user);
+  const handleSelectUser = async (user: UserSummary) => {
+    if (!currentUserId) return;
+
+    await createChat({
+      createdBy: currentUserId,
+      isGroup: false,
+      members: [user.id, currentUserId],
+    });
+
     setOpen(false);
   };
 

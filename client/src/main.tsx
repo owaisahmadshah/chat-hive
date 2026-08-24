@@ -8,6 +8,7 @@ import App from "./App.tsx";
 import { ThemeProvider } from "./context/theme-provider.tsx";
 import { Toaster } from "sonner";
 import { UserProvider } from "./context/user-provider.tsx";
+import { SocketContextProvider } from "./context/socket/socket-provider.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,8 +31,10 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <UserProvider>
-            <Toaster position="top-right" richColors />
-            <App />
+            <SocketContextProvider>
+              <Toaster position="top-right" richColors />
+              <App />
+            </SocketContextProvider>
           </UserProvider>
         </QueryClientProvider>
       </BrowserRouter>
