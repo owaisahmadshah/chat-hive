@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useSockets } from "../context/socket/socket-context";
 import {
   SOCKET_EVENTS,
+  type Chat,
   type CreateChat,
   type CreateMessage,
   type MessageStatus,
@@ -13,7 +14,7 @@ export function useChatActions() {
   // Chat Gateway Emitters
 
   const createChat = useCallback(
-    async (payload: CreateChat) => {
+    async (payload: CreateChat): Promise<Chat> => {
       if (!chatSocket) throw new Error("Chat socket not connected");
       return await chatSocket.emitWithAck(
         SOCKET_EVENTS.CREATE_NEW_CHAT,

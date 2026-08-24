@@ -14,7 +14,11 @@ import {
 } from 'src/core/redis/repositories/presence.repository';
 
 @WebSocketGateway({
-  cors: { origin: '*', credentials: true },
+  cors: {
+    origin: 'http://localhost:5173',
+    credentials: true,
+    allowedHeaders: ['user-id', 'Authorization', 'Content-Type'],
+  },
 })
 export class PresenceGateway
   implements OnGatewayConnection, OnGatewayDisconnect
