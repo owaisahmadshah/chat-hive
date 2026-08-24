@@ -118,4 +118,42 @@ export class ChatMembersRepository {
 
     return members;
   }
+
+  async getMemberByChatAndUserId(
+    chatId: string,
+    userId: string,
+    tx?: DBClient,
+  ) {
+    const [member] = await this.getClient(tx)
+      .select()
+      .from(chatMembers)
+      .where(
+        and(eq(chatMembers.chatId, chatId), eq(chatMembers.userId, userId)),
+      );
+
+    return member || null;
+  }
+
+  async countActiveMembers(chatId: string, tx?: DBClient): Promise<number> {
+    const [result] = await this.getClient(tx)
+      .select({
+        count: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(chatMembers)
+      .where(
+        and(eq(chatMembers.chatId, chatId), isNull(chatMembers.deletedAt)),
+      );
+
+    return result?.count ?? 0;
+  }
+
+  async softDeleteMember(memberId: string, tx?: DBClient) {
+    const [updated] = await this.getClient(tx)
+      .update(chatMembers)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMembers.id, memberId))
+      .returning();
+
+    return updated;
+  }
 }

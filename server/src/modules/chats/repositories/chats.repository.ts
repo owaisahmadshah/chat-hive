@@ -127,4 +127,13 @@ export class ChatsRepository {
 
     return chat;
   }
+
+  async hardDeleteChat(chatId: string, tx?: DBClient) {
+    const [deleted] = await this.getClient(tx)
+      .delete(chats)
+      .where(eq(chats.id, chatId))
+      .returning();
+
+    return deleted;
+  }
 }

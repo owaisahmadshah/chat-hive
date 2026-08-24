@@ -22,8 +22,10 @@ import {
   type CreateChatMember,
   createChatMembersSchema,
   createChatSchema,
+  type DeleteChat,
   type DeleteChatMember,
   deleteChatMemberSchema,
+  deleteChatSchema,
   paginationSchema,
   type ReqPagination,
   type UpdateChat,
@@ -133,6 +135,21 @@ export class ChatsController {
     await this.chatsService.deleteMember(user.sub, dto.memberId, dto.chatId);
 
     return { data: {} };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Delete(':chatId')
+  @UseGuards(AuthGuard)
+  async deleteChatById(
+    @CurrentUser() user: JWTPayload,
+    @Param(new ZodValidationPipe(deleteChatSchema)) params: DeleteChat,
+  ) {
+    const result = await this.chatsService.deleteChatForUser(
+      user.sub,
+      params.chatId,
+    );
+
+    return { data: result };
   }
 
   // TODO: GET /sync refetch chats

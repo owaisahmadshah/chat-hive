@@ -95,4 +95,9 @@ export interface Chat {
   members: ChatMember[];
   updatedAt: Date | null;
   unreadCount?: number;
+  typing?: boolean;
+
+  // TODO: Add from database
+  lastMessage?: Message;
+  avatarURL?: string;
 }
