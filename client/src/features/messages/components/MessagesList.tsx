@@ -98,7 +98,10 @@ export const MessagesList = ({
                 message={message}
                 currentUserId={currentUserId}
                 deleteMessage={async () => {
-                  await deleteMessage(message.id);
+                  await deleteMessage({
+                    messageId: message.id,
+                    chatId: activeChatId,
+                  });
                 }}
               />
             </div>

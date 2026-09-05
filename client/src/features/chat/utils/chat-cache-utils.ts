@@ -141,3 +141,33 @@ export const removeChatById = ({
     })),
   };
 };
+
+export const updateChatAfterMessageDelete = ({
+  oldData,
+  chatId,
+  fallbackLastMessageDate,
+}: {
+  oldData?: ChatQueryData;
+  chatId: string;
+  fallbackLastMessageDate?: Date;
+}): ChatQueryData | undefined => {
+  if (!oldData) return oldData;
+
+  return {
+    ...oldData,
+    pages: oldData.pages.map((page) => ({
+      ...page,
+      data: page.data.map((chat) => {
+        if (chat.id !== chatId) return chat;
+
+        return {
+          ...chat,
+          unreadCount: 0,
+          ...(fallbackLastMessageDate && {
+            updatedAt: fallbackLastMessageDate,
+          }),
+        };
+      }),
+    })),
+  };
+};
