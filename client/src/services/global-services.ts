@@ -6,6 +6,11 @@ export const userServ = async () => {
   return data as unknown as User;
 };
 
+export const chatUserServ = async (id: string) => {
+  const data = await api.get<User>(`/api/v1/users/profile/${id}`);
+  return data as unknown as User;
+};
+
 export const userDeleteServ = async () => {
   return await api.delete("/api/v1/auth/logout/all");
 };

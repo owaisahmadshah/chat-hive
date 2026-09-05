@@ -1,5 +1,6 @@
 import { Navigate, type RouteProps } from "react-router-dom";
 import { useUser } from "../context/user-context";
+import { SessionLoader } from "@/components/SessionLoader";
 
 type PrivateRouteProps = RouteProps & {
   url: string;
@@ -13,7 +14,7 @@ const PrivateRoute = ({ url, redirectTo, children }: PrivateRouteProps) => {
   const { isAuthenticated, isPending } = state;
 
   if (isPending) {
-    return <div className="loading-screen">Verifying Session...</div>;
+    return <SessionLoader />;
   }
 
   if (!isAuthenticated && url === "/") {

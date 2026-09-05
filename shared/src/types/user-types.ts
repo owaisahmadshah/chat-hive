@@ -47,6 +47,10 @@ export const chatUserSchema = z.object({
   username: z.string(),
 });
 
+export const userIdSchema = z.object({
+  id: z.string(),
+});
+
 export type AuthProvider = z.infer<typeof authProviderSchema>;
 export type CreateUser = z.infer<typeof createUserSchema>;
 export type UsernameSchema = z.infer<typeof usernameSchema>;
@@ -57,6 +61,7 @@ export type ImageURLUpdate = z.infer<typeof imageURLUpdateSchema>;
 export type NewPassword = z.infer<typeof newPasswordSchema>;
 export type ResetPassword = z.infer<typeof resetPasswordSchema>;
 export type ChatUser = z.infer<typeof chatUserSchema>;
+export type UserId = z.infer<typeof userIdSchema>;
 
 export interface UserSummary {
   id: string;
@@ -74,6 +79,8 @@ export interface User {
   authProvider: AuthProvider;
   authProviderId: string | null;
   createdAt: Date;
+  isTyping?: Boolean;
+  isOnline?: Boolean;
 }
 
 export interface MessageUser {

@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { useSearchParams } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import { ChatSection } from "@/features/chat/ChatSection";
 import { useMobileHeight } from "@/hooks/useMobileHeight";
+import MessageSection from "@/features/messages/MessageSection";
 
 const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -36,15 +36,11 @@ const HomePage = () => {
           action={setSearchParamsWithChat}
         />
 
-        {/* Message section placeholder */}
-        <div
-          className={cn(
-            "flex-1 bg-background flex items-center justify-center text-muted-foreground",
-            !activeChatId && "max-sm:hidden",
-          )}
-        >
-          {/* Message view area - to be implemented */}
-        </div>
+        <MessageSection
+          activeChatId={activeChatId}
+          activeChatUserId={activeChatUserId}
+          backAction={() => setSearchParams({})}
+        />
       </Suspense>
     </main>
   );
