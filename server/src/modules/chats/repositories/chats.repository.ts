@@ -136,4 +136,31 @@ export class ChatsRepository {
 
     return deleted;
   }
+
+  async getChatWithMembers(chatId: string) {
+    const [chat] = await this.getClient()
+      .select({
+        id: chats.id,
+        isGroup: chats.isGroup,
+        members: sql<{ id: string; chatId: string; userId: string }[]>`
+        jsonb_agg(
+          jsonb_build_object(
+            'id', ${chatMembers.id},
+            'chatId', ${chatMembers.chatId},
+            'userId', ${chatMembers.userId}
+          )
+        )
+      `,
+      })
+      .from(chats)
+      .innerJoin(
+        chatMembers,
+        and(eq(chats.id, chatMembers.chatId), isNull(chatMembers.deletedAt)),
+      )
+      .where(eq(chats.id, chatId))
+      .groupBy(chats.id)
+      .limit(1);
+
+    return chat || null;
+  }
 }

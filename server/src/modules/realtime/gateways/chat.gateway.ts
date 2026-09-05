@@ -12,6 +12,7 @@ import {
   type CreateMessage,
   type MessageStatus,
   SOCKET_EVENTS,
+  type UpdateMessagesStatus,
 } from 'shared';
 import { Server, Socket } from 'socket.io';
 import { WsCatchAllFilter } from 'src/common/filters/ws-exception.filter';
@@ -191,6 +192,50 @@ export class ChatGateway {
     }
 
     return updatedMessage;
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.UPDATE_ALL_MESSAGES_STATUSES)
+  async handleUpdateChatMessagesStatus(
+    @MessageBody() data: UpdateMessagesStatus,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const userId = this.getUserId(client);
+
+    if (!userId) {
+      throw new WsException('Unauthorized');
+    }
+
+    await this.messagesService.updateMessagesStatusByChatId(
+      userId,
+      data.chatId,
+      data.status,
+    );
+
+    const chat = await this.chatsService.getChatWithMembers(data.chatId);
+
+    if (chat.isGroup) {
+      // Only notify message sender
+      const sender = chat.members.filter((memb) => memb.userId !== userId);
+
+      const presence = await this.presenceRepository.getUserPresence(
+        sender[0].userId,
+      );
+
+      if (presence) {
+        this.server
+          .to(presence.socketId)
+          .emit(SOCKET_EVENTS.UPDATED_ALL_MESSAGES_STATUSES, {
+            // TODO: Standarize emitter type
+            chatId: data.chatId,
+            receiver: userId,
+            status: data.status,
+          });
+      }
+    } else {
+      // TODO: If chat is a group, fetch senders and notify them.
+    }
+
+    return data;
   }
 
   private getUserId(client: Socket) {
