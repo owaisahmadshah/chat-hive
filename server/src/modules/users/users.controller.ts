@@ -19,6 +19,8 @@ import {
   imageURLUpdateSchema,
   paginationSchema,
   type ReqPagination,
+  type UserId,
+  userIdSchema,
 } from 'shared';
 
 @Controller('users')
@@ -29,6 +31,15 @@ export class UserController {
   @Get('profile')
   async getUser(@CurrentUser() reqUser: JWTPayload) {
     const user = await this.userService.getUser(reqUser.sub);
+    return { data: user };
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('profile/:id')
+  async getUserProfile(
+    @Param(new ZodValidationPipe(userIdSchema)) params: UserId,
+  ) {
+    const user = await this.userService.getUser(params.id);
     return { data: user };
   }
 
