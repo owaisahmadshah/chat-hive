@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { ChatSection } from "@/features/chat/ChatSection";
 import { useMobileHeight } from "@/hooks/useMobileHeight";
 import MessageSection from "@/features/messages/MessageSection";
+import { useInitSocketEvents } from "@/hooks/useInitSocketEvents";
 
 const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -11,6 +12,7 @@ const HomePage = () => {
   const activeChatUserId = searchParams.get("userId");
 
   useMobileHeight();
+  useInitSocketEvents();
 
   const setSearchParamsWithChat = (args: {
     chatId: string | null;

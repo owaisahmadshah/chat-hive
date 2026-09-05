@@ -3,14 +3,17 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { getFeedChatsServ } from "../services/chat-services";
 import { useUpdateChatMessagesStatus } from "@/features/messages/hooks/useUpdateChatMessagesStatus";
 import { useUser } from "@/context/user-context";
+import { useChatActions } from "@/hooks/useChatActions";
 
 export function useGetFeedChats() {
   const { state } = useUser();
   const userId = state.user?.id;
   const updateChatMessagesStatus = useUpdateChatMessagesStatus();
+  const { joinChat } = useChatActions();
 
   // Track chat IDs whose messages have already been marked as 'delivered'
   const processedChatsRef = useRef<Set<string>>(new Set());
+  const joinedChatsRef = useRef<Set<string>>(new Set());
 
   const query = useInfiniteQuery({
     queryKey: ["chats"],
@@ -25,6 +28,18 @@ export function useGetFeedChats() {
 
   useEffect(() => {
     if (!data || !userId) return;
+
+    // Collect all unjoined chat rooms
+    const unjoinedChatRooms = data.pages
+      .flatMap((page) => page.data)
+      .filter((chat) => !joinedChatsRef.current.has(chat.id));
+
+    if (unjoinedChatRooms.length > 0) {
+      unjoinedChatRooms.forEach((chat) => {
+        joinChat(chat.id);
+        joinedChatsRef.current.add(chat.id);
+      });
+    }
 
     // Collect all newly fetched chats that haven't been processed yet
     const newUnreadChats = data.pages
