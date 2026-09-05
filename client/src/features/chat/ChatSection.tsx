@@ -8,6 +8,8 @@ import { LoadMore } from "@/components/LoadMore";
 import { useGetFeedChats } from "./hooks/useGetFeedChats";
 import type { Chat } from "shared";
 import { useDeleteChat } from "./hooks/useDeleteChat";
+import { useUpdateChatMessagesStatus } from "../messages/hooks/useUpdateChatMessagesStatus";
+import { useUser } from "@/context/user-context";
 
 interface IChatSectionProps {
   activeChatId: string | null;
@@ -27,14 +29,27 @@ export const ChatSection = (props: IChatSectionProps) => {
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
     useGetFeedChats();
 
+  const { state } = useUser();
+  const userId = state.user?.id ?? "";
+
+  const updateChatMessagesStatus = useUpdateChatMessagesStatus();
+
   const chats: Chat[] = data?.pages.flatMap((page) => page.data) ?? [];
 
   const { mutateAsync: deleteChatById } = useDeleteChat();
 
-  const handleChatClick = (chat: Chat) => {
+  const handleChatClick = async (chat: Chat) => {
     // Finds first member that isn't the logged-in user if needed
-    const otherMemberId = chat.members[0]?.userId ?? null;
+    const otherMemberId = chat.members.filter(
+      (memb) => memb.userId !== userId,
+    )[0].userId;
     action({ chatId: chat.id, userId: otherMemberId });
+
+    await updateChatMessagesStatus({
+      chatId: chat.id,
+      status: "read",
+      userId,
+    });
   };
 
   return (

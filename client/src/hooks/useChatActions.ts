@@ -6,6 +6,7 @@ import {
   type CreateChat,
   type CreateMessage,
   type MessageStatus,
+  type UpdateMessagesStatus,
 } from "shared";
 
 export function useChatActions() {
@@ -24,17 +25,6 @@ export function useChatActions() {
     [chatSocket],
   );
 
-  const createMessage = useCallback(
-    async (payload: CreateMessage) => {
-      if (!chatSocket) throw new Error("Chat socket not connected");
-      return await chatSocket.emitWithAck(
-        SOCKET_EVENTS.CREATE_NEW_MESSAGE,
-        payload,
-      );
-    },
-    [chatSocket],
-  );
-
   const joinChat = useCallback(
     async (chatId: string) => {
       if (!chatSocket) return;
@@ -47,17 +37,6 @@ export function useChatActions() {
     async (chatId: string) => {
       if (!chatSocket) return;
       return await chatSocket.emitWithAck(SOCKET_EVENTS.LEAVE_CHAT, { chatId });
-    },
-    [chatSocket],
-  );
-
-  const updateMessageStatus = useCallback(
-    async (payload: MessageStatus) => {
-      if (!chatSocket) return;
-      return await chatSocket.emitWithAck(
-        SOCKET_EVENTS.UPDATE_MESSAGE_STATUS,
-        payload,
-      );
     },
     [chatSocket],
   );
@@ -82,6 +61,40 @@ export function useChatActions() {
     [globalSocket],
   );
 
+  // Chat (Messages) Gateway Emitters
+  const createMessage = useCallback(
+    async (payload: CreateMessage) => {
+      if (!chatSocket) throw new Error("Chat socket not connected");
+      return await chatSocket.emitWithAck(
+        SOCKET_EVENTS.CREATE_NEW_MESSAGE,
+        payload,
+      );
+    },
+    [chatSocket],
+  );
+
+  const updateMessageStatus = useCallback(
+    async (payload: MessageStatus) => {
+      if (!chatSocket) return;
+      return await chatSocket.emitWithAck(
+        SOCKET_EVENTS.UPDATE_MESSAGE_STATUS,
+        payload,
+      );
+    },
+    [chatSocket],
+  );
+
+  const updateChatMessagesStatus = useCallback(
+    async (payload: UpdateMessagesStatus) => {
+      if (!chatSocket) return null;
+      return await chatSocket.emitWithAck(
+        SOCKET_EVENTS.UPDATE_ALL_MESSAGES_STATUSES,
+        payload,
+      );
+    },
+    [chatSocket],
+  );
+
   return {
     createChat,
     createMessage,
@@ -90,5 +103,6 @@ export function useChatActions() {
     updateMessageStatus,
     checkUserPresence,
     updateStatus,
+    updateChatMessagesStatus,
   };
 }

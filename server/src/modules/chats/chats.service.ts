@@ -256,6 +256,10 @@ export class ChatsService {
     return await this.chatMembersRepository.getChatMembersById(chatId);
   }
 
+  async getChatWithMembers(chatId: string) {
+    return await this.chatsRepository.getChatWithMembers(chatId);
+  }
+
   async deleteChatForUser(userId: string, chatId: string) {
     return await this.databaseService.transaction(async (tx) => {
       const chat = await this.chatsRepository.getChatById(chatId);
