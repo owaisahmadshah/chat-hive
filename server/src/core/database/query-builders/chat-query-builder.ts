@@ -74,9 +74,10 @@ export class ChatQueryBuilder {
         CASE WHEN ${chats.isGroup} = true THEN ${chats.logoURL}
         ELSE ${otherUser.imageURL} END
       `,
+      // Deduplicate group members in jsonb_agg using DISTINCT
       members: sql<ChatMember[]>`
         jsonb_agg(
-          jsonb_build_object(
+          DISTINCT jsonb_build_object(
             'id',       ${groupMember.id},
             'userId',   ${groupMemberUser.id},
             'username', ${groupMemberUser.username},
@@ -93,32 +94,36 @@ export class ChatQueryBuilder {
     userId: string,
     unreadSubquery: ReturnType<ChatQueryBuilder['buildUnreadMessagesSubquery']>,
   ) {
-    return this.client
-      .select(this.buildChatSelectFields(unreadSubquery))
-      .from(chats)
-      .innerJoin(
-        chatMembers,
-        and(
-          eq(chatMembers.chatId, chats.id),
-          eq(chatMembers.userId, userId),
-          isNull(chatMembers.deletedAt),
-        ),
-      )
-      .leftJoin(
-        otherMember,
-        and(
-          eq(otherMember.chatId, chats.id),
-          ne(otherMember.userId, userId),
-          isNull(otherMember.deletedAt),
-        ),
-      )
-      .leftJoin(otherUser, eq(otherUser.id, otherMember.userId))
-      .leftJoin(
-        groupMember,
-        and(eq(groupMember.chatId, chats.id), isNull(groupMember.deletedAt)),
-      )
-      .leftJoin(groupMemberUser, eq(groupMemberUser.id, groupMember.userId))
-      .leftJoin(unreadSubquery, eq(unreadSubquery.chatId, chats.id));
+    return (
+      this.client
+        .select(this.buildChatSelectFields(unreadSubquery))
+        .from(chats)
+        .innerJoin(
+          chatMembers,
+          and(
+            eq(chatMembers.chatId, chats.id),
+            eq(chatMembers.userId, userId),
+            isNull(chatMembers.deletedAt),
+          ),
+        )
+        // Only join single direct member if chat is NOT a group
+        .leftJoin(
+          otherMember,
+          and(
+            eq(chats.isGroup, false),
+            eq(otherMember.chatId, chats.id),
+            ne(otherMember.userId, userId),
+            isNull(otherMember.deletedAt),
+          ),
+        )
+        .leftJoin(otherUser, eq(otherUser.id, otherMember.userId))
+        .leftJoin(
+          groupMember,
+          and(eq(groupMember.chatId, chats.id), isNull(groupMember.deletedAt)),
+        )
+        .leftJoin(groupMemberUser, eq(groupMemberUser.id, groupMember.userId))
+        .leftJoin(unreadSubquery, eq(unreadSubquery.chatId, chats.id))
+    );
   }
 
   buildCursorCondition(

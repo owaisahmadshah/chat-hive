@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { ChatMemberRole, CreateChatMember } from 'shared';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
@@ -155,5 +155,15 @@ export class ChatMembersRepository {
       .returning();
 
     return updated;
+  }
+
+  async restoreChatMembers(chatId: string, tx?: DBClient) {
+    return this.getClient(tx)
+      .update(chatMembers)
+      .set({ deletedAt: null })
+      .where(
+        and(eq(chatMembers.chatId, chatId), isNotNull(chatMembers.deletedAt)),
+      )
+      .returning();
   }
 }
