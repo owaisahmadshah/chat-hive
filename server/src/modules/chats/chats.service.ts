@@ -71,12 +71,12 @@ export class ChatsService {
       consumerId,
     );
 
-    if (existingChat) {
-      await this.addMembers([
-        { chatId: existingChat.id, role: 'admin', userId: userId },
-        { chatId: existingChat.id, role: 'admin', userId: consumerId },
-      ]);
+    console.log('Existing chat', existingChat);
 
+    if (existingChat) {
+      console.log('Existing chat if statement.');
+      await this.chatMembersRepository.restoreChatMembers(existingChat.id);
+      console.log('Successfully restored.');
       return await this.getChatById(userId, existingChat.id);
     }
 
@@ -91,9 +91,17 @@ export class ChatsService {
         tx,
       );
 
+      const consumerMemberId = members.filter(
+        (memb) => memb.userId !== userId,
+      )[0].id;
+
+      console.log('Soft deleting members');
+      await this.chatMembersRepository.softDeleteMember(consumerMemberId, tx);
+
       return [{ ...chat, members }];
     });
 
+    console.log('Returning chat');
     return await this.getChatById(userId, chat.id);
   }
 
@@ -293,5 +301,9 @@ export class ChatsService {
 
       return { chatId, message: 'Chat deleted for user' };
     });
+  }
+
+  async restoreChatMembers(chatId: string, tx?: DBClient) {
+    return await this.chatMembersRepository.restoreChatMembers(chatId, tx);
   }
 }

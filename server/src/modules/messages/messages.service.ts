@@ -29,6 +29,8 @@ export class MessagesService {
   async createMessage(dto: CreateMessage, userId: string): Promise<Message> {
     const [message, attachments, statuses] =
       await this.databaseService.transaction(async (tx) => {
+        await this.chatsService.restoreChatMembers(dto.chatId, tx);
+
         const { attachments: attachmentDto = [], ...messageDto } = dto;
 
         const message = await this.messageRepository.createMessages(
