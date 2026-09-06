@@ -72,6 +72,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
     } catch (error) {
       console.error("Failed to send message:", error);
       setIsSendingMessage(false);
+      // TODO: Show message error in the UI
     }
   }
 

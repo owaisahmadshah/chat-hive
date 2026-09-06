@@ -24,6 +24,7 @@ import {
   type Message,
   type Chat,
   type MessageStatusEnum,
+  type MessageStatus,
 } from "shared";
 
 export function useInitSocketEvents() {
@@ -80,6 +81,7 @@ export function useInitSocketEvents() {
         );
       }
 
+      console.log("Updating received message status");
       // Automatically emit status acknowledgement back to backend
       await updateOneMessageStatus(
         {
@@ -93,21 +95,20 @@ export function useInitSocketEvents() {
   );
 
   // LISTEN FOR SINGLE MESSAGE STATUS CHANGES
-  useSocketEvent<Message>(
-    chatSocket,
+  useSocketEvent<MessageStatus>(
+    globalSocket,
     SOCKET_EVENTS.UPDATED_MESSAGE_STATUS,
     (updatedMessage) => {
-      const latestStatusRecord = updatedMessage.statuses.at(-1);
-      if (!latestStatusRecord) return;
+      if (!updatedMessage) return;
 
       queryClient.setQueryData(
         ["messages", updatedMessage.chatId],
         (oldData: MessagesQueryData) =>
           updateQueryMessageStatus({
             oldData,
-            messageId: updatedMessage.id,
-            userId: latestStatusRecord.userId ?? undefined,
-            status: latestStatusRecord.status,
+            messageId: updatedMessage.messageId,
+            userId: updatedMessage.userId,
+            status: updatedMessage.status,
           }),
       );
     },
@@ -119,7 +120,7 @@ export function useInitSocketEvents() {
     receiver: string;
     status: MessageStatusEnum;
   }>(
-    chatSocket,
+    globalSocket,
     SOCKET_EVENTS.UPDATED_ALL_MESSAGES_STATUSES,
     ({ chatId, status }) => {
       queryClient.setQueryData(

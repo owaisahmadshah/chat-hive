@@ -28,21 +28,11 @@ function MessageItem({
   );
   const hasImage = !!imageAttachment?.url;
 
+  // TODO: Update message status for group messages
   // Derive message state from statuses array
-  const latestStatus = message.statuses[message.statuses.length - 1]?.status;
-
-  const StatusIcon = () => {
-    if (!isMe) return null;
-    if (latestStatus === "read") {
-      return (
-        <CheckCheck className="w-[15px] h-[15px] text-[#40c4ff] drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)] stroke-[3px]" />
-      );
-    }
-    if (latestStatus === "delivered") {
-      return <CheckCheck className="w-4 h-4 text-primary-foreground/70" />;
-    }
-    return <Check className="w-4 h-4 text-primary-foreground/70" />;
-  };
+  const latestStatus = message.statuses.filter(
+    (status) => status.userId !== currentUserId,
+  )[0]?.status;
 
   return (
     <div
@@ -92,7 +82,11 @@ function MessageItem({
                 <span className="text-[10px] text-white font-medium">
                   {format(new Date(message.createdAt), "HH:mm")}
                 </span>
-                <StatusIcon />
+                <StatusIcon
+                  isMe={isMe}
+                  latestStatus={latestStatus}
+                  key={message.id}
+                />
               </div>
             )}
           </div>
@@ -120,7 +114,11 @@ function MessageItem({
               >
                 {format(new Date(message.createdAt), "HH:mm")}
               </span>
-              <StatusIcon />
+              <StatusIcon
+                isMe={isMe}
+                latestStatus={latestStatus}
+                key={message.id}
+              />
             </div>
           </div>
         )}
@@ -138,5 +136,24 @@ function MessageItem({
     </div>
   );
 }
+
+const StatusIcon = ({
+  isMe,
+  latestStatus,
+}: {
+  isMe: boolean;
+  latestStatus: "read" | "delivered" | "sent";
+}) => {
+  if (!isMe) return null;
+  if (latestStatus === "read") {
+    return (
+      <CheckCheck className="w-[15px] h-[15px] text-[#40c4ff] drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)] stroke-[3px]" />
+    );
+  }
+  if (latestStatus === "delivered") {
+    return <CheckCheck className="w-4 h-4 text-primary-foreground/70" />;
+  }
+  return <Check className="w-4 h-4 text-primary-foreground/70" />;
+};
 
 export default MessageItem;
