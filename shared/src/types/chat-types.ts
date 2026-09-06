@@ -88,6 +88,15 @@ export interface ChatMember {
   lastSeen: Date;
 }
 
+export interface ChatLastMessage {
+  id: string;
+  text: string | null;
+  senderId: string;
+  senderUsername: string | null;
+  createdAt: Date;
+  hasAttachments: boolean;
+}
+
 export interface Chat {
   id: string;
   name: string | null;
@@ -98,6 +107,6 @@ export interface Chat {
   typing?: boolean;
 
   // TODO: Add from database
-  lastMessage?: Message;
+  lastMessage: ChatLastMessage | null;
   avatarURL?: string;
 }

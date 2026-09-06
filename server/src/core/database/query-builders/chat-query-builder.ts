@@ -8,14 +8,17 @@ import {
   users,
 } from '../schema';
 import { type DBClient } from '../database.service';
-import { and, eq, isNull, lt, ne, or, sql } from 'drizzle-orm';
+import { and, eq, isNull, lt, ne, or, sql, desc } from 'drizzle-orm';
 import { ChatMember, CursorPayload } from 'shared';
+import { messageAttachments } from '../schema';
 
 export const otherMember = alias(chatMembers, 'other_member');
 export const otherUser = alias(users, 'other_user');
 
 export const groupMember = alias(chatMembers, 'group_member');
 export const groupMemberUser = alias(users, 'group_member_user');
+
+export const lastMessageSender = alias(users, 'last_message_sender');
 
 // ======== Chat Query Builder ===========
 export class ChatQueryBuilder {
@@ -57,8 +60,34 @@ export class ChatQueryBuilder {
       .as('unread');
   }
 
+  // One row per chat: the most recent message, with its sender's username.
+  buildLastMessageSubquery() {
+    return this.client
+      .selectDistinctOn([messages.chatId], {
+        chatId: messages.chatId,
+        id: messages.id,
+        text: messages.text,
+        senderId: messages.senderId,
+        senderUsername: lastMessageSender.username,
+        createdAt: messages.createdAt,
+        hasAttachments: sql<boolean>`
+        EXISTS (
+          SELECT 1 FROM ${messageAttachments}
+          WHERE ${messageAttachments.messageId} = ${messages.id}
+        )
+      `.as('has_attachments'),
+      })
+      .from(messages)
+      .leftJoin(lastMessageSender, eq(lastMessageSender.id, messages.senderId))
+      .orderBy(messages.chatId, desc(messages.createdAt))
+      .as('last_message');
+  }
+
   buildChatSelectFields(
     unreadSubquery: ReturnType<ChatQueryBuilder['buildUnreadMessagesSubquery']>,
+    lastMessageSubquery: ReturnType<
+      ChatQueryBuilder['buildLastMessageSubquery']
+    >,
   ) {
     return {
       id: chats.id,
@@ -87,16 +116,38 @@ export class ChatQueryBuilder {
           )
         ) FILTER (WHERE ${groupMember.id} IS NOT NULL)
       `,
+      lastMessage: sql<{
+        id: string;
+        text: string | null;
+        senderId: string;
+        senderUsername: string | null;
+        createdAt: Date;
+        hasAttachments: boolean;
+      } | null>`
+        CASE WHEN ${lastMessageSubquery.id} IS NULL THEN NULL ELSE
+          jsonb_build_object(
+            'id',             ${lastMessageSubquery.id},
+            'text',           ${lastMessageSubquery.text},
+            'senderId',       ${lastMessageSubquery.senderId},
+            'senderUsername', ${lastMessageSubquery.senderUsername},
+            'createdAt',      ${lastMessageSubquery.createdAt},
+            'hasAttachments', ${lastMessageSubquery.hasAttachments}
+          )
+        END
+      `,
     };
   }
 
   buildBaseChatQuery(
     userId: string,
     unreadSubquery: ReturnType<ChatQueryBuilder['buildUnreadMessagesSubquery']>,
+    lastMessageSubquery: ReturnType<
+      ChatQueryBuilder['buildLastMessageSubquery']
+    >,
   ) {
     return (
       this.client
-        .select(this.buildChatSelectFields(unreadSubquery))
+        .select(this.buildChatSelectFields(unreadSubquery, lastMessageSubquery))
         .from(chats)
         .innerJoin(
           chatMembers,
@@ -123,6 +174,7 @@ export class ChatQueryBuilder {
         )
         .leftJoin(groupMemberUser, eq(groupMemberUser.id, groupMember.userId))
         .leftJoin(unreadSubquery, eq(unreadSubquery.chatId, chats.id))
+        .leftJoin(lastMessageSubquery, eq(lastMessageSubquery.chatId, chats.id))
     );
   }
 
