@@ -7,6 +7,7 @@ import {
   ConnectedSocket,
   WsException,
 } from '@nestjs/websockets';
+import { Socket, Namespace } from 'socket.io';
 import {
   type CreateChat,
   type CreateMessage,
@@ -14,7 +15,6 @@ import {
   SOCKET_EVENTS,
   type UpdateMessagesStatus,
 } from 'shared';
-import { Server, Socket } from 'socket.io';
 import { WsCatchAllFilter } from 'src/common/filters/ws-exception.filter';
 import { PresenceRepository } from 'src/core/redis/repositories/presence.repository';
 import { ChatsService } from 'src/modules/chats/chats.service';
@@ -27,7 +27,7 @@ import { MessagesService } from 'src/modules/messages/messages.service';
 })
 export class ChatGateway {
   @WebSocketServer()
-  server!: Server;
+  server!: Namespace;
 
   constructor(
     private readonly presenceRepository: PresenceRepository,
@@ -70,9 +70,11 @@ export class ChatGateway {
 
           if (!presence) continue;
 
-          this.server
-            .to(presence.socketId)
-            .emit(SOCKET_EVENTS.NEW_CHAT_CREATED, createdChat);
+          this.emitToUserSocket(
+            presence.socketId,
+            SOCKET_EVENTS.NEW_CHAT_CREATED,
+            createdChat,
+          );
         }
       }
 
@@ -115,9 +117,11 @@ export class ChatGateway {
 
       if (!presence) continue; // fully offline
 
-      this.server
-        .to(presence.socketId)
-        .emit(SOCKET_EVENTS.NEW_MESSAGE_CREATED, createdMessage);
+      this.emitToUserSocket(
+        presence.socketId,
+        SOCKET_EVENTS.NEW_MESSAGE_CREATED,
+        createdMessage,
+      );
     }
 
     this.server
@@ -194,9 +198,11 @@ export class ChatGateway {
     );
 
     if (presence) {
-      this.server
-        .to(presence.socketId)
-        .emit(SOCKET_EVENTS.UPDATED_MESSAGE_STATUS, message);
+      this.emitToUserSocket(
+        presence.socketId,
+        SOCKET_EVENTS.UPDATED_MESSAGE_STATUS,
+        { ...data, chatId: message.chatId },
+      );
     }
 
     return updatedMessage;
@@ -221,7 +227,7 @@ export class ChatGateway {
 
     const chat = await this.chatsService.getChatWithMembers(data.chatId);
 
-    if (chat.isGroup) {
+    if (!chat.isGroup) {
       // Only notify message sender
       const sender = chat.members.filter((memb) => memb.userId !== userId);
 
@@ -230,14 +236,16 @@ export class ChatGateway {
       );
 
       if (presence) {
-        this.server
-          .to(presence.socketId)
-          .emit(SOCKET_EVENTS.UPDATED_ALL_MESSAGES_STATUSES, {
+        this.emitToUserSocket(
+          presence.socketId,
+          SOCKET_EVENTS.UPDATED_ALL_MESSAGES_STATUSES,
+          {
             // TODO: Standarize emitter type
             chatId: data.chatId,
             receiver: userId,
             status: data.status,
-          });
+          },
+        );
       }
     } else {
       // TODO: If chat is a group, fetch senders and notify them.
@@ -257,5 +265,9 @@ export class ChatGateway {
 
   private getRoomName(chatId: string) {
     return `chat:${chatId}`;
+  }
+
+  private emitToUserSocket(socketId: string, event: string, payload: unknown) {
+    this.server.server.of('/').to(socketId).emit(event, payload);
   }
 }

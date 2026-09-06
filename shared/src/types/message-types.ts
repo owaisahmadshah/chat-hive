@@ -38,6 +38,7 @@ export const messageStatusSchema = z.object({
   messageId: z.string(),
   userId: z.string().optional(),
   status: messageStatusEnumSchema,
+  chatId: z.string().optional(),
 });
 
 export const updateMessageStatusSchema = z.object({
