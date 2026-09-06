@@ -41,39 +41,46 @@ export class ChatGateway {
     @MessageBody() data: CreateChat,
     @ConnectedSocket() client: Socket,
   ) {
-    const userId = this.getUserId(client);
+    try {
+      const userId = this.getUserId(client);
 
-    if (!userId) {
-      throw new WsException('Unauthorized');
-    }
-
-    const createdChat = await this.chatsService.createChat(data, userId);
-
-    const roomName = this.getRoomName(createdChat.id);
-
-    await client.join(roomName);
-    await this.presenceRepository.addParticipantToRoom(createdChat.id, {
-      socketId: client.id,
-      userId,
-    });
-
-    console.log(`[CHAT ROOM] User ${userId} joined room channel: ${roomName}`);
-
-    if (createdChat.isGroup) {
-      for (const member of createdChat.members) {
-        const presence = await this.presenceRepository.getUserPresence(
-          member.userId,
-        );
-
-        if (!presence) continue;
-
-        this.server
-          .to(presence.socketId)
-          .emit(SOCKET_EVENTS.NEW_CHAT_CREATED, createdChat);
+      if (!userId) {
+        throw new WsException('Unauthorized');
       }
-    }
 
-    return createdChat;
+      const createdChat = await this.chatsService.createChat(data, userId);
+
+      const roomName = this.getRoomName(createdChat.id);
+
+      await client.join(roomName);
+      await this.presenceRepository.addParticipantToRoom(createdChat.id, {
+        socketId: client.id,
+        userId,
+      });
+
+      console.log(
+        `[CHAT ROOM] User ${userId} joined room channel: ${roomName}`,
+      );
+
+      if (createdChat.isGroup) {
+        for (const member of createdChat.members) {
+          const presence = await this.presenceRepository.getUserPresence(
+            member.userId,
+          );
+
+          if (!presence) continue;
+
+          this.server
+            .to(presence.socketId)
+            .emit(SOCKET_EVENTS.NEW_CHAT_CREATED, createdChat);
+        }
+      }
+
+      return createdChat;
+    } catch (error) {
+      console.error(`Failed to create chat: ${(error as Error).message}`);
+      throw new WsException('Failed to create chat due to a database error');
+    }
   }
 
   @SubscribeMessage(SOCKET_EVENTS.CREATE_NEW_MESSAGE)
@@ -96,6 +103,7 @@ export class ChatGateway {
     const roomUsers = await this.presenceRepository.getActiveChatRoom(roomName);
     const activeUserIds = new Set(roomUsers?.users.map((u) => u.userId) ?? []);
 
+    // If a user hasn't joined chat, we will directly emit to their socket id
     for (const messageMem of createdMessage.statuses) {
       if (!messageMem.userId) continue;
       if (messageMem.userId === userId) continue; // sender

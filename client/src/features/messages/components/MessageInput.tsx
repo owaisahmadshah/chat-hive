@@ -32,6 +32,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   const sendMessage = useCreateMessage();
 
@@ -57,6 +58,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
     if (!textContent && selectedFiles.length === 0) return;
 
     try {
+      setIsSendingMessage(true);
       await sendMessage({
         chatId: activeChatId,
         senderId: userId,
@@ -66,8 +68,10 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
 
       form.reset({ userInputMessage: "" });
       setSelectedFiles([]);
+      setIsSendingMessage(false);
     } catch (error) {
       console.error("Failed to send message:", error);
+      setIsSendingMessage(false);
     }
   }
 
@@ -206,7 +210,10 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
 
         <Button
           type="submit"
-          disabled={!userInputMessage?.trim() && selectedFiles.length === 0}
+          disabled={
+            (!userInputMessage?.trim() && selectedFiles.length === 0) ||
+            isSendingMessage
+          }
           className={cn(
             "h-10 w-10 md:h-11 md:w-11 rounded-full p-0 flex-shrink-0 transition-all",
             "bg-primary text-primary-foreground shadow-sm hover:shadow-primary/20",
