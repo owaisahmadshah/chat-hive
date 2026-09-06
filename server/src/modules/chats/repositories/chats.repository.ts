@@ -45,9 +45,10 @@ export class ChatsRepository {
   ) {
     const qb = this.getQueryBuilder();
     const unreadMessagesSubQuery = qb.buildUnreadMessagesSubquery(userId);
+    const lastMessageSubQuery = qb.buildLastMessageSubquery();
 
     const rows = await qb
-      .buildBaseChatQuery(userId, unreadMessagesSubQuery)
+      .buildBaseChatQuery(userId, unreadMessagesSubQuery, lastMessageSubQuery)
       .where(qb.buildCursorCondition(cursor))
       .groupBy(
         chats.id,
@@ -59,6 +60,12 @@ export class ChatsRepository {
         otherUser.username,
         otherUser.imageURL,
         unreadMessagesSubQuery.unreadCount,
+        lastMessageSubQuery.id,
+        lastMessageSubQuery.text,
+        lastMessageSubQuery.senderId,
+        lastMessageSubQuery.senderUsername,
+        lastMessageSubQuery.createdAt,
+        lastMessageSubQuery.hasAttachments,
       )
       .orderBy(desc(chats.updatedAt), desc(chats.id))
       .limit(limit + 1);
@@ -69,9 +76,10 @@ export class ChatsRepository {
   async getChatWithMembersAndUnreadMessages(userId: string, chatId: string) {
     const qb = this.getQueryBuilder();
     const unreadSubquery = qb.buildUnreadMessagesSubquery(userId, chatId);
+    const lastMessageSubQuery = qb.buildLastMessageSubquery();
 
     const rows = await qb
-      .buildBaseChatQuery(userId, unreadSubquery)
+      .buildBaseChatQuery(userId, unreadSubquery, lastMessageSubQuery)
       .where(eq(chats.id, chatId))
       .groupBy(
         chats.id,
@@ -83,6 +91,12 @@ export class ChatsRepository {
         otherUser.username,
         otherUser.imageURL,
         unreadSubquery.unreadCount,
+        lastMessageSubQuery.id,
+        lastMessageSubQuery.text,
+        lastMessageSubQuery.senderId,
+        lastMessageSubQuery.senderUsername,
+        lastMessageSubQuery.createdAt,
+        lastMessageSubQuery.hasAttachments,
       );
 
     return rows[0] || null;
