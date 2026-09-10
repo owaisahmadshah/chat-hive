@@ -26,72 +26,93 @@ import {
   type MessageStatusEnum,
   type MessageStatus,
 } from "shared";
+import { useGetChat } from "@/features/chat/hooks/useGetChat";
+import { useIfChatExists } from "./useIfChatExists";
 
 export function useInitSocketEvents() {
   const queryClient = useQueryClient();
   const { chatSocket, globalSocket } = useSockets();
   const { chatId: activeChatId } = useActiveChat();
+  const { hasChat } = useIfChatExists();
+  const { mutateAsync: getChat } = useGetChat();
   const { state } = useUser();
   const currentUserId = state.user?.id;
 
   const updateOneMessageStatus = useUpdateOneMessageStatus();
 
-  // LISTEN FOR NEW MESSAGES
-  useSocketEvent<Message>(
-    chatSocket,
-    SOCKET_EVENTS.NEW_MESSAGE_CREATED,
-    async (newMessage) => {
-      if (!currentUserId) return;
+  const newMessageOnChatOrUserSocket = async (newMessage: Message) => {
+    if (!currentUserId) return;
 
-      const isChatActive =
-        activeChatId === newMessage.chatId &&
-        document.visibilityState === "visible";
+    if (!hasChat(newMessage.chatId)) {
+      const chat = (await getChat(newMessage.chatId)) as unknown as Chat;
 
-      const nextStatus: MessageStatusEnum = isChatActive ? "read" : "delivered";
-
-      // Append new message to target chat's infinite query
-      queryClient.setQueryData(
-        ["messages", newMessage.chatId],
-        (oldData: MessagesQueryData) =>
-          addMessageToQuery({ oldData, message: newMessage }),
-      );
-
-      // Refresh last message timestamp on the feed
       queryClient.setQueryData(
         ["chats"],
         (oldData: ChatQueryData | undefined) =>
-          updateLastMessage({
+          addChatToFeed({ oldData, newChat: chat }),
+      );
+    }
+
+    const isChatActive =
+      activeChatId === newMessage.chatId &&
+      document.visibilityState === "visible";
+
+    const nextStatus: MessageStatusEnum = isChatActive ? "read" : "delivered";
+
+    // Append new message to target chat's infinite query
+    queryClient.setQueryData(
+      ["messages", newMessage.chatId],
+      (oldData: MessagesQueryData) =>
+        addMessageToQuery({ oldData, message: newMessage }),
+    );
+
+    // Refresh last message timestamp on the feed
+    queryClient.setQueryData(["chats"], (oldData: ChatQueryData | undefined) =>
+      updateLastMessage({
+        oldData,
+        chatId: newMessage.chatId,
+        updatedAt: new Date(newMessage.createdAt),
+      }),
+    );
+
+    // Increment unread counter if chat is not currently open
+    if (!isChatActive) {
+      queryClient.setQueryData(
+        ["chats"],
+        (oldData: ChatQueryData | undefined) =>
+          updateChatUnreadCount({
             oldData,
             chatId: newMessage.chatId,
-            updatedAt: new Date(newMessage.createdAt),
+            value: 1,
+            increment: true,
           }),
       );
+    }
 
-      // Increment unread counter if chat is not currently open
-      if (!isChatActive) {
-        queryClient.setQueryData(
-          ["chats"],
-          (oldData: ChatQueryData | undefined) =>
-            updateChatUnreadCount({
-              oldData,
-              chatId: newMessage.chatId,
-              value: 1,
-              increment: true,
-            }),
-        );
-      }
+    console.log("Updating received message status");
+    // Automatically emit status acknowledgement back to backend
+    await updateOneMessageStatus(
+      {
+        messageId: newMessage.id,
+        userId: currentUserId,
+        status: nextStatus,
+      },
+      newMessage.chatId,
+    );
+  };
 
-      console.log("Updating received message status");
-      // Automatically emit status acknowledgement back to backend
-      await updateOneMessageStatus(
-        {
-          messageId: newMessage.id,
-          userId: currentUserId,
-          status: nextStatus,
-        },
-        newMessage.chatId,
-      );
-    },
+  // LISTEN FOR NEW MESSAGES ON CHAT SOCKET
+  useSocketEvent<Message>(
+    chatSocket,
+    SOCKET_EVENTS.NEW_MESSAGE_CREATED,
+    newMessageOnChatOrUserSocket,
+  );
+
+  // LISTEN FOR NEW MESSAGES ON GLOBAL SOCKET
+  useSocketEvent<Message>(
+    globalSocket,
+    SOCKET_EVENTS.NEW_MESSAGE_CREATED,
+    newMessageOnChatOrUserSocket,
   );
 
   // LISTEN FOR SINGLE MESSAGE STATUS CHANGES
