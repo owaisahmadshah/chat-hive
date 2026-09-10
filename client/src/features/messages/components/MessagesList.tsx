@@ -26,7 +26,8 @@ export const MessagesList = ({
     data?.pages
       .slice()
       .reverse()
-      .flatMap((page) => page.data) ?? [];
+      .flatMap((page) => page.data)
+      .reverse() ?? [];
 
   const pageCount = data?.pages.length ?? 0;
   const prevPageCountRef = useRef(pageCount);
