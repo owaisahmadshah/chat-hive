@@ -60,36 +60,6 @@ export const updateLastMessage = ({
   };
 };
 
-export const updateChatTypingStatus = ({
-  oldData,
-  chatId,
-  typing,
-}: {
-  oldData?: ChatQueryData;
-  chatId: string;
-  typing: {
-    isTyping: boolean;
-    typerId: string;
-  };
-}): ChatQueryData | undefined => {
-  if (!oldData) return oldData;
-
-  return {
-    ...oldData,
-    pages: oldData.pages.map((page) => ({
-      ...page,
-      data: page.data.map((chat) => {
-        if (chat.id !== chatId) return chat;
-
-        return {
-          ...chat,
-          typing,
-        };
-      }),
-    })),
-  };
-};
-
 export const addChatToFeed = ({
   oldData,
   newChat,
@@ -166,6 +136,33 @@ export const updateChatAfterMessageDelete = ({
           ...(fallbackLastMessageDate && {
             updatedAt: fallbackLastMessageDate,
           }),
+        };
+      }),
+    })),
+  };
+};
+
+export const updateChatTypingStatus = ({
+  oldData,
+  chatId,
+  isTyping,
+}: {
+  oldData?: ChatQueryData;
+  chatId: string;
+  isTyping: boolean;
+}): ChatQueryData | undefined => {
+  if (!oldData) return oldData;
+
+  return {
+    ...oldData,
+    pages: oldData.pages.map((page) => ({
+      ...page,
+      data: page.data.map((chat) => {
+        if (chat.id !== chatId) return chat;
+
+        return {
+          ...chat,
+          typing: isTyping,
         };
       }),
     })),

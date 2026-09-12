@@ -80,7 +80,6 @@ export interface User {
   authProviderId: string | null;
   createdAt: Date;
   isTyping?: Boolean;
-  isOnline?: Boolean;
 }
 
 export interface MessageUser {

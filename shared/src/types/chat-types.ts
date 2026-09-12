@@ -110,3 +110,9 @@ export interface Chat {
   lastMessage: ChatLastMessage | null;
   avatarURL?: string;
 }
+
+export interface Typing {
+  userId: string;
+  chatId: string;
+  isTyping: boolean;
+}

@@ -8,6 +8,8 @@ export const SOCKET_EVENTS = {
   JOIN_CHAT: "joinChat",
   LEAVE_CHAT: "leaveChat",
   NEW_CHAT_CREATED: "newChatCreated",
+  SEND_TYPING: "sendTyping",
+  RECEIVE_TYPING: "receiveTyping",
 
   // MESSAGE
   CREATE_NEW_MESSAGE: "newMessage",

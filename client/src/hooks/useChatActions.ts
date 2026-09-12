@@ -6,6 +6,7 @@ import {
   type CreateChat,
   type CreateMessage,
   type MessageStatus,
+  type Typing,
   type UpdateMessagesStatus,
 } from "shared";
 
@@ -95,6 +96,14 @@ export function useChatActions() {
     [chatSocket],
   );
 
+  const sendTyping = useCallback(
+    (payload: Typing) => {
+      if (!chatSocket) return null;
+      return chatSocket.emit(SOCKET_EVENTS.SEND_TYPING, payload);
+    },
+    [chatSocket],
+  );
+
   return {
     createChat,
     createMessage,
@@ -104,5 +113,6 @@ export function useChatActions() {
     checkUserPresence,
     updateStatus,
     updateChatMessagesStatus,
+    sendTyping,
   };
 }

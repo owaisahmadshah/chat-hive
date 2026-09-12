@@ -3,14 +3,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { correctDate } from "@/lib/correct-date";
 import { useChatUserOnlineStatus } from "../hooks/useChatUserOnlineStatus";
+import type { User } from "shared";
+import { Typing } from "@/components/Typing";
 
 interface IChatUserNavbarCardProps {
-  user: {
-    id: string;
-    username: string;
-    imageURL?: string | null;
-    lastSeen?: Date | string | null;
-  };
+  user: User;
   backAction?: () => void;
 }
 
@@ -52,7 +49,9 @@ export const ChatUserNavbarCard = ({
             {user?.username || "Chat Member"}
           </strong>
           <p className="text-[12px] leading-tight">
-            {onlineStatus === "online" ? (
+            {user.isTyping ? (
+              <Typing />
+            ) : onlineStatus === "online" ? (
               <span className="text-muted-foreground">Online</span>
             ) : user?.lastSeen ? (
               <span className="text-muted-foreground">

@@ -6,7 +6,7 @@ import "yet-another-react-lightbox/styles.css";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { ImagePlus, Send, X, Plus, Trash2 } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 
@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Field, FieldError, FieldGroup } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 import { useCreateMessage } from "../hooks/useCreateMessage";
+import { useChatActions } from "@/hooks/useChatActions";
 
 interface IMessageInputProps {
   activeChatId: string;
@@ -36,6 +37,8 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
 
   const sendMessage = useCreateMessage();
 
+  const { sendTyping } = useChatActions();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -53,9 +56,41 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
     return () => previewUrls.forEach((url) => URL.revokeObjectURL(url));
   }, [previewUrls]);
 
+  const handleSendTyping = useCallback(
+    (isTyping: boolean) => {
+      sendTyping({
+        userId,
+        chatId: activeChatId,
+        isTyping,
+      });
+    },
+    [sendTyping, userId, activeChatId],
+  );
+
+  useEffect(() => {
+    if (!userInputMessage || userInputMessage.trim() === "") {
+      handleSendTyping(false);
+      return;
+    }
+
+    handleSendTyping(true);
+
+    const typingTimeout = setTimeout(() => {
+      handleSendTyping(false);
+    }, 1500);
+
+    return () => clearTimeout(typingTimeout);
+  }, [userInputMessage, handleSendTyping]);
+
+  const handleTypingBlur = () => {
+    handleSendTyping(false);
+  };
+
   async function onSubmit(values: FormValues) {
     const textContent = values.userInputMessage?.trim() || "";
     if (!textContent && selectedFiles.length === 0) return;
+
+    handleSendTyping(false);
 
     try {
       setIsSendingMessage(true);
@@ -196,6 +231,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
                   maxRows={5}
                   onBlur={() => {
                     field.onBlur();
+                    handleTypingBlur();
                   }}
                   className={cn(
                     "w-full rounded-2xl border border-input bg-muted/30 px-4 py-2.5 text-sm transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:bg-background resize-none leading-relaxed",
