@@ -2,6 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { correctDate } from "@/lib/correct-date";
+import { useChatUserOnlineStatus } from "../hooks/useChatUserOnlineStatus";
 
 interface IChatUserNavbarCardProps {
   user: {
@@ -18,6 +19,8 @@ export const ChatUserNavbarCard = ({
   backAction,
 }: IChatUserNavbarCardProps) => {
   const initial = user?.username?.charAt(0).toUpperCase() || "U";
+
+  const { onlineStatus } = useChatUserOnlineStatus(user.id);
 
   return (
     <div className="flex items-center gap-1 md:gap-3 h-full max-w-full">
@@ -49,12 +52,14 @@ export const ChatUserNavbarCard = ({
             {user?.username || "Chat Member"}
           </strong>
           <p className="text-[12px] leading-tight">
-            {user?.lastSeen ? (
+            {onlineStatus === "online" ? (
+              <span className="text-muted-foreground">Online</span>
+            ) : user?.lastSeen ? (
               <span className="text-muted-foreground">
                 last seen {correctDate(user.lastSeen)}
               </span>
             ) : (
-              <span className="text-muted-foreground">offline</span>
+              <span className="text-muted-foreground">{onlineStatus}</span>
             )}
           </p>
         </div>
