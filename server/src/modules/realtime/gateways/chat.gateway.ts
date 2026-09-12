@@ -13,6 +13,7 @@ import {
   type CreateMessage,
   type MessageStatus,
   SOCKET_EVENTS,
+  type Typing,
   type UpdateMessagesStatus,
 } from 'shared';
 import { WsCatchAllFilter } from 'src/common/filters/ws-exception.filter';
@@ -252,6 +253,22 @@ export class ChatGateway {
     }
 
     return data;
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.SEND_TYPING)
+  handleTyping(@MessageBody() data: Typing, @ConnectedSocket() client: Socket) {
+    const userId = this.getUserId(client);
+
+    if (!userId) {
+      throw new WsException('Unauthorized');
+    }
+
+    const roomName = this.getRoomName(data.chatId);
+
+    this.server
+      .to(roomName)
+      .except(client.id)
+      .emit(SOCKET_EVENTS.RECEIVE_TYPING, data);
   }
 
   private getUserId(client: Socket) {

@@ -1,6 +1,4 @@
 export const correctDate = (updatedAt: string | Date) => {
-  console.log(updatedAt);
-
   const date = new Date(updatedAt);
   const now = new Date();
 

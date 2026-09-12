@@ -16,6 +16,7 @@ import {
   updateLastMessage,
   updateChatUnreadCount,
   addChatToFeed,
+  updateChatTypingStatus,
   type ChatQueryData,
 } from "@/features/chat/utils/chat-cache-utils";
 
@@ -25,6 +26,8 @@ import {
   type Chat,
   type MessageStatusEnum,
   type MessageStatus,
+  type Typing,
+  type User,
 } from "shared";
 import { useGetChat } from "@/features/chat/hooks/useGetChat";
 import { useIfChatExists } from "./useIfChatExists";
@@ -89,7 +92,6 @@ export function useInitSocketEvents() {
       );
     }
 
-    console.log("Updating received message status");
     // Automatically emit status acknowledgement back to backend
     await updateOneMessageStatus(
       {
@@ -178,4 +180,32 @@ export function useInitSocketEvents() {
       queryClient.invalidateQueries({ queryKey: ["user", userId] });
     },
   );
+
+  // LISTEN FOR TYPING
+  useSocketEvent<Typing>(chatSocket, SOCKET_EVENTS.RECEIVE_TYPING, (data) => {
+    if (!data) return;
+
+    if (data.userId === currentUserId) return;
+
+    if (activeChatId === data.chatId) {
+      queryClient.setQueryData(
+        ["chat-user", data.userId],
+        (oldData: User | undefined) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            isTyping: data.isTyping,
+          };
+        },
+      );
+    }
+
+    queryClient.setQueryData(["chats"], (oldData: ChatQueryData | undefined) =>
+      updateChatTypingStatus({
+        oldData,
+        chatId: data.chatId,
+        isTyping: data.isTyping,
+      }),
+    );
+  });
 }
