@@ -421,6 +421,9 @@ importers:
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
+      cloudinary:
+        specifier: ^2.6.0
+        version: 2.6.0
       cookie:
         specifier: ^2.0.1
         version: 2.0.1

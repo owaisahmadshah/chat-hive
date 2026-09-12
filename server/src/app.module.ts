@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { RealtimeModule } from './modules/realtime/realtime.module';
     ChatsModule,
     MessagesModule,
     RealtimeModule,
+    UploadsModule,
   ],
   controllers: [],
 })

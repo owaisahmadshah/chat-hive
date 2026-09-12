@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { ImagePlus, Send, X, Plus, Trash2 } from "lucide-react";
+import { ImagePlus, Send, X, Plus, Trash2, Camera } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { Field, FieldError, FieldGroup } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 import { useCreateMessage } from "../hooks/useCreateMessage";
 import { useChatActions } from "@/hooks/useChatActions";
+import { uploadToCloudinary } from "@/lib/upload-to-cloudinary";
 
 interface IMessageInputProps {
   activeChatId: string;
@@ -94,20 +95,25 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
 
     try {
       setIsSendingMessage(true);
+
+      const attachments = await Promise.all(
+        selectedFiles.map((file) => uploadToCloudinary(file)),
+      );
+
       await sendMessage({
         chatId: activeChatId,
         senderId: userId,
         text: textContent || null,
-        attachments: [],
+        attachments,
       });
 
       form.reset({ userInputMessage: "" });
       setSelectedFiles([]);
-      setIsSendingMessage(false);
     } catch (error) {
       console.error("Failed to send message:", error);
-      setIsSendingMessage(false);
       // TODO: Show message error in the UI
+    } finally {
+      setIsSendingMessage(false);
     }
   }
 
@@ -136,31 +142,30 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
   };
 
   return (
-    <div className="shrink-0 bg-background/95 backdrop-blur-sm border-t border-border/50 rounded-t-2xl shadow-2xl">
-      {/* Image Preview List */}
+    <div className="shrink-0 bg-background/95 backdrop-blur-sm border-t border-border/50 rounded-t shadow-2xl">
       {selectedFiles.length > 0 && (
         <div className="px-2 pt-3 pb-1 md:px-4">
           <div className="flex items-center justify-between mb-2 px-1">
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <span className="text-xs font-medium text-muted-foreground">
               {selectedFiles.length}{" "}
-              {selectedFiles.length === 1 ? "Image" : "Images"} Selected
+              {selectedFiles.length === 1 ? "image" : "images"} attached
             </span>
             <Button
               variant="ghost"
               size="sm"
               onClick={clearAllImages}
-              className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="h-7 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             >
-              <Trash2 className="w-3.5 h-3.5 mr-1" /> Clear All
+              Clear all
             </Button>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+          <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
             {previewUrls.map((url, index) => (
-              <div key={url} className="relative group flex-shrink-0">
+              <div key={url} className="group relative flex-shrink-0">
                 <img
                   src={url}
                   alt="preview"
-                  className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-xl border-2 border-muted hover:border-primary/50 transition-all cursor-pointer"
+                  className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-2xl shadow-sm shadow-black/10 ring-1 ring-black/5 transition-all duration-200 group-hover:shadow-md group-hover:ring-primary/30 cursor-pointer"
                   onClick={() => {
                     setActiveImageIndex(index);
                     setIsLightboxOpen(true);
@@ -169,29 +174,27 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
                 <button
                   type="button"
                   onClick={() => removeFile(index)}
-                  className="absolute -top-1.5 -right-1.5 bg-background border border-border text-foreground rounded-full p-1 shadow-md hover:bg-destructive hover:text-white transition-colors"
+                  className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center rounded-full bg-foreground text-background shadow-sm transition-all duration-150 opacity-0 group-hover:opacity-100 hover:scale-110 hover:bg-destructive"
                 >
                   <X className="w-3 h-3" />
                 </button>
               </div>
             ))}
 
-            <div className="flex gap-2 items-center pl-1">
-              <Label
-                htmlFor="addMoreImages"
-                className="cursor-pointer bg-muted/50 hover:bg-primary/10 text-primary w-16 h-16 md:w-20 md:h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center transition-all"
-              >
-                <Plus className="w-6 h-6" />
-                <Input
-                  id="addMoreImages"
-                  type="file"
-                  className="hidden"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  multiple
-                />
-              </Label>
-            </div>
+            <Label
+              htmlFor="addMoreImages"
+              className="flex-shrink-0 cursor-pointer w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-muted/40 flex items-center justify-center text-muted-foreground transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95"
+            >
+              <Plus className="w-5 h-5" />
+              <Input
+                id="addMoreImages"
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
+                accept="image/*"
+                multiple
+              />
+            </Label>
           </div>
         </div>
       )}
@@ -211,9 +214,9 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
           />
           <Label
             htmlFor="uploadedImage"
-            className="cursor-pointer hover:bg-muted text-muted-foreground hover:text-primary transition-all p-2 rounded-full"
+            className="cursor-pointer flex items-center justify-center h-9 w-9 md:h-10 md:w-10 rounded-2xl bg-muted/40 text-muted-foreground transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95"
           >
-            <ImagePlus className="w-5 h-5 md:w-6 md:h-6" />
+            <Camera className="w-4 h-4 md:w-5 md:h-5" />
           </Label>
         </div>
 
@@ -252,12 +255,15 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
             isSendingMessage
           }
           className={cn(
-            "h-10 w-10 md:h-11 md:w-11 rounded-full p-0 flex-shrink-0 transition-all",
-            "bg-primary text-primary-foreground shadow-sm hover:shadow-primary/20",
-            "disabled:bg-muted disabled:text-muted-foreground",
+            "group relative h-10 w-10 md:h-11 md:w-11 flex-shrink-0 rounded-2xl p-0",
+            "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground",
+            "shadow-md shadow-primary/25 transition-all duration-200 ease-out",
+            "hover:shadow-lg hover:shadow-primary/35 hover:scale-105",
+            "active:scale-90 active:shadow-sm active:duration-75",
+            "disabled:scale-100 disabled:bg-none disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none",
           )}
         >
-          <Send className="w-4 h-4 md:w-5 md:h-5" />
+          <Send className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-active:translate-x-0 group-active:translate-y-0" />
         </Button>
       </form>
 

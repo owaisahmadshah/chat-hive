@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { MessagesRepository } from './repositories/messages.repository';
 import { MessageAttachmentRepository } from './repositories/message-attachment.repository';
 import { MessageStatusRepository } from './repositories/message-status.repository';
@@ -14,6 +18,8 @@ import {
 } from 'shared';
 import { MessageDeleteRepository } from './repositories/message-delete.repository';
 import { ChatsService } from '../chats/chats.service';
+import { ConfigService } from '@nestjs/config';
+import { EnvConfig } from 'src/core/config/env';
 
 @Injectable()
 export class MessagesService {
@@ -24,9 +30,12 @@ export class MessagesService {
     private readonly messageDeleteRepository: MessageDeleteRepository,
     private readonly databaseService: DatabaseService,
     private readonly chatsService: ChatsService,
+    private readonly configService: ConfigService<EnvConfig, true>,
   ) {}
 
   async createMessage(dto: CreateMessage, userId: string): Promise<Message> {
+    this.validateAttachmentUrls(dto.attachments);
+
     const [message, attachments, statuses] =
       await this.databaseService.transaction(async (tx) => {
         await this.chatsService.restoreChatMembers(dto.chatId, tx);
@@ -176,5 +185,16 @@ export class MessagesService {
     }
 
     return message;
+  }
+
+  private validateAttachmentUrls(attachments: CreateMessage['attachments']) {
+    const cloudName = this.configService.get<string>('CLOUDINARY_CLOUD_NAME');
+    const allowedPrefix = `https://res.cloudinary.com/${cloudName}/`;
+
+    for (const attachment of attachments) {
+      if (!attachment.url.startsWith(allowedPrefix)) {
+        throw new BadRequestException('Invalid attachment URL');
+      }
+    }
   }
 }
