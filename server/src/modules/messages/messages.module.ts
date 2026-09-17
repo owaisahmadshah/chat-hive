@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MessagesController } from './messages.controller';
 import { MessagesService } from './messages.service';
 import { MessagesRepository } from './repositories/messages.repository';
@@ -8,7 +8,7 @@ import { MessageStatusRepository } from './repositories/message-status.repositor
 import { ChatsModule } from '../chats/chats.module';
 
 @Module({
-  imports: [ChatsModule],
+  imports: [forwardRef(() => ChatsModule)],
   controllers: [MessagesController],
   providers: [
     MessagesService,

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ChatsRepository } from './repositories/chats.repository';
 import {
   Chat,
@@ -17,6 +17,7 @@ import {
   assertForbidden,
 } from 'src/shared/assertions';
 import { ChatMembersRepository } from './repositories/chat-members.repository';
+import { MessagesService } from '../messages/messages.service';
 
 @Injectable()
 export class ChatsService {
@@ -24,6 +25,8 @@ export class ChatsService {
     private readonly chatsRepository: ChatsRepository,
     private readonly databaseService: DatabaseService,
     private readonly chatMembersRepository: ChatMembersRepository,
+    @Inject(forwardRef(() => MessagesService))
+    private readonly messagesService: MessagesService,
   ) {}
 
   async createChat(data: CreateChat, userId: string) {
@@ -71,12 +74,9 @@ export class ChatsService {
       consumerId,
     );
 
-    console.log('Existing chat', existingChat);
-
     if (existingChat) {
-      console.log('Existing chat if statement.');
       await this.chatMembersRepository.restoreChatMembers(existingChat.id);
-      console.log('Successfully restored.');
+
       return await this.getChatById(userId, existingChat.id);
     }
 
@@ -95,16 +95,12 @@ export class ChatsService {
         (memb) => memb.userId !== userId,
       )[0].id;
 
-      console.log('Soft deleting members');
       await this.chatMembersRepository.softDeleteMember(consumerMemberId, tx);
 
       return [{ ...chat, members }];
     });
 
-    console.log('Returning chat');
-    const createdChat = await this.getChatById(userId, chat.id);
-    console.log(createdChat);
-    return createdChat;
+    return await this.getChatById(userId, chat.id);
   }
 
   async getMyChats(
@@ -272,6 +268,9 @@ export class ChatsService {
 
   async deleteChatForUser(userId: string, chatId: string) {
     return await this.databaseService.transaction(async (tx) => {
+      // Soft-delete all chat messages for this user
+      await this.messagesService.deleteMessagesByChatId(chatId, userId, tx);
+
       const chat = await this.chatsRepository.getChatById(chatId);
       assertExists(chat, 'Chat not found');
 

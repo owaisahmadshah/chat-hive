@@ -1,12 +1,14 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { MessagesRepository } from './repositories/messages.repository';
 import { MessageAttachmentRepository } from './repositories/message-attachment.repository';
 import { MessageStatusRepository } from './repositories/message-status.repository';
-import { DatabaseService } from 'src/core/database/database.service';
+import { DatabaseService, DBClient } from 'src/core/database/database.service';
 import {
   CreateMessage,
   CursorPayload,
@@ -29,6 +31,7 @@ export class MessagesService {
     private readonly messageStatusRepository: MessageStatusRepository,
     private readonly messageDeleteRepository: MessageDeleteRepository,
     private readonly databaseService: DatabaseService,
+    @Inject(forwardRef(() => ChatsService))
     private readonly chatsService: ChatsService,
     private readonly configService: ConfigService<EnvConfig, true>,
   ) {}
@@ -185,6 +188,10 @@ export class MessagesService {
     }
 
     return message;
+  }
+
+  async deleteMessagesByChatId(chatId: string, userId: string, tx?: DBClient) {
+    await this.messageRepository.deleteMessagesByChatId(chatId, userId, tx);
   }
 
   private validateAttachmentUrls(attachments: CreateMessage['attachments']) {
