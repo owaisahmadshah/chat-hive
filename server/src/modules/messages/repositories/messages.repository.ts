@@ -201,4 +201,38 @@ export class MessagesRepository {
 
     return results;
   }
+
+  async deleteMessagesByChatId(chatId: string, userId: string, tx?: DBClient) {
+    const client = this.getClient(tx);
+
+    const rows = await client
+      .insert(schema.messageDelete)
+      .select(
+        client
+          .select({
+            id: sql<string>`gen_random_uuid()`.as('id'),
+            messageId: messages.id,
+            userId: sql<string>`${userId}::uuid`.as('user_id'),
+            deletedAt: sql<Date>`now()`.as('deleted_at'),
+          })
+          .from(messages)
+          .leftJoin(
+            schema.messageDelete,
+            and(
+              eq(schema.messageDelete.messageId, messages.id),
+              eq(schema.messageDelete.userId, userId),
+            ),
+          )
+          .where(
+            and(
+              eq(messages.chatId, chatId),
+              sql`${schema.messageDelete.id} IS NULL`,
+            ),
+          ),
+      )
+      .onConflictDoNothing()
+      .returning({ messageId: schema.messageDelete.messageId });
+
+    return rows.length;
+  }
 }
