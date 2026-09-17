@@ -102,7 +102,9 @@ export class ChatsService {
     });
 
     console.log('Returning chat');
-    return await this.getChatById(userId, chat.id);
+    const createdChat = await this.getChatById(userId, chat.id);
+    console.log(createdChat);
+    return createdChat;
   }
 
   async getMyChats(

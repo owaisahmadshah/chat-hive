@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, or, sql } from 'drizzle-orm';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
 import * as schema from '../../../core/database/schema';
 import { DBClient } from 'src/core/database/database.service';
@@ -106,16 +106,17 @@ export class ChatsRepository {
     const [chat] = await this.getClient()
       .select({ id: chats.id })
       .from(chats)
-      .innerJoin(
-        chatMembers,
-        and(eq(chats.id, chatMembers.chatId), isNull(chatMembers.deletedAt)),
-      )
+      .innerJoin(chatMembers, eq(chats.id, chatMembers.chatId))
       .where(eq(chats.isGroup, false))
       .groupBy(chats.id)
       .having(
         and(
-          sql`count(case when ${chatMembers.deletedAt} is null then 1 end) = 2`,
-          sql`count(case when ${chatMembers.userId} in (${actorId}, ${consumerId}) and ${chatMembers.deletedAt} is null then 1 end) = 2`,
+          sql`count(*) = 2`,
+          sql`count(
+          case when ${chatMembers.userId}
+            in (${sql`${actorId}::uuid`}, ${sql`${consumerId}::uuid`})
+          then 1 end
+        ) = 2`,
         ),
       )
       .limit(1);
@@ -169,7 +170,10 @@ export class ChatsRepository {
       .from(chats)
       .innerJoin(
         chatMembers,
-        and(eq(chats.id, chatMembers.chatId), isNull(chatMembers.deletedAt)),
+        and(
+          eq(chats.id, chatMembers.chatId),
+          or(isNull(chatMembers.deletedAt), eq(chats.isGroup, false)),
+        ),
       )
       .where(eq(chats.id, chatId))
       .groupBy(chats.id)

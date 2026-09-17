@@ -32,6 +32,8 @@ export const ChatSection = (props: IChatSectionProps) => {
   const { state } = useUser();
   const userId = state.user?.id ?? "";
 
+  console.log("Current logged in user id", userId);
+
   const updateChatMessagesStatus = useUpdateChatMessagesStatus();
 
   const chats: Chat[] = data?.pages.flatMap((page) => page.data) ?? [];
@@ -39,6 +41,7 @@ export const ChatSection = (props: IChatSectionProps) => {
   const { mutateAsync: deleteChatById } = useDeleteChat();
 
   const handleChatClick = async (chat: Chat) => {
+    console.log(chat);
     // Finds first member that isn't the logged-in user if needed
     const otherMemberId = chat.members.filter(
       (memb) => memb.userId !== userId,
