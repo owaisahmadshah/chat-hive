@@ -81,6 +81,8 @@ export const updateQueryMessageStatus = ({
         if (message.id !== messageId) return message;
 
         const updatedStatuses = message.statuses.map((s) => {
+          if (s.status === "read") return s;
+
           if (!userId || s.userId === userId) {
             return { ...s, status };
           }
@@ -114,10 +116,14 @@ export const updateQueryMessagesStatus = ({
       data: page.data.map((message) => {
         if (message.sender.id !== currentUserId) return message;
 
-        const updatedStatuses = message.statuses.map((s) => ({
-          ...s,
-          status,
-        }));
+        const updatedStatuses = message.statuses.map((s) => {
+          if (s.status === "read") return s;
+
+          return {
+            ...s,
+            status,
+          };
+        });
 
         return {
           ...message,
