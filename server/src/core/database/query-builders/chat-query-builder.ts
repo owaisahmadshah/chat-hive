@@ -164,13 +164,15 @@ export class ChatQueryBuilder {
             eq(chats.isGroup, false),
             eq(otherMember.chatId, chats.id),
             ne(otherMember.userId, userId),
-            isNull(otherMember.deletedAt),
           ),
         )
         .leftJoin(otherUser, eq(otherUser.id, otherMember.userId))
         .leftJoin(
           groupMember,
-          and(eq(groupMember.chatId, chats.id), isNull(groupMember.deletedAt)),
+          and(
+            eq(groupMember.chatId, chats.id),
+            or(isNull(groupMember.deletedAt), eq(chats.isGroup, false)),
+          ),
         )
         .leftJoin(groupMemberUser, eq(groupMemberUser.id, groupMember.userId))
         .leftJoin(unreadSubquery, eq(unreadSubquery.chatId, chats.id))

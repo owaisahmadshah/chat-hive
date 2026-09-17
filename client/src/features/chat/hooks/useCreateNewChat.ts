@@ -16,6 +16,8 @@ export const useCreateNewChat = () => {
       addChatToFeed({ oldData, newChat }),
     );
 
+    console.log(data);
+
     if (newChat.isGroup) {
       setSearchParams({ chatId: newChat.id });
       return newChat;
