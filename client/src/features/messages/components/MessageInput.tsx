@@ -304,6 +304,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid} className="w-full">
                 <TextareaAutosize
+                  disabled={isSendingMessage}
                   {...field}
                   onKeyDown={handleKeyDown}
                   placeholder="Type your message..."

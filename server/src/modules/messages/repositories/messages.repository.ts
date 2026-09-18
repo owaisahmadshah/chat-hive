@@ -197,7 +197,7 @@ export class MessagesRepository {
         ),
       )
       .orderBy(sql`${messages.createdAt} DESC, ${messages.id} DESC`)
-      .limit(limit);
+      .limit(limit + 1);
 
     return results;
   }

@@ -4,6 +4,7 @@ import { ChatSection } from "@/features/chat/ChatSection";
 import { useMobileHeight } from "@/hooks/useMobileHeight";
 import MessageSection from "@/features/messages/MessageSection";
 import { useInitSocketEvents } from "@/hooks/useInitSocketEvents";
+import { useClearParamsOnEscape } from "@/hooks/useClearParamsOnEscape";
 
 const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -13,6 +14,7 @@ const HomePage = () => {
 
   useMobileHeight();
   useInitSocketEvents();
+  useClearParamsOnEscape();
 
   const setSearchParamsWithChat = (args: {
     chatId: string | null;
