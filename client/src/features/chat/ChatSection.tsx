@@ -10,6 +10,7 @@ import type { Chat } from "shared";
 import { useDeleteChat } from "./hooks/useDeleteChat";
 import { useUpdateChatMessagesStatus } from "../messages/hooks/useUpdateChatMessagesStatus";
 import { useUser } from "@/context/user-context";
+import { ChatSectionSkeleton } from "./components/skeletons/ChatSectionSkeleton";
 
 interface IChatSectionProps {
   activeChatId: string | null;
@@ -26,10 +27,8 @@ interface IChatSectionProps {
 export const ChatSection = (props: IChatSectionProps) => {
   const { activeChatId, activeChatUserId, action } = props;
 
-  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
+  const { data, fetchNextPage, isFetchingNextPage, hasNextPage, isLoading } =
     useGetFeedChats();
-
-  console.log(data);
 
   const { state } = useUser();
   const userId = state.user?.id ?? "";
@@ -53,6 +52,8 @@ export const ChatSection = (props: IChatSectionProps) => {
       userId,
     });
   };
+
+  if (isLoading) return <ChatSectionSkeleton />;
 
   return (
     <section
