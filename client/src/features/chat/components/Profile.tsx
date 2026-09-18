@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { LogOut, Trash2, Camera, Check, X } from "lucide-react";
+import { LogOut, Trash2, Camera, Check, X, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -14,52 +14,55 @@ import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSignOut } from "@/features/auth/hooks/useSignOut";
 import { useUserDelete } from "@/hooks/useUserDelete";
-// import { useProfileImageUpdate } from "../hooks/useProfileImageUpdate";
-// import { ChangePasswordSection } from "./ChangePasswordSection";
 import { useUser } from "@/context/user-context";
+import { uploadToCloudinary } from "@/lib/upload-to-cloudinary";
+import { useUserProfilePicture } from "@/hooks/useUserProfilePicture";
 
 export const Profile = () => {
   const { state } = useUser();
   const { user } = state;
 
-  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync: deleteUser } = useUserDelete();
   const { mutateAsync: signOut, isPending: isSigningOut } = useSignOut();
-  // const { mutateAsync: uploadProfileImage, isPending: isUploading } =
-  //   useProfileImageUpdate();
+  const { mutateAsync: updateProfileImage } = useUserProfilePicture();
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // setSelectedFile(file);
+      setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  // const handleUpdateProfile = async () => {
-  //   if (!selectedFile) return;
+  const handleUpdateProfile = async () => {
+    if (!selectedFile) return;
 
-  //   const formData = new FormData();
-  //   formData.append("profileImage", selectedFile);
+    try {
+      setIsUploading(true);
+      const { url } = await uploadToCloudinary(selectedFile);
 
-  //   try {
-  //     await uploadProfileImage(formData);
-  //     cancelSelection();
-  //   } catch (error) {
-  //     console.error("Upload failed", error);
-  //   }
-  // };
+      await updateProfileImage({ imageURL: url });
+      cancelSelection();
+    } catch (error) {
+      console.error("Failed to update profile image:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const cancelSelection = () => {
-    // setSelectedFile(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setSelectedFile(null);
     setPreviewUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const isLoading = isSigningOut;
+  const isLoading = isSigningOut || isUploading;
 
   if (!user) return <div>Loading...</div>;
 
@@ -81,7 +84,6 @@ export const Profile = () => {
               <CardContent className="flex flex-col items-center gap-4 pt-6">
                 <div className="relative group">
                   <Avatar className="w-32 h-32 cursor-pointer border-2 border-primary/10">
-                    {/* Show previewUrl if it exists, otherwise show user.imageUrl */}
                     <AvatarImage
                       src={previewUrl || user.imageURL || ""}
                       className="object-cover"
@@ -114,17 +116,21 @@ export const Profile = () => {
                         size="icon"
                         variant="default"
                         className="rounded-full h-8 w-8 bg-green-600 hover:bg-green-700"
-                        // onClick={handleUpdateProfile}
-                        // disabled={isUploading}
+                        onClick={handleUpdateProfile}
+                        disabled={isUploading}
                       >
-                        <Check className="w-4 h-4" />
+                        {isUploading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Check className="w-4 h-4" />
+                        )}
                       </Button>
                       <Button
                         size="icon"
                         variant="destructive"
                         className="rounded-full h-8 w-8"
                         onClick={cancelSelection}
-                        // disabled={isUploading}
+                        disabled={isUploading}
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -151,8 +157,6 @@ export const Profile = () => {
                 <ModeToggle />
               </CardContent>
             </Card>
-
-            {/* <ChangePasswordSection email={user.email} /> */}
 
             <Card>
               <CardHeader>
