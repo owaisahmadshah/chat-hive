@@ -39,7 +39,7 @@ export const ChatItem = ({
 
   const chatTitle = chat.name ?? (otherMember?.username as string);
 
-  const avatarUrl = otherMember?.imageURL || "avatar-url";
+  const avatarUrl = chat.logoURL || otherMember?.imageURL || "avatar-url";
 
   const initial = chatTitle[0]?.toUpperCase() || "C";
 

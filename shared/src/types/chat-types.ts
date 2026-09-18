@@ -105,10 +105,8 @@ export interface Chat {
   updatedAt: Date | null;
   unreadCount?: number;
   typing?: boolean;
-
-  // TODO: Add from database
   lastMessage: ChatLastMessage | null;
-  avatarURL?: string;
+  logoURL?: string;
 }
 
 export interface Typing {
