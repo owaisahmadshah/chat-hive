@@ -6,7 +6,7 @@ import "yet-another-react-lightbox/styles.css";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { Send, X, Plus, Camera, FileText, Music, Video } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -47,6 +47,8 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
 
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
   const sendMessage = useCreateMessage();
 
   const { sendTyping } = useChatActions();
@@ -72,6 +74,10 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
       }, []),
     [selectedFiles],
   );
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     return () => previewUrls.forEach((url) => URL.revokeObjectURL(url));
@@ -108,6 +114,8 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
   };
 
   async function onSubmit(values: FormValues) {
+    if (isSendingMessage) return;
+
     const textContent = values.userInputMessage?.trim() || "";
     if (!textContent && selectedFiles.length === 0) return;
 
@@ -136,6 +144,9 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
       });
     } finally {
       setIsSendingMessage(false);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     }
   }
 
@@ -192,6 +203,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
               variant="ghost"
               size="sm"
               onClick={clearAllFiles}
+              disabled={isSendingMessage}
               className="h-7 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             >
               Clear all
@@ -249,6 +261,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
 
                   <button
                     type="button"
+                    disabled={isSendingMessage}
                     onClick={() => removeFile(index)}
                     className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center rounded-full bg-foreground text-background shadow-sm transition-all duration-150 opacity-0 group-hover:opacity-100 hover:scale-110 hover:bg-destructive"
                   >
@@ -264,6 +277,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
             >
               <Plus className="w-5 h-5" />
               <Input
+                disabled={isSendingMessage}
                 id="addMoreImages"
                 type="file"
                 className="hidden"
@@ -288,6 +302,7 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
             onChange={handleFileChange}
             accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.zip"
             multiple
+            disabled={isSendingMessage}
           />
           <Label
             htmlFor="uploadedImage"
@@ -313,6 +328,10 @@ export function MessageInput({ activeChatId, userId }: IMessageInputProps) {
                   onBlur={() => {
                     field.onBlur();
                     handleTypingBlur();
+                  }}
+                  ref={(element) => {
+                    field.ref(element);
+                    inputRef.current = element;
                   }}
                   className={cn(
                     "w-full rounded-2xl border border-input bg-muted/30 px-4 py-2.5 text-sm transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:bg-background resize-none leading-relaxed",
