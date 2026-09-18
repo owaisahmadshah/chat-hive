@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChatSection } from "@/features/chat/ChatSection";
 import { useMobileHeight } from "@/hooks/useMobileHeight";
@@ -9,6 +9,13 @@ import { useSyncOnReconnect } from "@/hooks/useSyncOnReconnect";
 
 const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.has("chatId") || searchParams.has("userId")) {
+      setSearchParams({}, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const activeChatId = searchParams.get("chatId");
   const activeChatUserId = searchParams.get("userId");

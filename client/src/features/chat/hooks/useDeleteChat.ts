@@ -18,7 +18,7 @@ export const useDeleteChat = () => {
         removeChatById({ oldData, chatId: data.chatId }),
       );
 
-      // TODO: Remove all related messages
+      queryClient.invalidateQueries({ queryKey: ["messages", data.chatId] });
     },
   });
 };
