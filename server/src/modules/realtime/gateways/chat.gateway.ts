@@ -103,7 +103,9 @@ export class ChatGateway {
     );
 
     const roomName = this.getRoomName(data.chatId);
-    const roomUsers = await this.presenceRepository.getActiveChatRoom(roomName);
+    const roomUsers = await this.presenceRepository.getActiveChatRoom(
+      data.chatId,
+    );
     const activeUserIds = new Set(roomUsers?.users.map((u) => u.userId) ?? []);
 
     // If a user hasn't joined chat, we will directly emit to their socket id
