@@ -4,12 +4,14 @@ import { getFeedChatsServ } from "../services/chat-services";
 import { useUpdateChatMessagesStatus } from "@/features/messages/hooks/useUpdateChatMessagesStatus";
 import { useUser } from "@/context/user-context";
 import { useChatActions } from "@/hooks/useChatActions";
+import { useSockets } from "@/context/socket/socket-context";
 
 export function useGetFeedChats() {
   const { state } = useUser();
   const userId = state.user?.id;
   const updateChatMessagesStatus = useUpdateChatMessagesStatus();
-  const { joinChat } = useChatActions();
+  const { joinChat, leaveChat } = useChatActions();
+  const { chatSocket } = useSockets();
 
   // Track chat IDs whose messages have already been marked as 'delivered'
   const processedChatsRef = useRef<Set<string>>(new Set());
@@ -25,6 +27,26 @@ export function useGetFeedChats() {
   });
 
   const { data } = query;
+
+  useEffect(() => {
+    if (!chatSocket) return;
+
+    const handleDisconnect = () => {
+      joinedChatsRef.current.clear();
+    };
+
+    chatSocket.on("disconnect", handleDisconnect);
+
+    return () => {
+      chatSocket.off("disconnect", handleDisconnect);
+
+      // On component unmount, gracefully leave all joined chats
+      joinedChatsRef.current.forEach((chatId) => {
+        leaveChat(chatId);
+      });
+      joinedChatsRef.current.clear();
+    };
+  }, [chatSocket, leaveChat]);
 
   useEffect(() => {
     if (!data || !userId) return;
