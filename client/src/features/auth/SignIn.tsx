@@ -20,6 +20,9 @@ import {
   User,
   Eye,
   EyeOff,
+  Zap,
+  Shield,
+  Layers,
 } from "lucide-react";
 
 import { useSignIn } from "./hooks/useSignIn";
@@ -76,10 +79,12 @@ export default function SignIn() {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      {/* Left Column - Minimal Branding / Abstract Surface */}
-      <div className="hidden lg:flex w-1/2 bg-muted/20 border-r border-border/40 relative flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
+      {/* Left Column - Rich Feature Showcase */}
+      <div className="hidden lg:flex w-1/2 bg-muted/30 border-r border-border/40 relative flex-col justify-between p-12 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10 pointer-events-none" />
+
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
             <MessageSquare className="w-5 h-5" strokeWidth={2} />
           </div>
           <span className="font-semibold text-lg tracking-tight">
@@ -87,17 +92,41 @@ export default function SignIn() {
           </span>
         </div>
 
-        <div className="space-y-3 max-w-sm">
-          <h2 className="text-2xl font-medium tracking-tight text-foreground">
-            Welcome back to your workspace.
-          </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Secure, real-time communication built for speed and simplicity.
-          </p>
+        <div className="relative z-10 space-y-8 max-w-md">
+          <div className="space-y-3">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground leading-tight">
+              Welcome back to <br />
+              <span className="text-primary">seamless communication.</span>
+            </h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Pick up right where you left off. Access your private chats, group
+              conversations, and shared files across all your devices in real
+              time.
+            </p>
+          </div>
+
+          <div className="grid gap-5">
+            <FeatureRow
+              icon={Zap}
+              title="Real-Time Messaging"
+              desc="Instant delivery with live status indicators and read receipts."
+            />
+            <FeatureRow
+              icon={Layers}
+              title="Private & Group Chats"
+              desc="Connect one-on-one or collaborate effortlessly with multiple teams."
+            />
+            <FeatureRow
+              icon={Shield}
+              title="Multi-Device Sync"
+              desc="Secure authentication with seamless token rotation and protection."
+            />
+          </div>
         </div>
 
-        <div className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Chat Hive. All rights reserved.
+        <div className="relative z-10 text-xs text-muted-foreground">
+          © {new Date().getFullYear()} Chat Hive. Built for high-speed
+          collaboration.
         </div>
       </div>
 
@@ -105,9 +134,9 @@ export default function SignIn() {
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-[360px] space-y-6">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+            <h2 className="text-2xl font-semibold tracking-tight">Sign in</h2>
             <p className="text-sm text-muted-foreground">
-              Enter your details to access your account
+              Enter your credentials to access your account
             </p>
           </div>
 
@@ -218,6 +247,30 @@ export default function SignIn() {
             </Link>
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureRow({
+  icon: Icon,
+  title,
+  desc,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="flex items-start gap-3.5">
+      <div className="mt-0.5 p-2 rounded-xl bg-primary/10 text-primary shrink-0">
+        <Icon className="w-4 h-4" />
+      </div>
+      <div>
+        <h4 className="text-sm font-medium text-foreground">{title}</h4>
+        <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
+          {desc}
+        </p>
       </div>
     </div>
   );

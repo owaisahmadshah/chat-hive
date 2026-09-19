@@ -1,8 +1,16 @@
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { KeyRound, Lock, AlertCircle, RefreshCw } from "lucide-react";
+import {
+  KeyRound,
+  Lock,
+  AlertCircle,
+  RefreshCw,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { resetPasswordSchema } from "shared";
 
 import { Button } from "@/components/ui/button";
@@ -34,10 +42,20 @@ const clientResetSchema = resetPasswordSchema
 
 type FormValues = z.infer<typeof clientResetSchema>;
 
+// Helper to mask email securely (e.g., johndoe@example.com -> jo••••e@example.com)
+function maskEmail(email: string) {
+  const [name, domain] = email.split("@");
+  if (!domain) return email;
+  if (name.length <= 2) return `${name[0]}••••@${domain}`;
+  return `${name.slice(0, 2)}••••${name.slice(-1)}@${domain}`;
+}
+
 export function ResetPasswordVerification({
   email,
 }: ResetPasswordVerificationProps) {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     mutate: resetPassword,
@@ -50,7 +68,7 @@ export function ResetPasswordVerification({
     isPending: isResending,
     error: resendError,
     isSuccess: isResendSuccess,
-  } = useForgotPassword(); // Uses forgot password mutation to recreate/resend reset code
+  } = useForgotPassword();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(clientResetSchema),
@@ -68,7 +86,6 @@ export function ResetPasswordVerification({
       { email, otp, password },
       {
         onSuccess: () => {
-          // Both cookies are appended on pass-through from back-end response context
           navigate("/sign-in");
         },
       },
@@ -79,6 +96,8 @@ export function ResetPasswordVerification({
     (resetError as any)?.response?.data?.message || resetError?.message;
   const backendResendError =
     (resendError as any)?.response?.data?.message || resendError?.message;
+
+  const maskedEmail = maskEmail(email);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6 animate-in fade-in duration-300">
@@ -92,7 +111,7 @@ export function ResetPasswordVerification({
           </h1>
           <p className="text-sm text-muted-foreground">
             Enter the 6-digit verification code sent to{" "}
-            <span className="font-medium text-foreground">{email}</span>
+            <span className="font-medium text-foreground">{maskedEmail}</span>
           </p>
         </div>
 
@@ -117,7 +136,7 @@ export function ResetPasswordVerification({
                         One-Time Password
                       </FieldLabel>
                       <div className="relative">
-                        <KeyRound className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                        <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                           {...field}
                           id="reset-otp"
@@ -145,16 +164,27 @@ export function ResetPasswordVerification({
                         New Password
                       </FieldLabel>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                           {...field}
                           id="reset-password"
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-10 bg-muted/20 border-border/60 rounded-xl"
+                          className="pl-10 pr-10 bg-muted/20 border-border/60 rounded-xl"
                           autoComplete="new-password"
                           aria-invalid={fieldState.invalid}
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
                       </div>
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
@@ -173,16 +203,29 @@ export function ResetPasswordVerification({
                         Confirm Password
                       </FieldLabel>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                           {...field}
                           id="reset-confirm"
-                          type="password"
+                          type={showConfirmPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-10 bg-muted/20 border-border/60 rounded-xl"
+                          className="pl-10 pr-10 bg-muted/20 border-border/60 rounded-xl"
                           autoComplete="new-password"
                           aria-invalid={fieldState.invalid}
                         />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
                       </div>
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />

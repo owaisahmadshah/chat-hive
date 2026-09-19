@@ -21,6 +21,9 @@ import {
   User,
   Eye,
   EyeOff,
+  Zap,
+  Share2,
+  Users,
 } from "lucide-react";
 
 import { useSignUp } from "./hooks/useSignUp";
@@ -87,10 +90,12 @@ export function SignUp() {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      {/* Left Column - Minimal Branding */}
-      <div className="hidden lg:flex w-1/2 bg-muted/20 border-r border-border/40 relative flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
+      {/* Left Column - Rich Feature Showcase */}
+      <div className="hidden lg:flex w-1/2 bg-muted/30 border-r border-border/40 relative flex-col justify-between p-12 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10 pointer-events-none" />
+
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
             <MessageSquare className="w-5 h-5" strokeWidth={2} />
           </div>
           <span className="font-semibold text-lg tracking-tight">
@@ -98,17 +103,40 @@ export function SignUp() {
           </span>
         </div>
 
-        <div className="space-y-3 max-w-sm">
-          <h2 className="text-2xl font-medium tracking-tight text-foreground">
-            Get started in seconds.
-          </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Create your account to connect instantly with peers and teams.
-          </p>
+        <div className="relative z-10 space-y-8 max-w-md">
+          <div className="space-y-3">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground leading-tight">
+              Connect globally with <br />
+              <span className="text-primary">unlimited possibilities.</span>
+            </h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Join Chat Hive today to experience modern, real-time messaging
+              equipped with rich media sharing, team rooms, and instant sync.
+            </p>
+          </div>
+
+          <div className="grid gap-5">
+            <FeatureRow
+              icon={Zap}
+              title="Lightning-Fast Chats"
+              desc="Powered by WebSockets for zero-delay conversations."
+            />
+            <FeatureRow
+              icon={Share2}
+              title="Multi-Type Media Sharing"
+              desc="Share high-resolution images, videos, audio clips, and files seamlessly."
+            />
+            <FeatureRow
+              icon={Users}
+              title="Groups & Direct Messages"
+              desc="Create dynamic spaces for groups or private one-on-one chats."
+            />
+          </div>
         </div>
 
-        <div className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Chat Hive. All rights reserved.
+        <div className="relative z-10 text-xs text-muted-foreground">
+          © {new Date().getFullYear()} Chat Hive. Built for high-speed
+          collaboration.
         </div>
       </div>
 
@@ -116,9 +144,9 @@ export function SignUp() {
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-[380px] space-y-6">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h2 className="text-2xl font-semibold tracking-tight">
               Create an account
-            </h1>
+            </h2>
             <p className="text-sm text-muted-foreground">
               Enter your details below to get started
             </p>
@@ -296,6 +324,30 @@ export function SignUp() {
             </Link>
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureRow({
+  icon: Icon,
+  title,
+  desc,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="flex items-start gap-3.5">
+      <div className="mt-0.5 p-2 rounded-xl bg-primary/10 text-primary shrink-0">
+        <Icon className="w-4 h-4" />
+      </div>
+      <div>
+        <h4 className="text-sm font-medium text-foreground">{title}</h4>
+        <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
+          {desc}
+        </p>
       </div>
     </div>
   );
