@@ -2,10 +2,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteChatByIdServ } from "../services/chat-services";
 import { useSearchParams } from "react-router-dom";
 import { removeChatById, type ChatQueryData } from "../utils/chat-cache-utils";
+import { useChatActions } from "@/hooks/useChatActions";
 
 export const useDeleteChat = () => {
   const queryClient = useQueryClient();
   const [params, setSearchParams] = useSearchParams();
+  const { leaveChat } = useChatActions();
 
   return useMutation({
     mutationFn: deleteChatByIdServ,
@@ -19,6 +21,8 @@ export const useDeleteChat = () => {
       );
 
       queryClient.invalidateQueries({ queryKey: ["messages", data.chatId] });
+
+      leaveChat(data.chatId);
     },
   });
 };
