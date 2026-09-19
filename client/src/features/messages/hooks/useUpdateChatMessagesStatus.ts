@@ -42,20 +42,21 @@ export const useUpdateChatMessagesStatus = () => {
               currentUserId: currentUserId,
             }),
         );
-      } else {
-        console.error("Current user not found");
       }
 
-      queryClient.setQueryData(
-        ["chats"],
-        (oldData: ChatQueryData | undefined) =>
-          updateChatUnreadCount({
-            oldData,
-            chatId: payload.chatId,
-            value: 0,
-            increment: payload.status === "read" ? false : true,
-          }),
-      );
+      // ONLY update unread count if we are reading the messages (resets to 0)
+      if (payload.status === "read") {
+        queryClient.setQueryData(
+          ["chats"],
+          (oldData: ChatQueryData | undefined) =>
+            updateChatUnreadCount({
+              oldData,
+              chatId: payload.chatId,
+              value: 0,
+              increment: false,
+            }),
+        );
+      }
 
       return {
         success: true,

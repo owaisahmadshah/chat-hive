@@ -65,8 +65,13 @@ export function useInitSocketEvents() {
     // Append new message to target chat's infinite query
     queryClient.setQueryData(
       ["messages", newMessage.chatId],
-      (oldData: MessagesQueryData) =>
-        addMessageToQuery({ oldData, message: newMessage }),
+      (oldData: MessagesQueryData | undefined) => {
+        // ** It is important b/c if user hasn't opened it yet
+        // ** we will lose all of his previous messages
+        if (!oldData) return oldData;
+
+        return addMessageToQuery({ oldData, message: newMessage });
+      },
     );
 
     // Refresh last message timestamp on the feed

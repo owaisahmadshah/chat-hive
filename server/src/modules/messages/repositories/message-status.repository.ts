@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { MessageStatus, MessageStatusEnum } from 'shared';
 import { DRIZZLE_PROVIDER } from 'src/core/config/config';
 import { DBClient } from 'src/core/database/database.service';
 import * as schema from 'src/core/database/schema';
-import { messageStatus } from 'src/core/database/schema';
+import { messageStatus, messages } from 'src/core/database/schema';
 
 @Injectable()
 export class MessageStatusRepository {
@@ -62,17 +62,33 @@ export class MessageStatusRepository {
     status: 'sent' | 'delivered' | 'read',
     tx?: DBClient,
   ) {
-    // TODO: For optimization ignore all the deleted messages
-    const updatedRows = await this.getClient(tx)
+    // Strict state progression to prevent downgrading ('read' -> 'delivered')
+    const eligibleStatuses: ('sent' | 'delivered' | 'read')[] =
+      status === 'read'
+        ? ['sent', 'delivered']
+        : status === 'delivered'
+          ? ['sent']
+          : [];
+
+    // If there are no eligible statuses (trying to update to 'sent'), return early
+    if (eligibleStatuses.length === 0) return [];
+
+    const client = this.getClient(tx);
+
+    const updatedRows = await client
       .update(messageStatus)
       .set({ status, updatedAt: new Date() })
       .where(
         and(
           eq(messageStatus.userId, userId),
-          sql`${messageStatus.status} != ${status}`,
-          sql`${messageStatus.messageId} IN (
-          SELECT id FROM messages WHERE chat_id = ${chatId}
-        )`,
+          inArray(messageStatus.status, eligibleStatuses),
+          inArray(
+            messageStatus.messageId,
+            client
+              .select({ id: messages.id })
+              .from(messages)
+              .where(eq(messages.chatId, chatId)),
+          ),
         ),
       )
       .returning({
