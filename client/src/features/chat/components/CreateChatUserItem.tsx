@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageCircleMore, Loader2 } from "lucide-react";
 import type { UserSummary } from "shared";
+import { cn } from "@/lib/utils";
 
 interface CreateChatUserItemProps {
   user: UserSummary;
@@ -8,7 +9,7 @@ interface CreateChatUserItemProps {
   isPending?: boolean;
 }
 
-export function CreateChatUserItem({
+export default function CreateChatUserItem({
   user,
   onSelect,
   isPending = false,
@@ -18,40 +19,41 @@ export function CreateChatUserItem({
   return (
     <div
       onClick={() => !isPending && onSelect(user)}
-      className="group flex items-center justify-between p-3 rounded-xl transition-all duration-200 cursor-pointer hover:bg-primary/5 active:scale-[0.98] border border-transparent hover:border-primary/10"
+      className={cn(
+        "group flex items-center justify-between p-2.5 rounded-xl transition-colors cursor-pointer",
+        isPending
+          ? "opacity-70 pointer-events-none"
+          : "hover:bg-muted/60 active:bg-muted",
+      )}
     >
-      <div className="flex items-center gap-4 flex-1 min-w-0">
-        <Avatar className="w-12 h-12 ring-2 ring-offset-2 ring-transparent group-hover:ring-primary/20 transition-all">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <Avatar className="w-10 h-10 border border-border/30 shadow-sm shrink-0">
           <AvatarImage
             src={user.imageURL || undefined}
             className="object-cover"
           />
-          <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold">
+          <AvatarFallback className="bg-secondary/60 text-secondary-foreground text-sm font-medium">
             {initial}
           </AvatarFallback>
         </Avatar>
 
         <div className="flex flex-col min-w-0">
-          <span className="font-semibold text-sm text-foreground truncate">
+          <span className="font-medium text-sm text-foreground truncate tracking-tight">
             {user.username}
           </span>
-          <p className="text-xs text-muted-foreground truncate">
-            Click to start chatting
+          <p className="text-[13px] text-muted-foreground truncate">
+            @{user.username.toLowerCase()}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center pl-2 shrink-0">
         {isPending ? (
-          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
         ) : (
-          <div className="bg-primary/10 p-2 rounded-full text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-            <MessageCircleMore className="w-5 h-5" />
-          </div>
+          <MessageCircleMore className="w-4 h-4 text-muted-foreground/30 group-hover:text-foreground/70 transition-colors" />
         )}
       </div>
     </div>
   );
 }
-
-export default CreateChatUserItem;

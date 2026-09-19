@@ -119,7 +119,7 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('logout')
+  @Delete('logout')
   @UseGuards(AuthGuard)
   async logout(
     @CurrentUser() user: JWTPayload,

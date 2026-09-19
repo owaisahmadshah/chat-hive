@@ -38,9 +38,7 @@ export const ChatItem = ({
   );
 
   const chatTitle = chat.name ?? (otherMember?.username as string);
-
   const avatarUrl = chat.logoURL || otherMember?.imageURL || "avatar-url";
-
   const initial = chatTitle[0]?.toUpperCase() || "C";
 
   const onDelete = async (e: React.MouseEvent) => {
@@ -54,48 +52,28 @@ export const ChatItem = ({
     <div
       onClick={handleChatClick}
       className={cn(
-        "relative cursor-pointer px-4 py-3 mx-2 my-1 rounded-xl transition-all duration-300 ease-in-out",
-        "group flex items-center justify-between gap-3",
-        isActive
-          ? "bg-primary/10 shadow-sm"
-          : "hover:bg-muted/60 active:scale-[0.98]",
-        "animate-in fade-in slide-in-from-left-2 duration-500",
+        "group relative flex items-center justify-between gap-3 px-3 py-2.5 mx-2 my-0.5 rounded-xl transition-colors cursor-pointer",
+        isActive ? "bg-muted" : "hover:bg-muted/50",
       )}
     >
-      {isActive && (
-        <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-1.5 h-8 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
-      )}
-
-      <div className="relative flex-shrink-0">
-        <Avatar
-          className={cn(
-            "w-12 h-12 transition-transform duration-300 group-hover:scale-105",
-            isActive ? "ring-2 ring-primary/30" : "ring-1 ring-border",
-          )}
-        >
-          <AvatarImage src={avatarUrl} className="object-cover" />
-          <AvatarFallback className="bg-gradient-to-br from-primary/10 to-primary/5 text-primary font-bold">
-            {initial}
-          </AvatarFallback>
-        </Avatar>
-      </div>
+      <Avatar className="w-11 h-11 border border-border/40 shadow-sm shrink-0">
+        <AvatarImage src={avatarUrl} className="object-cover" />
+        <AvatarFallback className="bg-secondary/60 text-secondary-foreground font-medium text-sm">
+          {initial}
+        </AvatarFallback>
+      </Avatar>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-1 mb-0.5">
-          <h3
-            className={cn(
-              "font-bold text-[14px] leading-tight truncate tracking-tight",
-              isActive ? "text-primary" : "text-foreground",
-            )}
-          >
+          <h3 className="font-medium text-sm leading-tight truncate tracking-tight text-foreground">
             {chatTitle}
           </h3>
 
           {chat.updatedAt && (
             <span
               className={cn(
-                "text-[11px] font-medium tabular-nums flex-shrink-0",
-                isActive ? "text-primary/70" : "text-muted-foreground/60",
+                "text-[11px] font-medium flex-shrink-0",
+                isActive ? "text-foreground/70" : "text-muted-foreground/80",
               )}
             >
               {correctDate(chat.updatedAt)}
@@ -119,19 +97,22 @@ export const ChatItem = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-background/50 rounded-full"
             >
               <MoreVertical className="h-4 w-4" />
               <span className="sr-only">Chat options</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent
+            align="end"
+            className="w-40 rounded-xl shadow-lg border-border/40 p-1 bg-background/95 backdrop-blur-md"
+          >
             <DropdownMenuItem
               onClick={onDelete}
-              className="text-destructive focus:text-destructive flex items-center gap-2 cursor-pointer"
+              className="gap-2.5 cursor-pointer py-2 px-2.5 rounded-lg text-destructive/90 focus:text-destructive focus:bg-destructive/10 transition-colors"
             >
               <Trash2 className="h-4 w-4" />
-              <span>Delete Chat</span>
+              <span className="text-sm font-medium">Delete chat</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
