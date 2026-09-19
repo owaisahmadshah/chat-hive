@@ -25,40 +25,48 @@ export const MessageNavbarSection = ({
   const { data: activeChatUser } = useGetChatUser(activeChatUserId);
 
   return (
-    <div className="w-full h-16 flex items-center justify-between px-2 md:px-4 bg-background/95 backdrop-blur-sm border-b border-border/40 z-50">
+    <div className="w-full h-16 flex items-center justify-between px-2 md:px-4 bg-background/80 backdrop-blur-md border-b border-border/40 z-50 sticky top-0">
       <Dialog>
         <DialogTrigger>
-          <div className="flex-1 cursor-pointer overflow-hidden">
-            <ChatUserNavbarCard user={activeChatUser} backAction={backAction} />
+          <div className="flex-1 cursor-pointer overflow-hidden rounded-xl transition-colors hover:bg-muted/50 p-1 mr-2">
+            {activeChatUser && (
+              <ChatUserNavbarCard
+                user={activeChatUser}
+                backAction={backAction}
+              />
+            )}
           </div>
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden rounded-2xl">
-          <UserProfileCard user={activeChatUser} removeAction={deleteChat} />
+        <DialogContent className="sm:max-w-sm p-0 overflow-hidden bg-background rounded-2xl">
+          {activeChatUser && (
+            <UserProfileCard user={activeChatUser} removeAction={deleteChat} />
+          )}
         </DialogContent>
       </Dialog>
 
-      <div className="flex items-center">
+      <div className="flex items-center shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full hover:bg-muted"
+              className="rounded-full h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
             >
-              <MoreVertical className="w-5 h-5 text-muted-foreground" />
+              <MoreVertical className="w-5 h-5" />
             </Button>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent
             align="end"
-            className="w-48 rounded-xl shadow-lg border-border/50"
+            className="w-48 rounded-xl shadow-lg border-border/40 p-1 bg-background/95 backdrop-blur-md"
           >
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive focus:bg-destructive/10 gap-2 cursor-pointer py-2.5"
+              className="text-destructive/90 focus:text-destructive focus:bg-destructive/10 gap-2.5 cursor-pointer py-2 px-2.5 rounded-lg transition-colors"
               onClick={deleteChat}
             >
               <Trash2 className="w-4 h-4" />
-              <span className="font-medium">Delete Chat</span>
+              <span className="text-sm font-medium">Delete chat history</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

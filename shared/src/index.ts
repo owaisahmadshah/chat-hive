@@ -4,5 +4,5 @@ export * from "./types/user-types.js";
 export * from "./types/message-types.js";
 export * from "./types/api-response-type.js";
 export * from "./types/pagination-type.js";
-export * from "./constants/socket-event.js";
+export * from "./socket-event.js";
 export * from "./types/uploads-types.js";

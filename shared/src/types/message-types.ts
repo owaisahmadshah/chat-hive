@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MessageUser, User } from "./user-types";
+import { MessageUser } from "./user-types";
 
 export const messageStatusEnumSchema = z.enum(["sent", "delivered", "read"]);
 export const attachmentTypeEnumSchema = z.enum([

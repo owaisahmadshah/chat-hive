@@ -1,15 +1,12 @@
 import { useState, useRef } from "react";
-import { LogOut, Trash2, Camera, Check, X, Loader2 } from "lucide-react";
+import { LogOut, Trash2, Camera, Loader2 } from "lucide-react";
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSignOut } from "@/features/auth/hooks/useSignOut";
@@ -25,6 +22,8 @@ export const Profile = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync: deleteUser } = useUserDelete();
@@ -64,131 +63,143 @@ export const Profile = () => {
 
   const isLoading = isSigningOut || isUploading;
 
-  if (!user) return <div>Loading...</div>;
+  if (!user) return null;
+
+  const displayImage = previewUrl || user.imageURL;
 
   return (
-    <Dialog>
-      <DialogTrigger>
-        <Avatar className="w-10 h-10 cursor-pointer border border-border">
-          <AvatarImage src={user.imageURL || ""} />
-          <AvatarFallback>
-            {user.username.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-      </DialogTrigger>
+    <>
+      <Dialog>
+        <DialogTrigger>
+          <Avatar className="w-10 h-10 cursor-pointer border border-border/50 hover:opacity-80 transition-opacity">
+            <AvatarImage src={user.imageURL || ""} />
+            <AvatarFallback className="bg-secondary text-secondary-foreground font-medium">
+              {user.username.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </DialogTrigger>
 
-      <DialogContent className="max-w-2xl">
-        <ScrollArea className="h-[80vh]">
-          <div className="p-6 space-y-6">
-            <Card>
-              <CardContent className="flex flex-col items-center gap-4 pt-6">
-                <div className="relative group">
-                  <Avatar className="w-32 h-32 cursor-pointer border-2 border-primary/10">
-                    <AvatarImage
-                      src={previewUrl || user.imageURL || ""}
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="text-4xl">
-                      {user.username.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <input
-                    type="file"
-                    className="hidden"
-                    ref={fileInputRef}
-                    onChange={handleImageSelect}
-                    accept="image/*"
+        <DialogContent className="sm:max-w-sm p-0 gap-0 overflow-hidden bg-background">
+          <ScrollArea className="max-h-[85vh]">
+            <div className="flex flex-col items-center justify-center pt-10 pb-6 px-6 relative">
+              <div className="relative group mb-4">
+                <Avatar
+                  className={`w-24 h-24 border border-border/40 shadow-sm transition-opacity ${displayImage ? "cursor-pointer hover:opacity-90" : ""}`}
+                  onClick={() => displayImage && setIsLightboxOpen(true)}
+                >
+                  <AvatarImage
+                    src={displayImage || ""}
+                    className="object-cover"
                   />
+                  <AvatarFallback className="text-2xl bg-secondary/50 font-medium">
+                    {user.username.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
 
-                  {!previewUrl ? (
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="absolute bottom-0 right-0 rounded-full shadow-lg"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Camera className="w-4 h-4" />
-                    </Button>
-                  ) : (
-                    <div className="absolute -bottom-2 flex gap-2 w-full justify-center">
-                      <Button
-                        size="icon"
-                        variant="default"
-                        className="rounded-full h-8 w-8 bg-green-600 hover:bg-green-700"
-                        onClick={handleUpdateProfile}
-                        disabled={isUploading}
-                      >
-                        {isUploading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Check className="w-4 h-4" />
-                        )}
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="rounded-full h-8 w-8"
-                        onClick={cancelSelection}
-                        disabled={isUploading}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleImageSelect}
+                  accept="image/*"
+                />
+
+                {!previewUrl && (
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="absolute -bottom-1 -right-1 rounded-full w-8 h-8 shadow-sm border border-background bg-secondary hover:bg-secondary/80 transition-transform hover:scale-105"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Camera className="w-4 h-4 text-secondary-foreground" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="text-center space-y-1">
+                <h2 className="text-lg font-medium tracking-tight text-foreground">
+                  {user.username}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  @{user.username}
+                </p>
+              </div>
+
+              {previewUrl && (
+                <div className="flex items-center gap-2 mt-6">
+                  <Button
+                    size="sm"
+                    onClick={handleUpdateProfile}
+                    disabled={isUploading}
+                    className="w-24 h-8 text-xs font-medium"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      "Save Photo"
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={cancelSelection}
+                    disabled={isUploading}
+                    className="w-24 h-8 text-xs font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Cancel
+                  </Button>
                 </div>
+              )}
+            </div>
 
-                <div className="text-center">
-                  <h2 className="text-xl font-semibold">{user.username}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    @{user.username}
-                  </p>
+            <div className="px-2 pb-2">
+              <div className="flex flex-col gap-1 p-4 bg-muted/30 rounded-xl mx-4 mb-4">
+                <div className="flex justify-between items-center py-2 px-2">
+                  <span className="text-sm font-medium text-foreground">
+                    Theme
+                  </span>
+                  <ModeToggle />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Appearance</CardTitle>
-                <CardDescription>Change theme</CardDescription>
-              </CardHeader>
-              <CardContent className="flex justify-between items-center">
-                <span>Theme</span>
-                <ModeToggle />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-destructive">Danger Zone</CardTitle>
-                <CardDescription>Irreversible actions</CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-2">
+              <div className="flex flex-col gap-1 px-4 pb-4">
                 <Button
                   variant="ghost"
-                  className="w-full justify-start"
-                  onClick={async () => await signOut()}
+                  className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50 h-11"
+                  onClick={() => signOut()}
                   disabled={isLoading}
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
+                  <LogOut className="w-4 h-4 mr-3" />
+                  Sign out
                 </Button>
 
                 <Button
                   variant="ghost"
-                  onClick={async () => await deleteUser()}
-                  className="w-full justify-start text-destructive"
+                  className="w-full justify-start text-destructive/80 hover:text-destructive hover:bg-destructive/10 h-11"
+                  onClick={() => deleteUser()}
                   disabled={isLoading}
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Account
+                  <Trash2 className="w-4 h-4 mr-3" />
+                  Delete account
                 </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+              </div>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {displayImage && (
+        <Lightbox
+          open={isLightboxOpen}
+          close={() => setIsLightboxOpen(false)}
+          plugins={[Zoom]}
+          slides={[{ src: displayImage }]}
+          render={{
+            buttonPrev: () => null,
+            buttonNext: () => null,
+          }}
+        />
+      )}
+    </>
   );
 };
