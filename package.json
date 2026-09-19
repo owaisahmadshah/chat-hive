@@ -6,16 +6,19 @@
   "author": "Owais Ahmad Shah",
   "license": "MIT",
   "scripts": {
-    "dev:frontend": "pnpm --filter frontend dev",
-    "dev:backend": "pnpm --filter backend dev",
+    "dev:client": "pnpm --filter client dev",
+    "dev:server": "pnpm --filter server start:dev",
     "dev:shared": "pnpm --filter shared --watch",
-    "dev": "pnpm run -r dev",
-    "start:backend": "pnpm --filter backend start",
-    "build": "pnpm run build:backend && pnpm run build:frontend",
+    "dev": "pnpm --parallel run \"/^dev:.*/\"",
+    "start:server": "pnpm --filter server start:prod",
+    "build": "pnpm run build:server && pnpm run build:client",
     "build:shared": "pnpm --filter shared build",
-    "build:backend": "pnpm --filter shared build && pnpm --filter backend build",
-    "build:frontend": "pnpm --filter shared build && pnpm --filter frontend build",
-    "lint": "pnpm --filter frontend lint && pnpm --filter backend lint"
+    "build:server": "pnpm --filter shared build && pnpm --filter server build",
+    "build:client": "pnpm --filter shared build && pnpm --filter client build",
+    "lint": "pnpm --filter client lint && pnpm --filter server lint",
+    "db:generate": "pnpm --filter server db:generate",
+    "db:migrate": "pnpm --filter server db:migrate",
+    "db:push": "pnpm --filter server db:push"
   },
   "repository": {
     "type": "git",
