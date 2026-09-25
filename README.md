@@ -52,8 +52,8 @@ chat-hive/
 ├── server/           # NestJS 11 + Drizzle ORM + Socket.IO Server
 ├── shared/           # Workspace package containing shared types & Zod schemas
 └── package.json      # Workspace root package configuration
+```
 
 ## License
 
 [MIT](LICENSE)
-```
