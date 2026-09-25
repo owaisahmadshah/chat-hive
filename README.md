@@ -2,6 +2,11 @@
 
 A real-time chat application featuring live messaging, status tracking, image sharing, device session management, and responsive UI.
 
+## Documentation
+
+- [Server README](./server/README.md) — NestJS API, Socket.IO gateways, database, and architecture notes
+- [Client README](./client/README.md) — React frontend, routing, and architecture notes
+
 ## Features
 
 - **Real-time messaging** — Socket.IO powered with scale-ready Redis Adapter integration.
@@ -25,6 +30,8 @@ A real-time chat application featuring live messaging, status tracking, image sh
 
 ### Server (`server`)
 
+See the [server README](./server/README.md) for the full breakdown.
+
 - **Framework:** NestJS v11 (Express platform)
 - **Real-Time:** Socket.IO v4 with Redis Adapter (`@socket.io/redis-adapter`, `ioredis`)
 - **Database & ORM:** PostgreSQL (`pg`), Drizzle ORM, Drizzle Kit
@@ -34,6 +41,8 @@ A real-time chat application featuring live messaging, status tracking, image sh
 - **Logging:** `nestjs-pino`, `pino-pretty`
 
 ### Client (`client`)
+
+See the [client README](./client/README.md) for the full breakdown.
 
 - **Framework & Tooling:** React 19, Vite 8, TypeScript 6
 - **Styling:** Tailwind CSS v4, `@tailwindcss/vite`, `clsx`, `tailwind-merge`
@@ -48,8 +57,8 @@ A real-time chat application featuring live messaging, status tracking, image sh
 
 ```text
 chat-hive/
-├── client/           # React 19 + Vite 8 Frontend App
-├── server/           # NestJS 11 + Drizzle ORM + Socket.IO Server
+├── client/           # React 19 + Vite 8 Frontend App — see client/README.md
+├── server/           # NestJS 11 + Drizzle ORM + Socket.IO Server — see server/README.md
 ├── shared/           # Workspace package containing shared types & Zod schemas
 └── package.json      # Workspace root package configuration
 ```
