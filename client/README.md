@@ -1,75 +1,76 @@
-# React + TypeScript + Vite
+# Chat Hive — Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React frontend for Chat Hive. Handles auth flows, the chat/message UI, real-time updates over Socket.IO, and image uploads.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Framework & Tooling:** React 19, Vite 8, TypeScript 6
+- **Routing:** React Router 7 (`PrivateRoute` gates authenticated vs. guest-only pages)
+- **Styling:** Tailwind CSS v4, `@tailwindcss/vite`, `clsx`, `tailwind-merge`, `tailwindcss-animate`
+- **UI Components & Icons:** Base UI (`@base-ui/react`), `shadcn`, Lucide Icons
+- **State & Data Fetching:** TanStack React Query v5, Axios
+- **Forms & Validation:** React Hook Form, `@hookform/resolvers`, Zod (schemas shared with the server via the `shared` workspace package)
+- **Real-time:** `socket.io-client`
+- **Media & UI Utilities:** `yet-another-react-lightbox`, `react-textarea-autosize`, `sonner` (toasts), `next-themes` (dark/light)
 
-## React Compiler
+## Project Structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```text
+client/
+├── index.html
+├── package.json
+├── public/                          # favicon, icon sprite
+├── src/
+│   ├── main.tsx                     # provider tree: Theme → Router → QueryClient → User → Socket
+│   ├── App.tsx                      # route definitions
+│   ├── index.css
+│   ├── components/                  # shared UI (skeletons, mode toggle, user profile card, shadcn primitives in ui/)
+│   ├── context/
+│   │   ├── socket/                  # socket-context, socket-manager (singleton), socket-provider
+│   │   ├── theme-context.ts / theme-provider.tsx
+│   │   └── user-context.ts / user-provider.tsx
+│   ├── features/
+│   │   ├── auth/                    # SignIn, SignUp, ForgotPassword, OTP/reset flows + hooks + services
+│   │   ├── chat/                    # ChatSection, chat list components, hooks, services, cache utils
+│   │   └── messages/                # MessageSection, message list/input/navbar components, hooks, services
+│   ├── hooks/                       # cross-feature hooks (active chat, socket events, reconnect sync, mobile height, etc.)
+│   ├── lib/                         # api.ts (Axios instance), upload-to-cloudinary.ts, date/util helpers
+│   ├── routes/                      # HomePage, PrivateRoute
+│   └── services/                    # global-services.ts
+└── vite.config.ts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Architecture Notes
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **API client** (`lib/api.ts`): a shared Axios instance with `withCredentials: true`. A response interceptor unwraps the server's `{ success, data }` envelope and, on a `401` with an expired access token, transparently calls `/auth/refresh-token` once and retries the original request.
+- **Sockets** (`context/socket/`): `SocketManager` is a plain singleton (not a hook) that owns two `socket.io-client` connections — one to the default namespace, one to `/chat` — keyed off the current user ID, and exposes them to React via `useSyncExternalStore`. `SocketContextProvider` connects/disconnects the sockets as the authenticated user changes.
+- **Auth/session gating** (`routes/PrivateRoute.tsx`): reads auth state from `UserContext`, shows a loader while session state is resolving, and redirects between `/`, `/sign-in`, `/sign-up`, and `/forgot-password` based on `isAuthenticated`.
+- **Uploads** (`lib/upload-to-cloudinary.ts`): fetches a signed upload signature from the server, then uploads directly to Cloudinary's REST API from the browser and normalizes the result (`image` / `video` / `audio` / `file`).
+- **Feature folders**: `auth`, `chat`, and `messages` each keep their own `components/`, `hooks/`, and `services/`, with React Query hooks as the boundary between UI and API/socket calls.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Getting Started
+
+```bash
+pnpm install
+pnpm dev
+```
+
+### Environment Variables
 
 ```
+VITE_API_BASE_URL=   # e.g. http://localhost:3000
+VITE_WS_URL=         # Socket.IO server URL, e.g. http://localhost:3000
+```
+
+### Scripts
+
+| Script         | Description                     |
+| -------------- | ------------------------------- |
+| `pnpm dev`     | Start the Vite dev server       |
+| `pnpm build`   | Type-check (`tsc -b`) and build |
+| `pnpm preview` | Preview the production build    |
+| `pnpm lint`    | ESLint                          |
+
+## License
+
+MIT
