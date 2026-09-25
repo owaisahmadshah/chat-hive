@@ -1,141 +1,59 @@
 # Chat Hive
 
-A real-time chat app. Send messages, share images, see who's typing, and know when your messages are read, all live.
+A real-time chat application featuring live messaging, status tracking, image sharing, device session management, and responsive UI.
 
 ## Features
 
-- **Real-time messaging** — Socket.IO powered. Messages appear instantly on the other side.
-- **Read receipts** — sent → received → seen, updated live.
-- **Typing indicators** — shown in both the chat list and the active conversation.
-- **Image sharing** — send up to 15 images per message. Preview before sending, view full-screen with zoom and download.
-- **Auth** — email + OTP verification, or Google OAuth 2.0. No third-party auth service.
-- **Token rotation** — short-lived access tokens (10 min) auto-refreshed using a 14-day refresh token. Transparent to the user.
-- **Profile management** — update avatar, change password, delete account.
-- **Dark / light theme** — persisted per-browser.
-- **Infinite scroll** — cursor-based pagination for both the chat list and message history.
-- **Mobile responsive** — single-panel view on small screens, switches between chat list and messages.
+- **Real-time messaging** — Socket.IO powered with scale-ready Redis Adapter integration.
+- **Message state & read receipts** — Track delivery states (`sent` → `received` → `seen`) live across active conversations.
+- **Typing indicators** — Real-time indicators showing active typing state in conversations.
+- **Image uploads & media preview** — Integrated Cloudinary signature workflow for image sharing and lightbox viewing.
+- **Authentication & session management** — Email OTP verification, login via device metadata tracking, token refresh rotation, and multi-device session invalidation (logout single, other, or all devices).
+- **Profile customization** — Update profile pictures, alter password, and manage security parameters.
+- **Theme support** — Dark and light themes powered by `next-themes`.
+- **Infinite scroll pagination** — Cursor-based pagination for chat history and user lists via TanStack Query v5.
+- **Monorepo architecture** — Monorepo powered by `pnpm` workspace with a unified shared package for types, Zod schemas, and contract validations.
 
-## Stack
+---
 
-| Layer | Tech |
-|---|---|
-| Frontend | React 19, Vite 6, TypeScript, Tailwind CSS v4 |
-| UI | Radix UI / shadcn/ui, Lucide icons |
-| State | Redux Toolkit (auth), TanStack Query v5 (server state) |
-| Forms | React Hook Form + Zod |
-| Backend | Node.js, Express 4, TypeScript |
-| Database | MongoDB + Mongoose |
-| Real-time | Socket.IO v4 |
-| Storage | Cloudinary (images) |
-| Email | Nodemailer (Gmail, OTP delivery) |
-| Monorepo | pnpm workspaces |
+## Tech Stack
 
-## Project Structure
+### Monorepo Architecture
 
-```
+- **Package Manager:** `pnpm` 10.x (Workspaces)
+- **Shared Package:** TypeScript core library containing shared Zod schemas, NestJS JWT helpers, and contract definitions.
+
+### Server (`server`)
+
+- **Framework:** NestJS v11 (Express platform)
+- **Real-Time:** Socket.IO v4 with Redis Adapter (`@socket.io/redis-adapter`, `ioredis`)
+- **Database & ORM:** PostgreSQL (`pg`), Drizzle ORM, Drizzle Kit
+- **Authentication & Security:** JWT (`@nestjs/jwt`), `bcrypt`, `cookie-parser`
+- **Validation:** Zod (`zod`) with custom NestJS validation pipes
+- **Mail & Media:** Nodemailer / `@nestjs-modules/mailer`, Cloudinary SDK
+- **Logging:** `nestjs-pino`, `pino-pretty`
+
+### Client (`client`)
+
+- **Framework & Tooling:** React 19, Vite 8, TypeScript 6
+- **Styling:** Tailwind CSS v4, `@tailwindcss/vite`, `clsx`, `tailwind-merge`
+- **UI Components & Icons:** Radix UI / Base UI (`@base-ui/react`), `shadcn`, Lucide Icons (`lucide-react`)
+- **State & Data Fetching:** TanStack React Query v5, Axios
+- **Forms & Validation:** React Hook Form, `@hookform/resolvers`, Zod
+- **Media & UI Utilities:** `yet-another-react-lightbox`, `react-textarea-autosize`, `sonner`, `next-themes`
+
+---
+
+## Workspace Structure
+
+```text
 chat-hive/
-├── frontend/     # React + Vite app
-├── backend/      # Express + Socket.IO server
-├── shared/       # Shared TypeScript types and socket event constants
-└── docs/         # Documentation
-    ├── backend.md
-    └── frontend.md
-```
-
-The `shared` package is a local workspace dependency used by both `frontend` and `backend`. It holds Zod schemas, TypeScript types, and socket event name constants so both sides stay in sync.
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- pnpm 10+ (`npm install -g pnpm`)
-- A MongoDB database
-- A Cloudinary account
-- A Gmail account with an [App Password](https://support.google.com/accounts/answer/185833)
-- A Google OAuth 2.0 Client ID and Secret (from [Google Cloud Console](https://console.cloud.google.com/))
-
-### 1. Clone
-
-```bash
-git clone https://github.com/owaisahmadshah/chat-hive.git
-cd chat-hive
-```
-
-### 2. Install dependencies
-
-```bash
-pnpm install
-```
-
-### 3. Configure environment variables
-
-**Backend** — copy `backend/.env.samples` to `backend/.env` and fill in:
-
-```env
-PORT=3000
-NODE_ENV=DEVELOPMENT
-CORS_ORIGIN=http://localhost:5173
-FRONTEND_URL=http://localhost:5173
-BACKEND_URL=http://localhost:3000
-
-MONGODB_URI=your_mongodb_connection_string
-DB_NAME=chat-hive
-
-ACCESS_TOKEN_SECRET=a_long_random_string
-REFRESH_TOKEN_SECRET=another_long_random_string
-
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-
-NODE_MAILER_USER=your_gmail@gmail.com
-NODE_MAILER_PASSWORD=your_gmail_app_password
-```
-
-**Frontend** — copy `frontend/.env.sample` to `frontend/.env`:
-
-```env
-VITE_API_BASE_URL=http://localhost:3000/api
-VITE_REACT_APP_SOCKET_URL=http://localhost:3000
-```
-
-### 4. Run in development
-
-```bash
-# Run everything (frontend + backend + shared watcher)
-pnpm dev
-
-# Or individually
-pnpm dev:frontend
-pnpm dev:backend
-pnpm dev:shared     # watches shared package for changes
-```
-
-Frontend runs on `http://localhost:5173`, backend on `http://localhost:3000`.
-
-## Build for Production
-
-```bash
-# Build everything (compiles shared → backend → frontend)
-pnpm build
-
-# Or individually
-pnpm build:backend
-pnpm build:frontend
-
-# Start the backend server (after building)
-pnpm start:backend
-```
-
-## Documentation
-
-- [Backend docs](docs/backend.md) — API routes, auth flows, socket events, database models, environment variables
-- [Frontend docs](docs/frontend.md) — folder structure, routing, state management, socket client, data fetching patterns
+├── client/           # React 19 + Vite 8 Frontend App
+├── server/           # NestJS 11 + Drizzle ORM + Socket.IO Server
+├── shared/           # Workspace package containing shared types & Zod schemas
+└── package.json      # Workspace root package configuration
 
 ## License
 
 [MIT](LICENSE)
+```
