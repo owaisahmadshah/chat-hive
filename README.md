@@ -57,8 +57,8 @@ See the [client README](./client/README.md) for the full breakdown.
 
 ```text
 chat-hive/
-├── client/           # React 19 + Vite 8 Frontend App — see client/README.md
-├── server/           # NestJS 11 + Drizzle ORM + Socket.IO Server — see server/README.md
+├── client/           # React 19 + Vite 8 Frontend App
+├── server/           # NestJS 11 + Drizzle ORM + Socket.IO Server
 ├── shared/           # Workspace package containing shared types & Zod schemas
 └── package.json      # Workspace root package configuration
 ```
