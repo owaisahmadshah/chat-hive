@@ -53,11 +53,20 @@ export class UsersService {
     return savedUser;
   }
 
-  async getUserWithPassword(identifier: string): Promise<UserWithPassword> {
-    const user = await this.userRepository.getUserWithPassword(identifier);
+  async getUserWithPassword(
+    identifier: string,
+    { useId = false }: { useId: boolean },
+  ): Promise<UserWithPassword> {
+    let user: unknown = null;
+
+    if (useId) {
+      user = await this.userRepository.getUserWithPasswordById(identifier);
+    } else {
+      user = await this.userRepository.getUserWithPassword(identifier);
+    }
 
     assertExists(user, 'User not found');
-    return user;
+    return user as UserWithPassword;
   }
 
   async changePassword(userId: string, newPassword: string) {

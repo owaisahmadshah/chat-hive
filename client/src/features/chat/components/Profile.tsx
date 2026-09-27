@@ -1,11 +1,23 @@
 import { useState, useRef } from "react";
-import { LogOut, Trash2, Camera, Loader2 } from "lucide-react";
+import {
+  LogOut,
+  Trash2,
+  Camera,
+  Loader2,
+  KeyRound,
+  Eye,
+  EyeOff,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,6 +26,7 @@ import { useUserDelete } from "@/hooks/useUserDelete";
 import { useUser } from "@/context/user-context";
 import { uploadToCloudinary } from "@/lib/upload-to-cloudinary";
 import { useUserProfilePicture } from "@/hooks/useUserProfilePicture";
+import { useNewPassword } from "@/features/auth/hooks/useNewPassword";
 
 export const Profile = () => {
   const { state } = useUser();
@@ -24,11 +37,25 @@ export const Profile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
+  // Change Password state
+  const [isPasswordSectionOpen, setIsPasswordSectionOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  // Visibility state for each field
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync: deleteUser } = useUserDelete();
   const { mutateAsync: signOut, isPending: isSigningOut } = useSignOut();
   const { mutateAsync: updateProfileImage } = useUserProfilePicture();
+  const { mutateAsync: changePassword, isPending: isChangingPassword } =
+    useNewPassword();
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,7 +88,34 @@ export const Profile = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const isLoading = isSigningOut || isUploading;
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match.");
+      return;
+    }
+
+    if (!oldPassword || !newPassword) {
+      setPasswordError("Please fill in all fields.");
+      return;
+    }
+
+    try {
+      await changePassword({ oldPassword, newPassword });
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setIsPasswordSectionOpen(false);
+    } catch (error: any) {
+      setPasswordError(
+        error?.response?.data?.message || "Failed to update password.",
+      );
+    }
+  };
+
+  const isLoading = isSigningOut || isUploading || isChangingPassword;
 
   if (!user) return null;
 
@@ -160,6 +214,136 @@ export const Profile = () => {
                   </span>
                   <ModeToggle />
                 </div>
+              </div>
+
+              {/* Collapsible Change Password Section */}
+              <div className="mx-4 mb-4 rounded-xl bg-muted/30 overflow-hidden transition-all">
+                <button
+                  type="button"
+                  className="w-full flex justify-between items-center p-4 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+                  onClick={() =>
+                    setIsPasswordSectionOpen(!isPasswordSectionOpen)
+                  }
+                >
+                  <div className="flex items-center gap-2">
+                    <KeyRound className="w-4 h-4 text-muted-foreground" />
+                    <span>Change Password</span>
+                  </div>
+                  {isPasswordSectionOpen ? (
+                    <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </button>
+
+                {isPasswordSectionOpen && (
+                  <form
+                    onSubmit={handlePasswordSubmit}
+                    className="px-4 pb-4 space-y-3 pt-1"
+                  >
+                    {passwordError && (
+                      <p className="text-xs text-destructive">
+                        {passwordError}
+                      </p>
+                    )}
+
+                    {/* Old Password */}
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        Current Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type={showOldPassword ? "text" : "password"}
+                          value={oldPassword}
+                          onChange={(e) => setOldPassword(e.target.value)}
+                          className="pr-9 text-xs h-9"
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          onClick={() => setShowOldPassword(!showOldPassword)}
+                        >
+                          {showOldPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* New Password */}
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        New Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type={showNewPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="pr-9 text-xs h-9"
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                          {showNewPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Confirm New Password */}
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        Confirm New Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="pr-9 text-xs h-9"
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={isChangingPassword}
+                      className="w-full h-8 text-xs font-medium mt-2"
+                    >
+                      {isChangingPassword ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        "Update Password"
+                      )}
+                    </Button>
+                  </form>
+                )}
               </div>
 
               <div className="flex flex-col gap-1 px-4 pb-4">

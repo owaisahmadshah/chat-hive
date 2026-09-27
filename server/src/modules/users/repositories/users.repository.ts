@@ -197,6 +197,22 @@ export class UserRepository {
     return (result[0] as T) ?? null;
   }
 
+  async getUserWithPasswordById<
+    T extends Record<string, any> = typeof userProjections.userWithPass,
+  >(
+    id: string,
+    projection: T = userProjections.userWithPass as unknown as T,
+    tx?: DBClient,
+  ): Promise<InferColumnsDataTypes<T> | null> {
+    const result = await this.getClient(tx)
+      .select(projection)
+      .from(users)
+      .where(or(eq(users.username, id), eq(users.email, id), eq(users.id, id)))
+      .limit(1);
+
+    return (result[0] as T) ?? null;
+  }
+
   async getUsersByUsername(
     username: string,
     limit: number,

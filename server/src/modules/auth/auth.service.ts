@@ -42,7 +42,9 @@ export class AuthService {
     password: string,
     sessionData: CreateUserSession,
   ) {
-    const user = await this.usersService.getUserWithPassword(identifier);
+    const user = await this.usersService.getUserWithPassword(identifier, {
+      useId: false,
+    });
 
     if (!user.verified) {
       await this.sendOTP(
@@ -80,7 +82,9 @@ export class AuthService {
     oldPassword: string,
     newPassword: string,
   ) {
-    const user = await this.usersService.getUserWithPassword(userId);
+    const user = await this.usersService.getUserWithPassword(userId, {
+      useId: true,
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
