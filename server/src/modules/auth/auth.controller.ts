@@ -1,15 +1,20 @@
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Logger,
   Patch,
   Post,
+  Query,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { randomBytes, randomUUID } from 'crypto';
 import {
   createUserSchema,
   loginUserSchema,
@@ -33,10 +38,17 @@ import { type JWTPayload } from 'src/shared/types/jwt-payload.type';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { ACCESS_TOKEN_OPTIONS, REFRESH_TOKEN_OPTIONS } from './auth.constants';
 import { RefreshTokenGuard } from 'src/common/guards/refresh-token.guard';
+import { ConfigService } from '@nestjs/config';
+import { EnvConfig } from 'src/core/config/env';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  private readonly logger = new Logger(AuthController.name);
+
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService<EnvConfig, true>,
+  ) {}
 
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
@@ -209,5 +221,66 @@ export class AuthController {
     response.cookie('access_token', accessToken, ACCESS_TOKEN_OPTIONS);
 
     return { message: 'Reset password successfully' };
+  }
+
+  @Get('google')
+  googleSignIn(@Res() response: Response) {
+    const state = randomBytes(16).toString('hex');
+
+    response.cookie('oauth_state', state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax', // callback is a top-level GET, lax is enough
+      maxAge: 10 * 60 * 1000,
+    });
+
+    response.redirect(this.authService.getGoogleAuthUrl(state));
+  }
+
+  @Get('google/callback')
+  async googleCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    const frontendUrl: string = this.configService.get('CLIENT_URL');
+
+    try {
+      if (!code || !state || state !== request.cookies?.oauth_state) {
+        return response.redirect(`${frontendUrl}/sign-in?error=invalid_state`);
+      }
+      response.clearCookie('oauth_state');
+
+      // Browser redirects can't carry your custom device headers,
+      // so derive the session data here.
+      const deviceId = (request.cookies?.device_id ?? randomUUID()) as string;
+      response.cookie('device_id', deviceId, {
+        httpOnly: true,
+        maxAge: 365 * 24 * 60 * 60 * 1000,
+      });
+
+      const { accessToken, refreshToken } = await this.authService.googleSignIn(
+        code,
+        {
+          deviceId,
+          deviceName: request.headers['user-agent'] ?? 'Unknown',
+          platform: 'web',
+        },
+      );
+
+      response.cookie('refresh_token', refreshToken, REFRESH_TOKEN_OPTIONS);
+      response.cookie('access_token', accessToken, ACCESS_TOKEN_OPTIONS);
+
+      return response.redirect(`${frontendUrl}/`);
+    } catch (error) {
+      this.logger.error(
+        'Google callback failed',
+        error instanceof Error ? error.stack : String(error),
+      );
+      return response.redirect(
+        `${frontendUrl}/sign-in?error=google_callback_failed`,
+      );
+    }
   }
 }

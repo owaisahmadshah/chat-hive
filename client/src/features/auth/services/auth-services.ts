@@ -51,3 +51,7 @@ export const forgotPasswordServ = async (data: ResendOTP) => {
 export const resetPasswordServ = async (data: ResetPassword) => {
   return await api.post("/api/v1/auth/reset-password", data);
 };
+
+export const handleGoogleSignIn = () => {
+  window.location.href = `${api.defaults.baseURL}/api/v1/auth/google`;
+};

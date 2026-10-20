@@ -236,4 +236,62 @@ export class AuthService {
 
     return { accessToken, refreshToken };
   }
+
+  getGoogleAuthUrl(state: string) {
+    const params = new URLSearchParams({
+      client_id: this.ConfigService.get('GOOGLE_CLIENT_ID'),
+      redirect_uri: this.googleRedirectUri,
+      response_type: 'code',
+      scope: 'openid email profile',
+      state,
+    });
+
+    return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+  }
+
+  async googleSignIn(code: string, sessionData: CreateUserSession) {
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: this.ConfigService.get('GOOGLE_CLIENT_ID'),
+        client_secret: this.ConfigService.get('GOOGLE_CLIENT_SECRET'),
+        redirect_uri: this.googleRedirectUri,
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    if (!tokenRes.ok)
+      throw new UnauthorizedException('Google token exchange failed');
+
+    const { id_token } = (await tokenRes.json()) as { id_token?: string };
+    if (!id_token) throw new UnauthorizedException('No id_token from Google');
+
+    // Safe to decode without verifying: it came straight from Google over TLS.
+    const payload = JSON.parse(
+      Buffer.from(id_token.split('.')[1], 'base64url').toString(),
+    ) as {
+      email_verified?: string;
+      sub: string;
+      picture: string;
+      email: string;
+    };
+
+    if (!payload.email_verified) {
+      throw new ForbiddenException('Google email is not verified');
+    }
+
+    const user = await this.usersService.findOrCreateGoogleUser({
+      googleId: payload.sub,
+      email: payload.email,
+      imageUrl: payload.picture,
+    });
+
+    return this.createSessionWithTokens(user, sessionData);
+  }
+
+  private get googleRedirectUri() {
+    return `${this.ConfigService.get('SERVER_URL')}/api/v1/auth/google/callback`;
+  }
 }

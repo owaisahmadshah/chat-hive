@@ -245,4 +245,53 @@ export class UserRepository {
 
     return result;
   }
+
+  async getUserByAuthProviderId(authProviderId: string, tx?: DBClient) {
+    const [user] = await this.getClient(tx)
+      .select(userProjections.user)
+      .from(users)
+      .where(
+        and(
+          eq(users.authProvider, 'google'),
+          eq(users.authProviderId, authProviderId),
+        ),
+      )
+      .limit(1);
+
+    return user ?? null;
+  }
+
+  async linkGoogleAccount(userId: string, googleId: string, tx?: DBClient) {
+    const [user] = await this.getClient(tx)
+      .update(users)
+      .set({ authProviderId: googleId, verified: true })
+      .where(eq(users.id, userId))
+      .returning(userProjections.user);
+
+    return user;
+  }
+
+  async createGoogleUser(
+    data: {
+      username: string;
+      email: string;
+      googleId: string;
+      imageUrl?: string;
+    },
+    tx?: DBClient,
+  ) {
+    const [user] = await this.getClient(tx)
+      .insert(users)
+      .values({
+        username: data.username,
+        email: data.email,
+        imageURL: data.imageUrl,
+        authProvider: 'google',
+        authProviderId: data.googleId,
+        verified: true,
+      })
+      .returning(userProjections.user);
+
+    return user;
+  }
 }

@@ -1,13 +1,14 @@
-import { useEffect } from "react"
-import { toast } from "sonner"
-import { handleGoogleSignIn } from "../services/authService"
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { handleGoogleSignIn } from "../services/auth-services";
 
 const errorMessages: Record<string, string> = {
   invalid_state: "Authentication failed. Please try again.",
   google_token_failed: "Failed to connect with Google. Please try again.",
+  google_callback_failed: "Google sign-in failed. Please try again.",
   no_token: "No response from Google. Please try again.",
   server_error: "Something went wrong. Please try again.",
-}
+};
 
 const GoogleIcon = () => (
   <svg
@@ -33,17 +34,17 @@ const GoogleIcon = () => (
       fill="#EA4335"
     />
   </svg>
-)
+);
 
 export const ContinueWithGoogle = () => {
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const error = params.get("error")
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
     if (error) {
-      toast.error(errorMessages[error] ?? "Google sign-in failed.")
-      window.history.replaceState({}, "", window.location.pathname)
+      toast.error(errorMessages[error] ?? "Google sign-in failed.");
+      window.history.replaceState({}, "", window.location.pathname);
     }
-  }, [])
+  }, []);
 
   return (
     <button
@@ -54,5 +55,5 @@ export const ContinueWithGoogle = () => {
       <GoogleIcon />
       Continue with Google
     </button>
-  )
-}
+  );
+};

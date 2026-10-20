@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { DatabaseService, DBClient } from 'src/core/database/database.service';
 import { UserRepository } from './repositories/users.repository';
 import {
@@ -216,5 +217,46 @@ export class UsersService {
       : null;
 
     return { data, nextCursor, hasMore };
+  }
+
+  async findOrCreateGoogleUser(data: {
+    googleId: string;
+    email: string;
+    imageUrl?: string;
+  }) {
+    let user = await this.userRepository.getUserByAuthProviderId(data.googleId);
+
+    if (!user) {
+      const existing = await this.userRepository.getUserByEmail(data.email);
+
+      if (existing) {
+        // Local account with same email: link it, keep the password
+        user = await this.userRepository.linkGoogleAccount(
+          existing.id,
+          data.googleId,
+        );
+      } else {
+        const username = await this.generateUniqueUsername(
+          data.email.split('@')[0],
+        );
+        user = await this.userRepository.createGoogleUser({
+          ...data,
+          username,
+        });
+      }
+    }
+
+    return { id: user.id, email: user.email, username: user.username };
+  }
+
+  private async generateUniqueUsername(name: string) {
+    const base =
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '')
+        .slice(0, 20) || 'user';
+
+    if (!(await this.userRepository.isUsernameExists(base))) return base;
+    return `${base}_${randomBytes(3).toString('hex')}`;
   }
 }
